@@ -732,3 +732,19 @@ UI refactor בלבד בדף ההגדרות — ללא שינוי behavior, store
 
 - **headbreaker v3 API**: אין תיעוד רשמי עדכני. קראנו את קוד המקור (canvas.js, outline.js, puzzle.js, drag-mode.js) כדי להבין את ה-API: callback של onConnect מקבל (piece, figure, targetPiece, targetFigure), outline.Classic הוא instance ולא constructor, זיהוי חלקי מסגרת דרך piece.up.isNone() וכו'
 - **OverlayTimer files missing in worktree**: ה-worktree נוצר מ-commit ישן (2b78f9a). בוצע merge של main לקבלת קבצי OverlayTimerPage/Settings שנוספו ב-commit 81c57b4
+
+---
+
+### 2026-09-21 — תיקון CORS בטעינת תמונות (ImagePreview)
+
+**בעיה:** בפריסה על `puzzles.tzlev.ovh` (חשבון tzlev) חלק מתמונות הפאזל נחסמו ב-CORS
+(`No 'Access-Control-Allow-Origin' header`) לסירוגין, במיוחד קטגוריית "חיות בר".
+
+**שורש:** `PuzzleCanvas.svelte` טוען את התמונה עם `img.crossOrigin = "anonymous"`
+(בקשת CORS, שולחת `Origin`), אך `ImagePreview.svelte` (תמונת העזר) טען את **אותו** URL
+כ-`<img>` רגיל בלי crossorigin — בקשה בלי `Origin`. באקט ה-R2 מחזיר
+`Access-Control-Allow-Origin` רק כשיש `Origin`, אז תגובת ה-thumbnail נשמרה בקאש הדפדפן
+בלי הכותרת, ואז טעינת ה-canvas ל-אותו URL קיבלה את התגובה השמורה ונחסמה.
+
+**תיקון:** הוספת `crossorigin="anonymous"` ל-`<img>` ב-`ImagePreview.svelte` — כך שתי
+הטעינות זהות (שתיהן CORS), ותגובת הקאש תקינה. שורה אחת, ללא צורך בכללי Cloudflare.

@@ -130,6 +130,7 @@
   >
     <img
       src={gameState.currentImage.src}
+      crossorigin="anonymous"
       alt="תמונת עזר"
       class="w-full h-full object-cover rounded-lg pointer-events-none select-none"
     />
