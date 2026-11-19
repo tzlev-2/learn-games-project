@@ -6,6 +6,26 @@
 
 ---
 
+## 2026-11-19 11:04
+
+### קיט: `wordys` — tokens תצוגה לכותרת מסך הפתיחה
+
+`wordys.css` מגדיר את ה-tokens האופציונליים של `StartScreen`: ‏`--theme-text-heading` כתום
+(`#ea580c`, ה-brand-primary), ‏`--theme-font-size-display` ‏`clamp(3.75rem, 10vw, 6rem)` ומשקל 900 —
+כמו `text-6xl md:text-8xl font-black text-orange-600` במסך הפתיחה של wordys-game. היום רק
+ה-showcase של `kit-test-screen` משתמש ב-`wordys`.
+
+#### בעיה פתוחה שנמדדה — `rounded-sm/md/lg` של Tailwind ממופים ל-radius של ה-theme
+
+`tokens.css` ממפה `--radius-sm/md/lg` ל-`--theme-radius-*`, ולכן כל `rounded-lg` בקוד של
+אפליקציה משתנה עם ה-theme. ב-wordys (שייבא את הסגנונות של הקיט בלי `data-theme`)
+הערכים היו 4/8/16px של `default`; עם `data-theme="wordys"` הם 12/20/32px והמקשים במקלדת
+התעגלו. wordys נועץ את הערכים הקודמים ב-`layout.css` שלו. ב-sort-cards / train-addition /
+passcode ה-build השני של Tailwind (דרך `SiteBoosterMain` → `ui/app.css`) דורס בפועל את
+`--radius-lg` ל-`.5rem` — כך שגם `Card` של הקיט יוצא שם 8px. שתי הבעיות מפורטות בדוח P5.
+
+---
+
 ## 2026-11-19 10:51
 
 ### קיט: `slate` — גודל כותרת התצוגה לפי רוחב המסך
