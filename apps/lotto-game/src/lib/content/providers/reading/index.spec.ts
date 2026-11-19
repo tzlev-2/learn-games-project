@@ -2,8 +2,16 @@
  * בדיקות עבור Reading Content Provider (ציור של קריאה)
  */
 import { describe, it, expect } from 'vitest';
-import { readingProvider, READING_ITEMS } from './index';
+import { isContentProvider, validateSelection, type ContentItem } from 'learn-booster-kit';
+import { readingProvider, readingAxis, READING_ITEMS } from './index';
 import type { ReadingProviderSettings, ReadingItem } from './index';
+
+/** עטיפת פריט קריאה כ-ContentItem (כמו שה-deck מחזיר) */
+const asItem = (item: ReadingItem): ContentItem<ReadingItem> => ({
+	id: item.id,
+	value: item,
+	label: `${item.letter} - ${item.helper}`
+});
 
 describe('Reading Provider', () => {
 	describe('Provider Metadata', () => {
@@ -23,8 +31,20 @@ describe('Reading Provider', () => {
 			expect(readingProvider.renderComponent).toBeDefined();
 		});
 
-		it('should have settings component', () => {
-			expect(readingProvider.settingsComponent).toBeDefined();
+		it('should have no extra settings component (selection is rendered by the axis)', () => {
+			expect(readingProvider.settingsComponent).toBeUndefined();
+		});
+
+		it('should be a valid kit ContentProvider', () => {
+			expect(isContentProvider(readingProvider)).toBe(true);
+		});
+
+		it('should expose a single "readingItems" selection axis with item component', () => {
+			expect(readingProvider.selectionAxes).toHaveLength(1);
+			expect(readingProvider.selectionAxes[0]).toBe(readingAxis);
+			expect(readingAxis.id).toBe('readingItems');
+			expect(readingAxis.displayName).toBeTruthy();
+			expect(readingAxis.itemComponent).toBeDefined();
 		});
 
 		it('should have cardStyles configured', () => {
@@ -34,14 +54,14 @@ describe('Reading Provider', () => {
 		});
 	});
 
-	describe('getAvailableItems', () => {
+	describe('getAvailableItems (readingItems axis)', () => {
 		it('should return all reading items (א-ח)', () => {
-			const items = readingProvider.getAvailableItems();
+			const items = readingAxis.getAvailableItems();
 			expect(items).toHaveLength(8); // aleph, bet, gimel, dalet, he, vav, zayin, het
 		});
 
 		it('should return items with correct structure', () => {
-			const items = readingProvider.getAvailableItems();
+			const items = readingAxis.getAvailableItems();
 			const firstItem = items[0];
 
 			expect(firstItem).toHaveProperty('id');
@@ -53,7 +73,7 @@ describe('Reading Provider', () => {
 		});
 
 		it('should have label format "letter - helper"', () => {
-			const items = readingProvider.getAvailableItems();
+			const items = readingAxis.getAvailableItems();
 			const aleph = items.find(item => item.id === 'aleph');
 			
 			expect(aleph).toBeDefined();
@@ -63,7 +83,7 @@ describe('Reading Provider', () => {
 		});
 
 		it('should include aleph', () => {
-			const items = readingProvider.getAvailableItems();
+			const items = readingAxis.getAvailableItems();
 			const aleph = items.find(item => item.value.id === 'aleph');
 			
 			expect(aleph).toBeDefined();
@@ -72,7 +92,7 @@ describe('Reading Provider', () => {
 		});
 
 		it('should include het', () => {
-			const items = readingProvider.getAvailableItems();
+			const items = readingAxis.getAvailableItems();
 			const het = items.find(item => item.value.id === 'het');
 			
 			expect(het).toBeDefined();
@@ -81,7 +101,7 @@ describe('Reading Provider', () => {
 		});
 
 		it('should include all items from READING_ITEMS constant', () => {
-			const items = readingProvider.getAvailableItems();
+			const items = readingAxis.getAvailableItems();
 			READING_ITEMS.forEach(readingItem => {
 				const found = items.find(item => item.value.id === readingItem.id);
 				expect(found).toBeDefined();
@@ -89,23 +109,28 @@ describe('Reading Provider', () => {
 		});
 	});
 
-	describe('getDefaultSettings', () => {
-		it('should return settings with all items selected', () => {
-			const settings = readingProvider.getDefaultSettings();
-			expect(settings.selectedItems).toHaveLength(8);
+	describe('getDefaultSelection / getDefaultSettings', () => {
+		it('should select all items by default', () => {
+			const selection = readingProvider.getDefaultSelection();
+			expect(selection.readingItems).toHaveLength(8);
 		});
 
-		it('should have selectedItems property', () => {
-			const settings = readingProvider.getDefaultSettings();
-			expect(settings).toHaveProperty('selectedItems');
-			expect(Array.isArray(settings.selectedItems)).toBe(true);
+		it('should have readingItems axis in default selection', () => {
+			const selection = readingProvider.getDefaultSelection();
+			expect(selection).toHaveProperty('readingItems');
+			expect(Array.isArray(selection.readingItems)).toBe(true);
+			expect(validateSelection(readingProvider.selectionAxes, selection).isOk()).toBe(true);
 		});
 
 		it('should include all item IDs', () => {
-			const settings = readingProvider.getDefaultSettings();
+			const selection = readingProvider.getDefaultSelection();
 			const expectedIds = READING_ITEMS.map(item => item.id);
-			
-			expect(settings.selectedItems).toEqual(expectedIds);
+
+			expect(selection.readingItems).toEqual(expectedIds);
+		});
+
+		it('should have empty default settings (no selection inside settings)', () => {
+			expect(readingProvider.getDefaultSettings!()).toEqual({});
 		});
 	});
 
@@ -117,9 +142,9 @@ describe('Reading Provider', () => {
 				imagePath: '/reading-icons/aleph_pear.png',
 				helper: 'אגס'
 			};
-			const settings: ReadingProviderSettings = { selectedItems: ['aleph'] };
+			const settings: ReadingProviderSettings = {};
 			
-			const content = readingProvider.generateCardContent(item, settings);
+			const content = readingProvider.generateCardContent(asItem(item), settings);
 
 			expect(content.providerId).toBe('reading');
 			expect(content.itemId).toBe('aleph');
@@ -134,14 +159,12 @@ describe('Reading Provider', () => {
 		});
 
 		it('should work for different items', () => {
-			const settings: ReadingProviderSettings = { selectedItems: [] };
+			const settings: ReadingProviderSettings = {};
 			
-			const contentAleph = readingProvider.generateCardContent(
-				READING_ITEMS[0],
+			const contentAleph = readingProvider.generateCardContent(asItem(READING_ITEMS[0]),
 				settings
 			);
-			const contentBet = readingProvider.generateCardContent(
-				READING_ITEMS[1],
+			const contentBet = readingProvider.generateCardContent(asItem(READING_ITEMS[1]),
 				settings
 			);
 
@@ -157,9 +180,9 @@ describe('Reading Provider', () => {
 				imagePath: '/reading-icons/gimel_wheel.png',
 				helper: 'גלגל'
 			};
-			const settings: ReadingProviderSettings = { selectedItems: [] };
+			const settings: ReadingProviderSettings = {};
 			
-			const content = readingProvider.generateCardContent(item, settings);
+			const content = readingProvider.generateCardContent(asItem(item), settings);
 			const data = content.data as any;
 
 			expect(data.letter).toBe(item.letter);
@@ -169,18 +192,18 @@ describe('Reading Provider', () => {
 	});
 
 	describe('contentMatches', () => {
-		const settings: ReadingProviderSettings = { selectedItems: [] };
+		const settings: ReadingProviderSettings = {};
 
 		it('should match cards with same item', () => {
-			const card1 = readingProvider.generateCardContent(READING_ITEMS[0], settings);
-			const card2 = readingProvider.generateCardContent(READING_ITEMS[0], settings);
+			const card1 = readingProvider.generateCardContent(asItem(READING_ITEMS[0]), settings);
+			const card2 = readingProvider.generateCardContent(asItem(READING_ITEMS[0]), settings);
 
 			expect(readingProvider.contentMatches(card1, card2)).toBe(true);
 		});
 
 		it('should not match cards with different items', () => {
-			const card1 = readingProvider.generateCardContent(READING_ITEMS[0], settings);
-			const card2 = readingProvider.generateCardContent(READING_ITEMS[1], settings);
+			const card1 = readingProvider.generateCardContent(asItem(READING_ITEMS[0]), settings);
+			const card2 = readingProvider.generateCardContent(asItem(READING_ITEMS[1]), settings);
 
 			expect(readingProvider.contentMatches(card1, card2)).toBe(false);
 		});
@@ -201,103 +224,65 @@ describe('Reading Provider', () => {
 		});
 	});
 
-	describe('getSelectedItemIds', () => {
-		it('should return selected items as array', () => {
-			const settings: ReadingProviderSettings = { 
-				selectedItems: ['aleph', 'bet', 'gimel'] 
-			};
-			const ids = readingProvider.getSelectedItemIds(settings);
+	describe('generateDeck', () => {
+		const settings: ReadingProviderSettings = {};
 
-			expect(ids).toEqual(['aleph', 'bet', 'gimel']);
+		it('should return selected items (in READING_ITEMS order)', () => {
+			const deck = readingProvider.generateDeck({ readingItems: ['gimel', 'aleph', 'bet'] }, settings);
+
+			expect(deck.map((item) => item.id)).toEqual(['aleph', 'bet', 'gimel']);
+			expect(deck[0]).toEqual(asItem(READING_ITEMS[0]));
 		});
 
 		it('should return empty array for empty selection', () => {
-			const settings: ReadingProviderSettings = { selectedItems: [] };
-			const ids = readingProvider.getSelectedItemIds(settings);
-
-			expect(ids).toEqual([]);
+			expect(readingProvider.generateDeck({ readingItems: [] }, settings)).toEqual([]);
+			expect(readingProvider.generateDeck({}, settings)).toEqual([]);
 		});
 
-		it('should not mutate original settings', () => {
-			const settings: ReadingProviderSettings = { 
-				selectedItems: ['aleph', 'bet'] 
-			};
-			const originalItems = [...settings.selectedItems];
-			
-			const ids = readingProvider.getSelectedItemIds(settings);
-			ids.push('gimel');
-
-			expect(settings.selectedItems).toEqual(originalItems);
+		it('should ignore unknown item ids', () => {
+			const deck = readingProvider.generateDeck({ readingItems: ['aleph', 'tet'] }, settings);
+			expect(deck.map((item) => item.id)).toEqual(['aleph']);
 		});
-	});
 
-	describe('updateSelectedItems', () => {
-		it('should update selected items', () => {
-			const settings: ReadingProviderSettings = { selectedItems: ['aleph'] };
-			const newSettings = readingProvider.updateSelectedItems(
-				settings, 
-				['aleph', 'bet', 'gimel']
+		it('should not mutate selection', () => {
+			const selection = { readingItems: ['bet', 'aleph'] };
+			const original = structuredClone(selection);
+
+			const deck = readingProvider.generateDeck(selection, settings);
+			deck.pop();
+
+			expect(selection).toEqual(original);
+		});
+
+		it('should return new array each call (immutability)', () => {
+			const selection = { readingItems: ['aleph'] };
+			expect(readingProvider.generateDeck(selection, settings)).not.toBe(
+				readingProvider.generateDeck(selection, settings)
 			);
-
-			expect(newSettings.selectedItems).toEqual(['aleph', 'bet', 'gimel']);
-		});
-
-		it('should not mutate original settings', () => {
-			const settings: ReadingProviderSettings = { selectedItems: ['aleph'] };
-			const original = { ...settings };
-			
-			readingProvider.updateSelectedItems(settings, ['aleph', 'bet']);
-
-			expect(settings).toEqual(original);
-		});
-
-		it('should work with empty array', () => {
-			const settings: ReadingProviderSettings = { 
-				selectedItems: ['aleph', 'bet'] 
-			};
-			const newSettings = readingProvider.updateSelectedItems(settings, []);
-
-			expect(newSettings.selectedItems).toEqual([]);
-		});
-
-		it('should return new object (immutability)', () => {
-			const settings: ReadingProviderSettings = { selectedItems: ['aleph'] };
-			const newSettings = readingProvider.updateSelectedItems(settings, ['bet']);
-
-			expect(newSettings).not.toBe(settings);
 		});
 	});
 
 	describe('Integration: full workflow', () => {
 		it('should handle complete provider workflow', () => {
 			// 1. קבלת ברירת מחדל
-			const defaultSettings = readingProvider.getDefaultSettings();
-			expect(defaultSettings.selectedItems).toHaveLength(8);
+			const defaultSelection = readingProvider.getDefaultSelection();
+			expect(defaultSelection.readingItems).toHaveLength(8);
+			const settings = readingProvider.getDefaultSettings!();
 
 			// 2. עדכון בחירה
-			const updatedSettings = readingProvider.updateSelectedItems(
-				defaultSettings,
-				['aleph', 'bet', 'gimel']
-			);
-			expect(updatedSettings.selectedItems).toEqual(['aleph', 'bet', 'gimel']);
+			const selection = { ...defaultSelection, readingItems: ['aleph', 'bet', 'gimel'] };
 
-			// 3. שליפת IDs
-			const ids = readingProvider.getSelectedItemIds(updatedSettings);
-			expect(ids).toEqual(['aleph', 'bet', 'gimel']);
+			// 3. ייצור deck
+			const deck = readingProvider.generateDeck(selection, settings);
+			expect(deck.map((item) => item.id)).toEqual(['aleph', 'bet', 'gimel']);
 
 			// 4. יצירת תוכן כרטיס
-			const content = readingProvider.generateCardContent(
-				READING_ITEMS[0],
-				updatedSettings
-			);
+			const content = readingProvider.generateCardContent(deck[0], settings);
 			expect(content.providerId).toBe('reading');
 			expect(content.itemId).toBe('aleph');
 
 			// 5. בדיקת התאמה
-			const content2 = readingProvider.generateCardContent(
-				READING_ITEMS[0],
-				updatedSettings
-			);
+			const content2 = readingProvider.generateCardContent(deck[0], settings);
 			expect(readingProvider.contentMatches(content, content2)).toBe(true);
 		});
 	});

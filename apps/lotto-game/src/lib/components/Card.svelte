@@ -38,7 +38,7 @@
 	const isRevealed = $derived(cardState !== 'facedown');
 
 	// שליפת ה-provider לקבלת הגדרות עיצוב
-	const provider = $derived(contentRegistry.get(card.content.providerId));
+	const provider = $derived(contentRegistry.getOrThrow(card.content.providerId));
 	const cardStyles = $derived(provider.cardStyles);
 </script>
 

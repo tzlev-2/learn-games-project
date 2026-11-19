@@ -1,5 +1,59 @@
 # יומן פיתוח - משחק לוטו (Lotto Game)
 
+## 2026-11-19 10:40
+
+### מעבר ל-ContentProvider הרב-צירי של הקיט + מיגרציית הגדרות v3
+
+שלב 2 בתכנית הפלטפורמה (`docs/platform-plan.md` §5): חוזה ה-ContentProvider עבר ל-`learn-booster-kit` (מודול `src/content/`) והורחב לצירי בחירה. הלוטו הוא הצרכן הראשון.
+
+#### מה בוצע?
+
+**1. שלושת ה-Providers — Providers טבעיים של הקיט (ציר יחיד, בלי adapter)**
+
+- `letters` (ציר `letters`), `shapes` (ציר `shapes` + `colorMode`), `reading` (ציר `readingItems`).
+- `generateDeck(selection) = selectAxisItems(axis, selection)`; `getDefaultSelection()` = כל הפריטים.
+- `generateCardContent` מקבל `ContentItem` (לא `item.value`). התוכן שנוצר זהה לקודם.
+- `getSelectedItemIds` / `updateSelectedItems` הוסרו — הבחירה כבר לא בתוך ה-settings.
+- הרישום העצמי בתוך `shapes/index.ts` ו-`reading/index.ts` הוסר; הרישום מרוכז ב-`providers/index.ts`.
+
+**2. Registry והצהרה**
+
+- `content/registry.ts` — `createContentRegistry()` של הקיט (במקום ה-class המקומי).
+- `content/game-content.ts` — `LOTTO_CONTENT_DECLARATION` (`letters`, `shapes`, `reading`; ברירת מחדל `letters`) ו-`lottoContent` (`resolveGameContent`).
+- `Card.svelte` / `ContentRenderer.svelte` — `getOrThrow`; `<svelte:component>` הוחלף ברכיב דינמי (2 אזהרות svelte-check פחות).
+
+**3. מסך הבחירה — `AxisSelector` של הקיט**
+
+- `LettersSettings.svelte` ו-`ReadingSettings.svelte` נמחקו; הבחירה מוצגת ע"י `AxisSelector` (fieldset לכל ציר, "בחר הכל"/"נקה הכל").
+- תצוגת פריט עשירה דרך `itemComponent` של הציר: `ShapeAxisItem.svelte` (SVG ב-`currentColor`), `ReadingAxisItem.svelte` (אות + תמונה + תומך).
+- `ShapesSettings.svelte` מצומצם להגדרת מצב הצבעים בלבד (`ProviderSettingsProps`).
+- `src/lib/language.ts` חדש — שמות Providers/צירים, labels של הבורר, מחרוזות מצב הצבעים.
+
+**4. הגדרות — סכמה v3 ומיגרציה דרך מנוע הקיט**
+
+- `stores/settings-schema.ts` (טהור): `LottoSettingsData` v3, `migrateLottoSettings` (v1→v2 — ההמרה שהייתה ב-store; v2→v3 חדש), רישום ב-`registerGameSchema('lotto-game', …)`, `loadLottoSettings` = `runGameSettingsMigrations` + `parseLottoSettings`.
+- v3: `contentSelections: Record<providerId, ProviderSelection>` + `contentSettings: Record<providerId, {...}>`. מיפוי v2: `selectedLetters`→`letters.letters`, `selectedShapes`→`shapes.shapes`, `selectedItems`→`reading.readingItems`, `colorMode`→`shapes.colorMode`.
+- אימות בטעינה: שדה לא תקין → ברירת מחדל לשדה הזה בלבד (+ אזהרה בקונסול); בחירות עוברות `parseSelection` (ArkType) של הקיט. `contentProviderId` לא מוכר → `letters`.
+- ה-store שומר בחירה והגדרות **לכל Provider בנפרד** — מעבר בין Providers כבר לא מאפס את הבחירה של ה-Provider הקודם (קודם `setProvider` חיפש `contentSettings[providerId]` שמעולם לא נכתב).
+
+#### בדיקות
+
+- server: 125 עוברות (בסיס 111). `types.spec.ts` + `registry.spec.ts` עברו לקיט (`test/content/`); נוספו `game-content.spec.ts` (6), `settings-schema.spec.ts` (20), `utils/gameLogic.spec.ts` (5). ה-specs של שלושת ה-Providers הותאמו ל-API החדש (טענות `getSelectedItemIds`/`updateSelectedItems` → `getDefaultSelection`/`generateDeck`, כולל immutability).
+- browser (`page.svelte.spec.ts`): נכשל רק בגלל שאין Chromium של Playwright בסביבה — כמו בבסיס.
+- `bun run check`: 0 שגיאות, 10 אזהרות (בסיס 12; כולן בקבצי `ui/` של הקיט). `bun run build`: עובר.
+
+#### החלטות ארכיטקטורה
+
+- **Providers טבעיים ולא adapter** — כך הבחירה נשמרת בצורת `ProviderSelection` האחידה שמשחקים אחרים (find-letter, שלב 3) יצרכו. ה-adapter (`legacyToMultiAxis`) נשאר בקיט למשחקים אחרים.
+- **ההגדרות נשארות ב-localStorage של הלוטו** (`lotto-game-settings`) ולא עברו ל-`profile.gameSettings`; המיגרציה רשומה במנוע הקיט ולכן תעבוד גם אחרי מעבר כזה.
+- **אין ArkType ישיר בלוטו** (אין תלות כזו ב-`package.json`): בחירות מאומתות ב-`parseSelection` של הקיט, שדות פרימיטיביים ב-guards מפורשים.
+
+#### תיעוד
+
+`docs/creating-content-provider.md` נכתב מחדש ומפנה ל-`packages/learn-booster-kit/docs/content-provider.md`. `src/lib/content/README.tests.md` עודכן.
+
+---
+
 ## 2026-02-26 23:00
 
 ### מצב משחק זיכרון, צבעים ייחודיים, והגדרות נוספות

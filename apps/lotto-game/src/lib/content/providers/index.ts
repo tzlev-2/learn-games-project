@@ -1,5 +1,5 @@
 /**
- * רישום אוטומטי של כל ספקי התוכן
+ * רישום כל ספקי התוכן של הלוטו ב-registry
  */
 import { contentRegistry } from '../registry';
 import { lettersProvider } from './letters/index';
@@ -13,6 +13,9 @@ contentRegistry.register(readingProvider);
 
 // ייצוא לשימוש חיצוני
 export { lettersProvider, shapesProvider, readingProvider };
+export { lettersAxis } from './letters/index';
+export { shapesAxis } from './shapes/index';
+export { readingAxis } from './reading';
 export type { LettersProviderSettings } from './letters/index';
 export type { ShapesProviderSettings, ShapeDefinition } from './shapes/index';
 export type { ReadingProviderSettings, ReadingItem } from './reading';

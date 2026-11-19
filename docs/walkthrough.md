@@ -6,6 +6,37 @@
 
 ---
 
+## 2026-11-19 10:45
+
+### שלב 2 בתכנית הפלטפורמה — ContentProvider רב-צירי בקיט, הלוטו עבר אליו
+
+חוזה ה-ContentProvider יצא מהלוטו ל-`learn-booster-kit` והורחב לצירי בחירה (`docs/platform-plan.md` §5), כהכנה ל-find-letter עם אותיות × ניקוד (שלב 3).
+
+#### מה בוצע?
+
+**1. הקיט — `packages/learn-booster-kit/src/content/`**
+
+- `SelectionAxis`, `ProviderSelection`, `ContentProvider<TSettings, TItem>` (`selectionAxes`, `generateDeck`, `isValidCombination`, `getDefaultSelection`...).
+- פונקציות טהורות לבחירה ול-deck, כולל מכפלה קרטזית עם סינון; `validateSelection` / `parseSelection` מחזירים `Result`.
+- `createContentRegistry` + `resolveGameContent` (הצהרת משחק), `legacyToMultiAxis` (§5.5), `AxisSelector` (§5.6).
+- 94 בדיקות חדשות (303 בקיט). מדריך: `packages/learn-booster-kit/docs/content-provider.md`.
+
+**2. הלוטו — `apps/lotto-game`**
+
+- שלושת ה-Providers הומרו ל-Providers טבעיים עם ציר יחיד; מסך הבחירה הוא `AxisSelector` של הקיט.
+- הגדרות שמורות v2 → v3 (`contentSelections` / `contentSettings` לכל provider) דרך `registerGameSchema` + `runGameSettingsMigrations` של הקיט.
+- 125 בדיקות server עוברות; build עובר.
+
+**3. תיעוד**
+
+- `docs/platform-plan.md` — §4 שלב 3 סעיף 1 סומן כבוצע; §6.4 — החלטת ה-registry.
+
+#### החלטות ארכיטקטורה
+
+- **Registry ב-kit כ-factory + הצהרת משחק** (פירוט ב-platform-plan §6.4).
+- **הבחירה מחוץ ל-settings של ה-Provider** — `ProviderSelection` אחיד לכל המשחקים.
+- find-letter ו-sort-cards לא נגעו (שלב 3 בהמשך).
+
 ## 2026-11-19 10:25
 
 ### קיט: `PlayIcon`
@@ -48,6 +79,7 @@
   Playwright browser. בדיקות ה-props החדשים רצות ב-node דרך `render` של `svelte/server`
   על ה-HTML שנוצר.
 - **tokens אופציונליים עם fallback** — במקום להוסיף token חובה לכל 8 ה-themes.
+
 
 ---
 

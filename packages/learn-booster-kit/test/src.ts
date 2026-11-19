@@ -30,3 +30,18 @@ export * as profileManager from '../src/lib/config/profile-manager'
 export * as videoLoader from '../src/lib/video/video-loader'
 export * as watchdog from '../src/lib/watchdog/reward-watchdog'
 export * as appList from '../src/lib/fully-kiosk/get-app-list'
+
+// ─── content (multi-axis ContentProvider) — בלי AxisSelector.svelte ─────────
+import * as _contentTypes from '../src/content/types'
+import * as _contentSelection from '../src/content/selection'
+import * as _contentDeck from '../src/content/deck'
+import * as _contentRegistry from '../src/content/registry'
+import * as _contentLegacy from '../src/content/legacy-adapter'
+
+export const content = {
+  ..._contentTypes,
+  ..._contentSelection,
+  ..._contentDeck,
+  ..._contentRegistry,
+  ..._contentLegacy,
+}

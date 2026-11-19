@@ -1,44 +1,29 @@
 import { browser } from '$app/environment';
-import { contentRegistry } from '$lib/content';
+import type { ProviderSelection } from 'learn-booster-kit';
+import { lottoContent } from '$lib/content';
+import {
+	DEFAULT_SETTINGS,
+	LOTTO_SETTINGS_VERSION,
+	loadLottoSettings,
+	type GameMode,
+	type LoopMode,
+	type LottoSettingsData
+} from './settings-schema';
 
 const STORAGE_KEY = 'lotto-game-settings';
-const CURRENT_VERSION = 2; // גרסה 2 - מודולרי
 
-export const DEFAULT_SETTINGS = {
-	schemaVersion: CURRENT_VERSION,
-	// מצב משחק
-	gameMode: 'lotto' as 'lotto' | 'memory',
-
-	// הגדרות משחק
-	pairCount: 10,
-
-	// הגדרות תוכן - מודולרי
-	contentProviderId: 'letters',
-	contentSettings: {} as Record<string, unknown>,
-
-	// הגדרות לולאה
-	loopMode: 'finite' as 'finite' | 'infinite',
-	totalRounds: 1,
-
-	// הגדרות מחזק
-	boosterEnabled: true,
-	autoBooster: true,
-
-	// הגדרות משחקיות
-	enableDeselect: true,
-	hideMatchedCards: false,
-	feedbackDurationSec: 2,
-	autoNextRound: false
-};
-
-export type LottoSettings = typeof DEFAULT_SETTINGS;
+export { DEFAULT_SETTINGS };
+export type LottoSettings = LottoSettingsData;
 
 class SettingsStore {
-	gameMode = $state<'lotto' | 'memory'>(DEFAULT_SETTINGS.gameMode);
+	gameMode = $state<GameMode>(DEFAULT_SETTINGS.gameMode);
 	pairCount = $state(DEFAULT_SETTINGS.pairCount);
 	contentProviderId = $state(DEFAULT_SETTINGS.contentProviderId);
-	contentSettings = $state<Record<string, unknown>>({});
-	loopMode = $state<'finite' | 'infinite'>(DEFAULT_SETTINGS.loopMode);
+	/** providerId → בחירת המורה (ProviderSelection) */
+	contentSelections = $state<Record<string, ProviderSelection>>({});
+	/** providerId → הגדרות שאינן בחירה */
+	contentSettings = $state<Record<string, Record<string, unknown>>>({});
+	loopMode = $state<LoopMode>(DEFAULT_SETTINGS.loopMode);
 	totalRounds = $state(DEFAULT_SETTINGS.totalRounds);
 	boosterEnabled = $state(DEFAULT_SETTINGS.boosterEnabled);
 	autoBooster = $state(DEFAULT_SETTINGS.autoBooster);
@@ -60,52 +45,91 @@ class SettingsStore {
 		});
 	}
 
+	/** ה-provider הנוכחי (id לא מוכר → ברירת המחדל של המשחק) */
+	get currentProvider() {
+		return lottoContent.getProvider(this.contentProviderId);
+	}
+
 	/**
-	 * שליפת ההגדרות הספציפיות ל-provider הנוכחי
+	 * שליפת ההגדרות הספציפיות ל-provider הנוכחי (ברירות מחדל + שמורות)
 	 */
 	getCurrentProviderSettings<T = unknown>(): T {
-		const provider = contentRegistry.get(this.contentProviderId);
-		const defaults = provider.getDefaultSettings() as Record<string, unknown>;
-		
-		// מיזוג ההגדרות השמורות עם ברירות המחדל
-		return { ...defaults, ...this.contentSettings } as T;
+		const provider = this.currentProvider;
+		const defaults = (provider.getDefaultSettings?.() ?? {}) as Record<string, unknown>;
+		return { ...defaults, ...this.contentSettings[provider.id] } as T;
 	}
 
 	/**
-	 * עדכון הגדרות ה-provider הנוכחי
+	 * שליפת בחירת המורה ל-provider הנוכחי (שמורה, או ברירת המחדל של ה-provider)
 	 */
-	updateProviderSettings(settings: Record<string, unknown>) {
-		this.contentSettings = { ...this.contentSettings, ...settings };
+	getCurrentSelection(): ProviderSelection {
+		const provider = this.currentProvider;
+		return this.contentSelections[provider.id] ?? provider.getDefaultSelection();
 	}
 
 	/**
-	 * החלפת provider
+	 * עדכון הגדרות ה-provider הנוכחי (מיזוג)
+	 */
+	updateProviderSettings(partial: Record<string, unknown>) {
+		const providerId = this.currentProvider.id;
+		this.contentSettings = {
+			...this.contentSettings,
+			[providerId]: { ...this.contentSettings[providerId], ...partial }
+		};
+	}
+
+	/**
+	 * עדכון בחירת המורה ל-provider הנוכחי
+	 */
+	updateSelection(selection: ProviderSelection) {
+		this.contentSelections = { ...this.contentSelections, [this.currentProvider.id]: selection };
+	}
+
+	/**
+	 * החלפת provider — הבחירה וההגדרות של כל provider נשמרות בנפרד
 	 */
 	setProvider(providerId: string) {
-		if (this.contentProviderId !== providerId) {
-			this.contentProviderId = providerId;
-			// טעינת ההגדרות השמורות או ברירת מחדל
-			const provider = contentRegistry.get(providerId);
-			this.contentSettings = this.contentSettings[providerId] 
-				? (this.contentSettings[providerId] as Record<string, unknown>)
-				: (provider.getDefaultSettings() as Record<string, unknown>);
-		}
+		this.contentProviderId = lottoContent.resolveProviderId(providerId);
 	}
 
 	private load() {
 		const saved = localStorage.getItem(STORAGE_KEY);
-		if (saved) {
-			try {
-				const parsed = JSON.parse(saved);
-				this.migrate(parsed);
-			} catch (e) {
-				console.error('Failed to parse settings', e);
-			}
-		} else {
-			// אם אין הגדרות שמורות, טען ברירות מחדל מה-provider
-			const provider = contentRegistry.get(this.contentProviderId);
-			this.contentSettings = provider.getDefaultSettings() as Record<string, unknown>;
+		if (!saved) return;
+
+		let raw: unknown;
+		try {
+			raw = JSON.parse(saved);
+		} catch (e) {
+			console.error('Failed to parse settings', e);
+			return;
 		}
+
+		const result = loadLottoSettings(raw);
+		if (result.isErr()) {
+			console.error('Invalid lotto settings, using defaults:', result.error.summary);
+			return;
+		}
+		const { settings: data, invalidFields } = result.value;
+		if (invalidFields.length > 0) {
+			console.warn('Invalid lotto settings fields replaced with defaults:', invalidFields);
+		}
+		this.apply(data);
+	}
+
+	private apply(data: LottoSettingsData) {
+		this.gameMode = data.gameMode;
+		this.pairCount = data.pairCount;
+		this.contentProviderId = lottoContent.resolveProviderId(data.contentProviderId);
+		this.contentSelections = data.contentSelections;
+		this.contentSettings = data.contentSettings;
+		this.loopMode = data.loopMode;
+		this.totalRounds = data.totalRounds;
+		this.boosterEnabled = data.boosterEnabled;
+		this.autoBooster = data.autoBooster;
+		this.enableDeselect = data.enableDeselect;
+		this.hideMatchedCards = data.hideMatchedCards;
+		this.feedbackDurationSec = data.feedbackDurationSec;
+		this.autoNextRound = data.autoNextRound;
 	}
 
 	private save() {
@@ -113,12 +137,13 @@ class SettingsStore {
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(this.toJSON()));
 	}
 
-	toJSON() {
+	toJSON(): LottoSettingsData {
 		return {
-			schemaVersion: CURRENT_VERSION,
+			schemaVersion: LOTTO_SETTINGS_VERSION,
 			gameMode: this.gameMode,
 			pairCount: this.pairCount,
 			contentProviderId: this.contentProviderId,
+			contentSelections: this.contentSelections,
 			contentSettings: this.contentSettings,
 			loopMode: this.loopMode,
 			totalRounds: this.totalRounds,
@@ -131,69 +156,14 @@ class SettingsStore {
 		};
 	}
 
-	private migrate(parsed: any) {
-		const version = parsed.schemaVersion ?? 0;
-
-		if (version === 0 || version === 1) {
-			// מיגרציה מגרסה ישנה (contentType, selectedLetters, selectedShapes)
-			this.migrateFromV1(parsed);
-		} else {
-			// גרסה 2+ - מבנה מודולרי
-			this.gameMode = parsed.gameMode ?? DEFAULT_SETTINGS.gameMode;
-			this.pairCount = parsed.pairCount ?? DEFAULT_SETTINGS.pairCount;
-			this.contentProviderId = parsed.contentProviderId ?? DEFAULT_SETTINGS.contentProviderId;
-			this.contentSettings = parsed.contentSettings ?? {};
-			this.loopMode = parsed.loopMode ?? DEFAULT_SETTINGS.loopMode;
-			this.totalRounds = parsed.totalRounds ?? DEFAULT_SETTINGS.totalRounds;
-			this.boosterEnabled = parsed.boosterEnabled ?? DEFAULT_SETTINGS.boosterEnabled;
-			this.autoBooster = parsed.autoBooster ?? DEFAULT_SETTINGS.autoBooster;
-			this.enableDeselect = parsed.enableDeselect ?? DEFAULT_SETTINGS.enableDeselect;
-			this.hideMatchedCards = parsed.hideMatchedCards ?? DEFAULT_SETTINGS.hideMatchedCards;
-			this.feedbackDurationSec = parsed.feedbackDurationSec ?? DEFAULT_SETTINGS.feedbackDurationSec;
-			this.autoNextRound = parsed.autoNextRound ?? DEFAULT_SETTINGS.autoNextRound;
-		}
-	}
-
-	private migrateFromV1(parsed: any) {
-		// מיגרציה מהמבנה הישן
-		this.pairCount = parsed.pairCount ?? DEFAULT_SETTINGS.pairCount;
-		this.loopMode = parsed.loopMode ?? DEFAULT_SETTINGS.loopMode;
-		this.totalRounds = parsed.totalRounds ?? DEFAULT_SETTINGS.totalRounds;
-		this.boosterEnabled = parsed.boosterEnabled ?? DEFAULT_SETTINGS.boosterEnabled;
-		this.autoBooster = parsed.autoBooster ?? DEFAULT_SETTINGS.autoBooster;
-		this.enableDeselect = parsed.enableDeselect ?? DEFAULT_SETTINGS.enableDeselect;
-		this.hideMatchedCards = parsed.hideMatchedCards ?? DEFAULT_SETTINGS.hideMatchedCards;
-
-		// המרת contentType הישן ל-provider ID
-		const oldContentType = parsed.contentType ?? 'letters';
-		this.contentProviderId = oldContentType === 'letters' ? 'letters' : 'shapes';
-
-		// המרת ההגדרות הישנות למבנה החדש
-		if (oldContentType === 'letters') {
-			this.contentSettings = {
-				selectedLetters: parsed.selectedLetters ?? []
-			};
-		} else {
-			this.contentSettings = {
-				selectedShapes: parsed.selectedShapes ?? [],
-				colorMode: parsed.colorMode ?? 'random'
-			};
-		}
-	}
-
 	reset() {
-		const provider = contentRegistry.get(this.contentProviderId);
-		this.gameMode = DEFAULT_SETTINGS.gameMode;
-		this.pairCount = DEFAULT_SETTINGS.pairCount;
-		this.contentSettings = provider.getDefaultSettings() as Record<string, unknown>;
-		this.loopMode = DEFAULT_SETTINGS.loopMode;
-		this.totalRounds = DEFAULT_SETTINGS.totalRounds;
-		this.boosterEnabled = DEFAULT_SETTINGS.boosterEnabled;
-		this.autoBooster = DEFAULT_SETTINGS.autoBooster;
-		this.enableDeselect = DEFAULT_SETTINGS.enableDeselect;
-		this.hideMatchedCards = DEFAULT_SETTINGS.hideMatchedCards;
-		this.feedbackDurationSec = DEFAULT_SETTINGS.feedbackDurationSec;
-		this.autoNextRound = DEFAULT_SETTINGS.autoNextRound;
+		// כמו קודם: ה-provider הנוכחי נשמר, הבחירה וההגדרות שלו חוזרות לברירת מחדל
+		this.apply({
+			...DEFAULT_SETTINGS,
+			contentProviderId: this.contentProviderId,
+			contentSelections: {},
+			contentSettings: {}
+		});
 	}
 }
 

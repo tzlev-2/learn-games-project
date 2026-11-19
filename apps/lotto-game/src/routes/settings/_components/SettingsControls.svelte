@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { slide } from 'svelte/transition';
 	import { settings } from '$lib/stores/settings.svelte';
-	import { contentRegistry } from '$lib/content/registry';
+	import { lottoContent } from '$lib/content';
+	import { language } from '$lib/language';
 	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
 	import {
 		boosterService,
@@ -9,7 +10,8 @@
 		updateConfig as updateBoosterConfig,
 		getAppsList as getAppsListFromFully,
 		type AppListItem,
-		isFullyKiosk
+		isFullyKiosk,
+		AxisSelector
 	} from 'learn-booster-kit';
 	import { onMount, onDestroy } from 'svelte';
 
@@ -95,11 +97,13 @@
 	}
 
 	// === Provider Logic ===
-	const allProviders = $derived(contentRegistry.getAll());
-	const currentProvider = $derived(contentRegistry.get(settings.contentProviderId));
+	// ה-providers שהלוטו מצהיר שהוא צורך (לפי הסדר בהצהרה)
+	const allProviders = lottoContent.providers;
+	const currentProvider = $derived(settings.currentProvider);
 	const currentSettings = $derived(settings.getCurrentProviderSettings());
+	const currentSelection = $derived(settings.getCurrentSelection());
 
-	// רכיב הגדרות דינמי
+	// רכיב הגדרות דינמי (הגדרות שאינן בחירת פריטים)
 	const SettingsComponent = $derived(currentProvider.settingsComponent);
 
 	// === Generic Handler for Provider Settings ===
@@ -151,23 +155,22 @@
 			/>
 		</div>
 
-		<!-- הגדרות ספציפיות לפי Provider - גנרי לחלוטין -->
-		{#if SettingsComponent}
-			{@const availableItems = currentProvider.getAvailableItems().map((item) => item.value)}
-			{@const selectedItems = currentProvider.getSelectedItemIds(currentSettings)}
-			<svelte:component
-				this={SettingsComponent}
-				{selectedItems}
-				onUpdate={(items: string[]) => {
-					const updated = currentProvider.updateSelectedItems(currentSettings, items) as Record<string, unknown>;
-					settings.updateProviderSettings(updated);
-				}}
-				{availableItems}
-				settings={currentSettings}
-				onSettingsUpdate={handleProviderSettingsUpdate}
+		<!-- בחירת פריטים — AxisSelector של הקיט, fieldset לכל ציר של ה-provider -->
+		<div class="setting-group">
+			<AxisSelector
+				axes={currentProvider.selectionAxes}
+				selection={currentSelection}
+				onchange={(selection) => settings.updateSelection(selection)}
+				labels={language.content.selector}
+				itemMinWidth="4rem"
 			/>
-		{:else}
-			<p class="no-settings">אין הגדרות זמינות לספק זה</p>
+		</div>
+
+		<!-- הגדרות ספציפיות ל-Provider (מעבר לבחירה) - גנרי לחלוטין -->
+		{#if SettingsComponent}
+			<div class="setting-group">
+				<SettingsComponent settings={currentSettings} onSettingsUpdate={handleProviderSettingsUpdate} />
+			</div>
 		{/if}
 	</section>
 
@@ -690,11 +693,6 @@
 	.loading {
 		/* Visual */
 		@apply text-xs text-slate-500;
-	}
-
-	.no-settings {
-		/* Visual */
-		@apply text-slate-500 text-center;
 	}
 
 	.mode-description {

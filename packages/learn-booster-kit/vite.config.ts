@@ -61,6 +61,9 @@ export default defineConfig({
   // הוספת תמיכה בקבצים מתיקיית temp
   //publicDir: 'temp'
 
+  // בבדיקות: resolve של svelte לגרסת ה-client — נדרש ל-mount() של קומפוננטות ב-jsdom
+  resolve: process.env.VITEST ? { conditions: ['browser'] } : undefined,
+
   test: {
     environment: 'node',
     include: ['test/**/*.spec.ts'],
