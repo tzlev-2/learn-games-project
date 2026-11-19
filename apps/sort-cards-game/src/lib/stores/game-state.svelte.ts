@@ -8,19 +8,7 @@ import { getPackById, getDefaultPack } from "$lib/data/content-packs";
 import { playSuccess, playError } from "$lib/utils/sound";
 import { speakCorrect, speakWrong } from "$lib/utils/tts";
 import { get } from "svelte/store";
-import { boosterService } from "learn-booster-kit";
-
-/**
- * ערבוב מערך (Fisher-Yates)
- */
-function shuffle<T>(arr: T[]): T[] {
-  const result = [...arr];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-}
+import { boosterService, shuffleArray } from "learn-booster-kit";
 
 class GameStateStore {
   state = $state<GameState>("INIT");
@@ -88,7 +76,7 @@ class GameStateStore {
 
     let rounds = [...pack.rounds];
     if (settings.shuffleRounds) {
-      rounds = shuffle(rounds);
+      rounds = shuffleArray(rounds);
     }
 
     this.roundQueue = rounds;
@@ -113,7 +101,7 @@ class GameStateStore {
 
     let cards = [...def.cards];
     if (settings.shuffleCards) {
-      cards = shuffle(cards);
+      cards = shuffleArray(cards);
     }
 
     // חיתוך לפי הגדרת cardsPerRound

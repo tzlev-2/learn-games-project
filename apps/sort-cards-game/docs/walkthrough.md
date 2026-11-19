@@ -1,5 +1,57 @@
 # יומן פיתוח - משחק מיון כרטיסים
 
+## 2026-11-19 10:50
+
+### מיגרציה לקומפוננטות ול-theme של הקיט (שלב 5)
+
+המשחק עבר לקומפוננטות המשותפות של `learn-booster-kit` ול-theme ‏`slate` (header כהה
+ורקע צהבהב — ה-theme נבנה מלכתחילה על בסיס המשחק הזה). ה-header, טבעת ההמתנה,
+וקבצי הסאונד וההקראה המקומיים הוחלפו בגרסאות של הקיט.
+
+#### מה בוצע?
+
+- **Theme** — `<html data-theme="slate">` ב-`app.html`; ‏`app.css` מייבא את
+  `learn-booster-kit/styles`; הפונט הוא `--theme-font-body`. CSS לא בשימוש
+  (`.btn-large`, `--color-correct/wrong`) נמחק.
+- **Layout `(app)`** — `GameShell layout="fill" background="none"` מעל ה-gradient של
+  המשחק, עם `HeaderBar balanced`: כפתור בית (`IconButton` + `HomeIcon`), שני `ScoreBadge`
+  (כרטיסים — ירוק, נכון — צהוב) והגדרות (`AdminGate` + `IconButton` + `SettingsIcon`).
+  ‏`HeaderBar.svelte`, ‏`home.svg` ו-`settings.svg` המקומיים נמחקו.
+- **מסך פתיחה** — `StartScreen layout="fill"`; בורר החבילות עובר כ-`children` (עכשיו
+  `radiogroup` עם `aria-checked`), וה-CTA הוא `Button` של הקיט בצבע `secondary` עם
+  ה-gradient הירוק וה-🎮 של המשחק (override מקומי דרך `class`).
+- **משחק** — `CooldownTimer.svelte` הוחלף ב-`CooldownRing` של הקיט (אותה טבעת inline,
+  תופסת מקום גם כשאין המתנה).
+- **הגדרות** — הסקשנים הם `Card`, "חזרה" הוא `Button`, ו"מצב משחק" (2 אפשרויות) עבר
+  מ-`select` ל-`SegmentedControl`.
+- **סאונד / TTS / ערבוב** — `sound.ts` הוא `createUiSounds` של הקיט (אותם קבצים ועוצמות),
+  `tts.ts` משאיר רק את המשפטים של המשחק מעל `speakText`, ו-`shuffle` המקומי הוחלף
+  ב-`shuffleArray`.
+- **`language.ts`** (חדש, `src/lib/services/`) — המחרוזות של הקוד שהשתנה: header,
+  מסך פתיחה, טבעת ההמתנה, משפטי ה-TTS, כותרת ההגדרות ומצב המשחק.
+
+#### בדיקות
+
+- `bun run check`: ‏6 שגיאות / 15 אזהרות → **0 / 13**. ‏6 השגיאות נבעו מ-`declare global`
+  על `Window.fully` ב-`tts.ts` המקומי, שהתנגש בהצהרה של הקיט.
+- `bun run build` עובר.
+- צילומי לפני/אחרי (1097×685, 1024×768): `learn-games-reports/p5/sort-cards/`.
+
+#### הבדלים ויזואליים ידועים
+
+1. ה-header: ערכי הניקוד ב-pill צבעוני (`ScoreBadge`) במקום טקסט עם קו מפריד.
+2. כפתורי ה-header: לבן שקוף על הכהה במקום `slate-700`; האייקון לבן 75%.
+3. פינות כרטיסי ההגדרות 8px במקום 16px — ה-build הכפול של Tailwind (דרך
+   `SiteBoosterMain` של הקיט) דורס את `--radius-lg` של ה-theme. בעיה קיימת בקיט.
+4. הכותרת במסך הפתיחה מעט נמוכה יותר בגובה 685 (ריווח `gap-8` של `StartScreen`).
+
+#### מה לא הוחלף
+
+`RoundComplete` ו-`FeedbackOverlay` (מסכי חגיגה של המשחק, כפתורי gradient סגול/ירוק),
+`DraggableCard` ו-`SortBox` נשארו מקומיים.
+
+---
+
 ## 2026-02-26 16:30
 
 ### TTS עם הקשר, ווידג'ט כרטיסים, לחצן בדיקת מחזק, ומניעת לחיצה כפולה על פרס

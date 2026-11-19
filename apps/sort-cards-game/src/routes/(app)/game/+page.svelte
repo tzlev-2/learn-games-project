@@ -3,18 +3,17 @@
   import DraggableCard from "./_components/DraggableCard.svelte";
   import FeedbackOverlay from "./_components/FeedbackOverlay.svelte";
   import RoundComplete from "./_components/RoundComplete.svelte";
-  import CooldownTimer from "./_components/CooldownTimer.svelte";
   import { gameState } from "$lib/stores/game-state.svelte";
   import { settings } from "$lib/stores/settings.svelte";
   import {
     boosterService,
-    BoosterContainer,
     ProgressWidget,
+    CooldownRing,
     type Config,
   } from "learn-booster-kit";
+  import { language } from "$lib/services/language";
   import { onDestroy, onMount } from "svelte";
   import { goto } from "$app/navigation";
-  import { get } from "svelte/store";
 
   let config = $state<Config>();
   let unsubscribeConfig: (() => void) | undefined;
@@ -122,8 +121,12 @@
       {/key}
     {/if}
 
-    <!-- טיימר cooldown -->
-    <CooldownTimer />
+    <!-- טיימר cooldown (טבעת inline של הקיט; תופסת מקום גם כשאין המתנה) -->
+    <CooldownRing
+      untilTs={gameState.cooldownUntilTs}
+      durationMs={settings.cooldownMs}
+      message={language.cooldownMessage}
+    />
   </div>
 
   <!-- אזור הארגזים -->
