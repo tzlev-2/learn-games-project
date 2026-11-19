@@ -31,6 +31,8 @@ After completing the code, ask the user if they want a playground link. Only cal
 **סטטוס:**
 - ✅ משחק "מקובע בריא" — מוגדר לחיבור (`maxA`, `maxB`, `builtA`), לא יהפוך גנרי
 - ✅ מימש Fully Kiosk TTS polyfill (2026-02-11)
+- ✅ **קומפוננטות הקיט + theme `slate`** — header, מסך פתיחה, טבעת המתנה, סאונד והקלטות קוליות מהקיט (`createVoiceAssetPlayer`) — `docs/walkthrough.md`, 2026-11-19
+- ✅ `language.ts` — `src/lib/services/language.ts` (קוד שעבר מיגרציה + הטקסטים של הנכסים הקוליים)
 
 **הפניות:**
 - כל כללי הקוד: `../../docs/coding-conventions.md`

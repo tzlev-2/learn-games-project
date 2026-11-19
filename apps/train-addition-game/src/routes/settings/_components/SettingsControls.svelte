@@ -8,8 +8,17 @@
     getAppsList as getAppsListFromFully,
     type AppListItem,
     isFullyKiosk,
+    Card,
+    SegmentedControl,
   } from "learn-booster-kit";
   import { onMount, onDestroy } from "svelte";
+  import { language } from "$lib/services/language";
+
+  // אפשרויות "מספר אפשרויות" — SegmentedControl עובד עם מחרוזות
+  const CHOICES_OPTIONS = [
+    { value: "2", label: "2" },
+    { value: "3", label: "3" },
+  ] as const;
 
   let config = $state<Config>();
   let unsubscribeConfig: () => void;
@@ -99,10 +108,7 @@
   }
 </script>
 
-<div
-  class="space-y-8 text-right bg-white p-6 rounded-2xl shadow-sm border border-slate-100"
-  dir="rtl"
->
+<Card padding="none" class="space-y-8 text-right p-6">
   <!-- === Game Settings Section === -->
   <section class="space-y-6">
     <h2 class="text-xl font-bold text-slate-800 border-b pb-2">הגדרות משחק</h2>
@@ -157,24 +163,14 @@
       class="flex items-center justify-between border-t border-slate-100 pt-4"
     >
       <div class="space-y-1">
-        <div class="font-bold text-slate-700">מספר אפשרויות</div>
+        <div class="font-bold text-slate-700">{language.choicesCountLabel}</div>
       </div>
-      <div class="flex gap-2 bg-slate-100 p-1 rounded-lg">
-        <button
-          class="px-4 py-1 rounded-md transition-colors"
-          class:bg-white={settings.choicesCount === 2}
-          class:shadow-sm={settings.choicesCount === 2}
-          class:text-slate-500={settings.choicesCount !== 2}
-          onclick={() => (settings.choicesCount = 2)}>2</button
-        >
-        <button
-          class="px-4 py-1 rounded-md transition-colors"
-          class:bg-white={settings.choicesCount === 3}
-          class:shadow-sm={settings.choicesCount === 3}
-          class:text-slate-500={settings.choicesCount !== 3}
-          onclick={() => (settings.choicesCount = 3)}>3</button
-        >
-      </div>
+      <SegmentedControl
+        options={CHOICES_OPTIONS}
+        value={String(settings.choicesCount) as "2" | "3"}
+        onchange={(v) => (settings.choicesCount = v === "2" ? 2 : 3)}
+        aria-label={language.choicesCountLabel}
+      />
     </div>
 
     <!-- Cooldown Settings -->
@@ -495,4 +491,4 @@
       {/if}
     {/if}
   </section>
-</div>
+</Card>

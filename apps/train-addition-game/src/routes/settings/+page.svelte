@@ -1,6 +1,8 @@
 <script lang="ts">
   import SettingsControls from "./_components/SettingsControls.svelte";
   import { goto } from "$app/navigation";
+  import { Button } from "learn-booster-kit";
+  import { language } from "$lib/services/language";
 </script>
 
 <!-- רקע כללי של הדף -->
@@ -13,16 +15,25 @@
     <div
       class="flex items-center justify-between sticky top-0 bg-slate-100/90 backdrop-blur-sm z-10 py-4"
     >
-      <h1 class="text-3xl font-bold text-slate-800">הגדרות</h1>
-      <button
-        onclick={() => goto("/game")}
-        class="px-5 py-2.5 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-colors shadow-lg hover:shadow-green-500/20 active:scale-95"
-      >
-        חזרה למשחק
-      </button>
+      <h1 class="text-3xl font-bold text-slate-800">{language.settingsHeading}</h1>
+      <Button color="secondary" onclick={() => goto("/game")} class="ta-back-btn">
+        {language.backToGame}
+      </Button>
     </div>
 
     <!-- Controls -->
     <SettingsControls />
   </div>
 </div>
+
+<style>
+  /* "חזרה למשחק" — ירוק כהה (green-600) ופינות rounded-xl כמו במקור, על בסיס Button של הקיט */
+  :global(.ta-back-btn) {
+    background-color: #16a34a;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  }
+  :global(.ta-back-btn:hover) {
+    background-color: #15803d;
+  }
+</style>

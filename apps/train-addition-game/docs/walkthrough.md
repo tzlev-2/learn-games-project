@@ -1,5 +1,51 @@
 # יומן פיתוח - רכבת החיבור
 
+## 2026-11-19 10:55
+
+### מיגרציה לקומפוננטות ול-theme של הקיט (שלב 5)
+
+המשחק עבר לקומפוננטות המשותפות של `learn-booster-kit` ול-theme ‏`slate` (header כהה; רקע
+השמיים נשאר של המשחק). ה-header, טבעת ההמתנה, הסאונד וההקלטות הקוליות עברו לקיט.
+
+#### מה בוצע?
+
+- **Theme** — `<html data-theme="slate">`; ‏`app.css` מייבא את `learn-booster-kit/styles`;
+  הפונט `--theme-font-body`. CSS לא בשימוש (`.btn-large`, `--color-group-*`) נמחק.
+- **Layout** — `GameShell layout="fill" background="none"` מעל ה-gradient של השמיים, עם
+  `HeaderBar balanced`: בית (`IconButton` + `HomeIcon`), `ScoreBadge` לסיבוב (ירוק) ולנכון
+  (צהוב), והגדרות (`AdminGate` + `SettingsIcon`). ‏`HeaderBar.svelte` ו-2 ה-SVG נמחקו.
+- **מסך פתיחה** — `StartScreen layout="fill"`; הכותרת הלבנה (משקל 700, קפיצה, צל) ותת-הכותרת
+  הלבנה הן דריסה מקומית של tokens על `.ta-start`; ה-CTA הירוק עם 🎮 כמו ב-sort-cards.
+- **משחק** — הטבעת ב-`AnswerPanel` הוחלפה ב-`CooldownRing` של הקיט.
+  ‏`onMount` של `/game` היה `async` והחזיר פונקציית ניקוי בתוך Promise — זו הייתה השגיאה
+  השביעית ב-`svelte-check`, והניקוי (`removeEventListener('resize')`) לא רץ אף פעם. עכשיו
+  `onMount` סינכרוני, ה-booster מאותחל ב-`.then()` ושגיאה נרשמת ב-`console.warn`.
+- **הגדרות** — "חזרה למשחק" הוא `Button` (ירוק כהה כמו במקור), המיכל של `SettingsControls`
+  הוא `Card`, ו"מספר אפשרויות" (2/3) עבר ל-`SegmentedControl`.
+- **סאונד / הקראה / ערבוב** — `sound.ts` = `createUiSounds` (אותם קבצים ועוצמות; `playAudio`
+  שלא היה בשימוש הוסר). ‏`tts.ts` בנוי על `createVoiceAssetPlayer` של הקיט: אותם קבצים
+  ב-`/sounds/`, אותם רצפים, אותו fallback ל-TTS. הטקסטים של הנכסים עברו ל-`language.voice`
+  ו-`VOICE_FILES` נבדק מול המפתחות שלו ב-`satisfies`. ‏`shuffle` ב-`distractors.ts` → `shuffleArray`.
+
+#### בדיקות
+
+- `bun run check`: ‏7 שגיאות / 11 אזהרות → **0 / 11**.
+- `CI=1 bunx vitest run`: ‏6 עברו + שגיאה לא מטופלת אחת (`BoosterService not initialized`) — זהה לבסיס.
+- `bun run build` עובר. צילומים: `learn-games-reports/p5/train-addition/`.
+
+#### הבדלים ויזואליים ידועים
+
+1. ה-header: ערכי הניקוד ב-pill צבעוני במקום טקסט עם קו מפריד; כפתורים לבן שקוף.
+2. כפתור ה-CTA מעט גבוה יותר (`min-h` של `Button lg` + שורת האימוג'י).
+3. הגדרות: רקע ה-`SegmentedControl` הוא ה-sunken הצהבהב של `slate` במקום slate-100.
+
+#### מה לא הוחלף
+
+מסכי הפרס / סיום השלב (כפתורי gradient סגול/ירוק), `FeedbackOverlay`, `InstructionPanel`,
+`DepotArea`, `TrainTrackArea` ושאר `SettingsControls` נשארו מקומיים.
+
+---
+
 ## 2026-02-24 22:00
 
 ### הגדרות Cooldown — זמן המתנה בטעות ואיפוס טיימר בלחיצה
