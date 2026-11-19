@@ -136,7 +136,7 @@
 
 **עבור משחקים שמתאימים למגוון תוכן:**
 
-1. הרחבת ה-`ContentProvider` interface ל-multi-axis (ראה סעיף 5)
+1. הרחבת ה-`ContentProvider` interface ל-multi-axis (ראה סעיף 5) — ✅ **בוצע 2026-11-19**: מודול `src/content/` בקיט, הלוטו עבר אליו (`packages/learn-booster-kit/docs/content-provider.md`)
 2. ניתוק התוכן מהמשחק:
    - `find-letter` → ContentProvider של אותיות + ContentProvider של אותיות-עם-ניקוד
    - `wordys` → ContentProvider של מילים בקטגוריות
@@ -359,6 +359,12 @@ function legacyToMultiAxis<TItem, TSettings>(
 - האם ה-registry יושב ב-kit, ב-package נפרד, או במקום אחר?
 - איך משחקים מצהירים אילו providers הם מסוגלים לצרוך?
 - האם תוכן יכול להיות מאוחסן ב-JSON/YAML חיצוני (לטובת content authoring), או רק ב-TypeScript?
+
+**הוחלט (2026-11-19, עם מימוש החוזה הרב-צירי):**
+- ה-registry יושב **בקיט, כ-factory** (`createContentRegistry()`), לא כ-singleton גלובלי — כל משחק deploy נפרד ויוצר instance משלו.
+- משחק **מצהיר** אילו Providers הוא צורך: `GameContentDeclaration { gameId, providerIds, defaultProviderId }` + `resolveGameContent()` שמאמת את ההצהרה. ההצהרה היא הבסיס לכלי "איזה תוכן רץ על איזה משחק" בשלב 4.
+- Provider משותף בין משחקים = אובייקט מיוצא (בקיט או ב-package תוכן), שכל משחק רושם.
+- JSON/YAML חיצוני — עדיין פתוח (החוזה מאפשר, אין loader).
 
 ---
 
