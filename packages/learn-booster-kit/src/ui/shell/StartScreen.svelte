@@ -7,7 +7,7 @@
 		onclick: () => void;
 		/** צבע הכפתור לפי ה-theme. ברירת מחדל: `primary`. */
 		color?: 'primary' | 'secondary';
-		/** אייקון שמוצג ליד ה-label (למשל ▶). */
+		/** אייקון מוביל — לפני ה-label ב-DOM (ב-RTL: מימין לטקסט), למשל ▶. */
 		icon?: Snippet;
 		/** classes נוספים לכפתור (append-only). */
 		class?: string;
@@ -71,10 +71,10 @@
 			onclick={primaryAction.onclick}
 			class="w-full gap-3 {primaryAction.class ?? ''}"
 		>
-			{primaryAction.label}
 			{#if primaryAction.icon}
 				{@render primaryAction.icon()}
 			{/if}
+			{primaryAction.label}
 		</Button>
 		{#if secondaryActions}
 			{@render secondaryActions()}

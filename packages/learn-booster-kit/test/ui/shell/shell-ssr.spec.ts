@@ -120,7 +120,7 @@ describe('StartScreen', () => {
 		expect(body).toContain('bg-brand-secondary');
 		expect(body).toContain('<span>ICON</span>');
 		expect(classOf(body, /<button[^>]*>/)).toContain('my-cta');
-		// ה-label לפני האייקון (בסדר ה-DOM)
-		expect(body.indexOf('GO')).toBeLessThan(body.indexOf('ICON'));
+		// אייקון מוביל — לפני ה-label בסדר ה-DOM
+		expect(body.indexOf('ICON')).toBeLessThan(body.indexOf('GO'));
 	});
 });

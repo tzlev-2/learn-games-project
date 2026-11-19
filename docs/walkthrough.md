@@ -32,7 +32,7 @@
 - **`HeaderBar`** — `balanced` (ברירת מחדל `false`). כש-`true` לשני הצדדים יש
   רוחב שווה והמרכז ממורכז ביחס ל-header כולו.
 - **`StartScreen`** — `background: 'none'`; ל-`primaryAction` נוספו `color`,
-  `icon` (snippet אחרי ה-label) ו-`class`. הכותרת קוראת tokens אופציונליים.
+  `icon` (snippet מוביל, לפני ה-label) ו-`class`. הכותרת קוראת tokens אופציונליים.
 - **`CooldownOverlay`** — `position: 'fixed' | 'absolute'` (ברירת מחדל `fixed`)
   ו-`ariaLabel` ל-alertdialog.
 - **Theme** — tokens אופציונליים חדשים: `--theme-text-heading`,
