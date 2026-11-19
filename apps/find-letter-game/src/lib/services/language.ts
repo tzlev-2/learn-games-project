@@ -55,24 +55,12 @@ export const language = {
 	selectAllLabel: 'סמן הכל',
 	clearAllLabel: 'נקה הכל',
 	resetToDefaultLabel: 'ברירת מחדל',
-	minimumLettersHint: 'יש לסמן לפחות שתי אותיות',
 
 	// === בחירת ניקוד ===
 	vowelSelectionHeader: 'ניקוד להצגה',
 	vowelSelectionHint: 'אילו סוגי ניקוד יופיעו בלוח',
-	minimumVowelsHint: 'יש לסמן לפחות סוג ניקוד אחד',
-
-	// שמות הניקודים — סדר פדגוגי
-	vowelNamePatah: 'פתח',
-	vowelNameKamatz: 'קמץ',
-	vowelNameHirik: 'חיריק',
-	vowelNameSegol: 'סגול',
-	vowelNameTzere: 'צירה',
-	vowelNameHolam: 'חולם',
-	vowelNameShuruk: 'שורוק',
-	vowelNameKubutz: 'קובוץ',
-	vowelNameShva: 'שווא',
-	vowelNameNone: 'עיצור',
+	// שמות הניקודים והאותיות — בתוכן המשותף "אותיות וניקוד" בקיט
+	// (learn-booster-kit/content/hebrew-letters → hebrewLettersLanguage)
 
 	// הגדרות TTS
 	ttsProviderLabel: 'ספק הקראה',

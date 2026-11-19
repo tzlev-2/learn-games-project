@@ -53,15 +53,22 @@ describe('settings snapshot — regression for DataCloneError', () => {
 		expect(cloned).toEqual(snap);
 	});
 
-	it('dataSnapshot לא מחזיר proxy של $state עבור arrays — array זה plain', () => {
+	it('dataSnapshot לא מחזיר proxy של $state עבור אובייקטים מקוננים — contentSelections זה plain', () => {
+		const original = settings.contentSelections;
+		settings.contentSelections = { 'hebrew-letters': { letters: ['ba', 'ga'], vowels: ['patah'] } };
 		const snap = dataSnapshot();
-		// אם נחזיר את ה-array של $state ישירות, structuredClone היה נכשל.
-		// ה-dataSnapshot עושה [...arr] כדי לפרק את ה-proxy.
-		expect(Array.isArray(snap.selectedLetterIds)).toBe(true);
-		// וודא שהוא לא אותו reference כמו במקור (היה אמור להיות העתק)
-		expect(snap.selectedLetterIds).not.toBe(settings.selectedLetterIds);
+		// אם נחזיר את האובייקט של $state ישירות, structuredClone היה נכשל.
+		// ה-dataSnapshot מעתיק אובייקטים/מערכים לעומק כדי לפרק את ה-proxy.
+		expect(snap.contentSelections).not.toBe(settings.contentSelections);
+		expect(snap.contentSelections['hebrew-letters'].letters).not.toBe(
+			settings.contentSelections['hebrew-letters'].letters
+		);
 		// אבל התוכן זהה
-		expect(snap.selectedLetterIds).toEqual([...settings.selectedLetterIds]);
+		expect(snap.contentSelections).toEqual({
+			'hebrew-letters': { letters: ['ba', 'ga'], vowels: ['patah'] }
+		});
+		expect(() => structuredClone(snap)).not.toThrow();
+		settings.contentSelections = original;
 	});
 
 	it('dataSnapshot עוקב אחר שינויים ב-$state — קריאה אחרי mutation מחזירה ערך עדכני', () => {

@@ -7,17 +7,44 @@
 		updateConfig as updateBoosterConfig,
 		Settings as BoosterSettings,
 		SegmentedControl,
-		Card
+		Card,
+		AxisSelector
 	} from 'learn-booster-kit';
 	import { language } from '$lib/services/language';
-	import { settings, type GridSize } from '$lib/stores/settings.svelte';
+	import {
+		settings,
+		currentProvider,
+		currentSelection,
+		updateSelection,
+		type GridSize
+	} from '$lib/stores/settings.svelte';
 	import { gameState } from '$lib/stores/game-state.svelte';
-	import LetterSelectionGrid from '../_components/LetterSelectionGrid.svelte';
-	import VowelSelectionGrid from '../_components/VowelSelectionGrid.svelte';
-	import type { VowelCode } from '$lib/data/vowels';
 
 	const sizes: GridSize[] = ['2x3', '3x3', '3x4', '4x4'];
 	const sizeOptions = sizes.map((size) => ({ value: size, label: size }));
+
+	// === בחירת תוכן — צירי ה-Provider (אותיות × ניקוד), AxisSelector של הקיט ===
+	const provider = $derived(currentProvider());
+	const selection = $derived(currentSelection());
+	const defaultSelection = $derived(provider.getDefaultSelection());
+	const axisLabels = {
+		selectAll: language.selectAllLabel,
+		clearAll: language.clearAllLabel,
+		reset: language.resetToDefaultLabel
+	};
+	/** כותרת, הסבר ורוחב אריח לכל ציר — כרטיס נפרד לכל ציר כמו קודם */
+	const axisCopy: Record<string, { header: string; hint: string; itemMinWidth: string }> = {
+		letters: {
+			header: language.letterSelectionHeader,
+			hint: language.letterSelectionHint,
+			itemMinWidth: '3.75rem'
+		},
+		vowels: {
+			header: language.vowelSelectionHeader,
+			hint: language.vowelSelectionHint,
+			itemMinWidth: '5rem'
+		}
+	};
 
 	// === Booster config ===
 	let config = $state<Config>();
@@ -196,25 +223,26 @@
 			</div>
 		</Card>
 
-		<!-- Section: בחירת אותיות -->
-		<Card>
-			<h2 class="card-title">{language.letterSelectionHeader}</h2>
-			<p class="muted small">{language.letterSelectionHint}</p>
-			<LetterSelectionGrid
-				selectedIds={settings.selectedLetterIds}
-				onChange={(next) => (settings.selectedLetterIds = next)}
-			/>
-		</Card>
-
-		<!-- Section: בחירת ניקוד -->
-		<Card>
-			<h2 class="card-title">{language.vowelSelectionHeader}</h2>
-			<p class="muted small">{language.vowelSelectionHint}</p>
-			<VowelSelectionGrid
-				selectedCodes={settings.selectedVowels}
-				onChange={(next: VowelCode[]) => (settings.selectedVowels = next)}
-			/>
-		</Card>
+		<!-- Sections: בחירת תוכן — כרטיס לכל ציר של ה-Provider (אותיות, ניקוד) -->
+		{#each provider.selectionAxes as axis (axis.id)}
+			{@const copy = axisCopy[axis.id]}
+			<Card>
+				<h2 class="card-title">{copy?.header ?? axis.displayName}</h2>
+				{#if copy?.hint}
+					<p class="muted small">{copy.hint}</p>
+				{/if}
+				<AxisSelector
+					axes={[axis]}
+					{selection}
+					onchange={updateSelection}
+					labels={axisLabels}
+					enforceMinSelected
+					{defaultSelection}
+					itemMinWidth={copy?.itemMinWidth}
+					class="fl-axis fl-axis-{axis.id}"
+				/>
+			</Card>
+		{/each}
 
 		<!-- Section: הגדרות חיזוקים -->
 		<Card>
@@ -405,6 +433,12 @@
 	.loading {
 		color: #64748b;
 		padding: 0.5rem;
+	}
+
+	/* אותיות במסך הבחירה — גדולות כמו בגריד הקודם (AxisSelector מציג text-lg) */
+	:global(.fl-axis-letters label[data-item-id] span) {
+		font-size: 1.5rem;
+		font-weight: 800;
 	}
 
 	.booster-wrap {

@@ -32,7 +32,8 @@ After completing the code, ask the user if they want a playground link. Only cal
 - ✅ הכי מתקדם בפלטפורמיזציה — SettingsStore מחובר ל-`configManager` של הקיט
 - ✅ migration system עבד (schemaVersion 1)
 - ✅ UI מהקיט: `StartScreen`, `GameShell`, `HeaderBar`, `CooldownOverlay`, primitives ו-icons; theme `find-letter` (`<html data-theme>` ב-`app.html`). ‏`Board`/`LetterCard` מקומיים עם tokens של ה-theme
-- ⚠️ עדיין לא רשום ב-`registerGameSchema` — passthrough כרגע
+- ✅ רשום ב-`registerGameSchema` (גרסה 6) — מיגרציה אידמפוטנטית ב-`stores/settings-migration.ts`
+- ✅ תוכן מ-ContentProvider: ה-Provider המשותף "אותיות וניקוד" מהקיט (`learn-booster-kit/content/hebrew-letters`), דרך `resolveGameContent` (`src/lib/content/game-content.ts`). המאגר (אותיות, ניקוד, TTS) לא נמצא במשחק — הוא בקיט, משותף עם הלוטו
 
 **הפניות:**
 - כל כללי הקוד: `../../docs/coding-conventions.md`

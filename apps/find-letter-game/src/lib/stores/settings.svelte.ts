@@ -1,13 +1,19 @@
 // apps/find-letter-game/src/lib/stores/settings.svelte.ts
 
-import { configManager } from 'learn-booster-kit';
-import { DEFAULT_LETTER_IDS } from '../utils/letters';
-import type { VowelCode } from '../data/vowels';
-import { migrateSettings } from './settings-migration';
+import { configManager, type ProviderSelection } from 'learn-booster-kit';
+import { findLetterContent, FIND_LETTER_GAME_ID } from '../content/game-content';
+import {
+	FIND_LETTER_SETTINGS_VERSION,
+	migrateSettings,
+	registerFindLetterSettingsSchema
+} from './settings-migration';
 
 const LEGACY_KEY = 'find-letter-game-settings';
 const PROFILES_KEY = 'learn-booster-profiles:v1';
-const GAME_ID = 'find-letter-game';
+const GAME_ID = FIND_LETTER_GAME_ID;
+
+// רישום הסכמה במנוע המיגרציות של הקיט — לפני boosterService.init (טעינת הפרופיל)
+registerFindLetterSettingsSchema(GAME_ID);
 
 // Detailed tracing — להפעיל ידנית בעת דיבוג
 const TRACE = false;
@@ -25,13 +31,15 @@ export type GridSize = '2x3' | '3x3' | '3x4' | '4x4';
 // =============================================================
 function makeDefaults() {
 	return {
-		schemaVersion: 5 as number,
+		schemaVersion: FIND_LETTER_SETTINGS_VERSION as number,
 		gridSize: '3x4' as GridSize,
 		autoSpeakOnNewRound: true,
 		voiceEnabled: true,
 		boosterEnabled: true,
-		selectedLetterIds: [...DEFAULT_LETTER_IDS] as string[],
-		selectedVowels: ['patah'] as VowelCode[],
+		/** ה-Provider הנוכחי (id לא מוכר → ברירת המחדל של המשחק) */
+		contentProviderId: findLetterContent.defaultProvider.id as string,
+		/** providerId → בחירת המורה (axisId → itemIds). חסר → ברירת המחדל של ה-Provider */
+		contentSelections: {} as Record<string, ProviderSelection>,
 		avoidSimilar: true,
 		cooldownMs: 2000,
 		questionsPerBoard: 0,
@@ -98,8 +106,9 @@ export function dataSnapshot(): FindLetterSettings {
 	const out: Record<string, unknown> = {};
 	for (const k of DATA_KEYS) {
 		const v = settings[k];
-		// Deep-copy arrays כדי לפרק את ה-$state proxy
-		out[k] = Array.isArray(v) ? [...v] : v;
+		// Deep-copy arrays/objects כדי לפרק את ה-$state proxy (contentSelections מקונן).
+		// JSON.stringify קורא כל שדה מקונן — כך ה-$effect עוקב גם אחריהם.
+		out[k] = v !== null && typeof v === 'object' ? JSON.parse(JSON.stringify(v)) : v;
 	}
 	return out as FindLetterSettings;
 }
@@ -111,6 +120,32 @@ export function resetSettings(): void {
 // Backwards-compat — קוד legacy אולי מייבא את זה
 export const DEFAULT_SETTINGS = makeDefaults();
 
+// =============================================================
+// Content — ה-Provider הנוכחי והבחירה שלו
+// =============================================================
+
+/** ה-Provider הנוכחי (id לא מוכר → ברירת המחדל של המשחק) */
+export function currentProvider() {
+	return findLetterContent.getProvider(settings.contentProviderId);
+}
+
+/** בחירת המורה ל-Provider הנוכחי (שמורה, או ברירת המחדל של ה-Provider) */
+export function currentSelection(): ProviderSelection {
+	const provider = currentProvider();
+	return settings.contentSelections[provider.id] ?? provider.getDefaultSelection();
+}
+
+/** עדכון בחירת המורה ל-Provider הנוכחי (immutable — מחליף את האובייקט) */
+export function updateSelection(selection: ProviderSelection): void {
+	const provider = currentProvider();
+	settings.contentSelections = { ...settings.contentSelections, [provider.id]: selection };
+}
+
+/** הגדרות ה-Provider הנוכחי (ל-"אותיות וניקוד" אין — רק ברירת המחדל שלו) */
+export function currentProviderSettings(): unknown {
+	return currentProvider().getDefaultSettings?.() ?? {};
+}
+
 /**
  * Fast-path: קריאה ישירה מ-localStorage של הפרופיל הפעיל בלי לחכות
  * ל-`boosterService.init()` (איטי בגלל טעינת videos מ-Google Drive).
@@ -118,6 +153,13 @@ export const DEFAULT_SETTINGS = makeDefaults();
  * ⚠️ Coupling: יודע את ה-storage format של profile-manager
  * (`learn-booster-profiles:v1`). אם הקיט יחליף format, צריך לעדכן.
  * זה pragmatic — fallback בטוח לקריאה איטית דרך configManager.
+ *
+ * הנתונים עוברים `migrateSettings` (אידמפוטנטי) — כך הם תמיד בצורה הנוכחית (v6).
+ *
+ * ⚠️ ידוע (לא שונה כאן): הקריאה היא מצורת state v1 (`profile.config.gameSettings`).
+ * מאז ש-profile-manager שומר state v2 (`profile.gameSettings[gameId].data`) ה-fast-path
+ * לא מוצא כלום וההגדרות מגיעות דרך `subscribeGameSettings`. תיקון ידרוש בדיקה של
+ * לוגיקת ה-"stale" ב-subscribe — ראו walkthrough של find-letter.
  */
 function readActiveProfileGameSettings(): FindLetterSettings | undefined {
 	if (typeof window === 'undefined') {
@@ -144,13 +186,13 @@ function readActiveProfileGameSettings(): FindLetterSettings | undefined {
 			log(`fast-path: profile '${activeId}' not found`, data);
 			return undefined;
 		}
-		const gameSettings = profile?.config?.gameSettings?.[GAME_ID] as
-			| FindLetterSettings
-			| undefined;
-		if (!gameSettings) {
+		const stored = profile?.config?.gameSettings?.[GAME_ID];
+		const gameSettings = stored
+			? (migrateSettings(stored) as FindLetterSettings)
+			: undefined;
+		if (!gameSettings || Object.keys(gameSettings).length === 0) {
 			log(`fast-path: profile '${activeId}' has no gameSettings.${GAME_ID}`, {
 				profileKeys: Object.keys(profile?.config ?? {}),
-				gameSettingsKeys: Object.keys(profile?.config?.gameSettings ?? {}),
 			});
 			return undefined;
 		}
@@ -223,8 +265,11 @@ if (typeof window !== 'undefined') {
 		// יכול להיות stale (מכתיבות $effect שרצו לפני שהקיט אותחל
 		// בריצות קודמות) — נתעלם ממנו.
 		log('subscribe: registering callback (will fire synchronously now)');
-		return configManager.subscribeGameSettings<FindLetterSettings>(GAME_ID, (s) => {
-			if (s) {
+		return configManager.subscribeGameSettings<FindLetterSettings>(GAME_ID, (incoming) => {
+			// הקיט כבר מריץ את המיגרציה הרשומה בטעינה; כאן שוב (אידמפוטנטי) למקרה
+			// שהנתונים הגיעו לפני הרישום או נכתבו בצורה ישנה.
+			const s = incoming ? (migrateSettings(incoming) as FindLetterSettings) : undefined;
+			if (s && Object.keys(s).length > 0) {
 				const json = JSON.stringify(s);
 				if (json === lastSyncedJson) {
 					log('subscribe: skip (matches lastSyncedJson)', { gridSize: s.gridSize });

@@ -41,7 +41,7 @@ R2 bucket: `tzlev-static`, prefix: `shared/tts/find-letter/`.
 | `Ya.mp3` | `יָא` | י |
 | `Za.mp3` | `זַה` | ז |
 
-המיפוי המקובל (`speak → filename`) נמצא ב-`src/lib/utils/letters.ts` תחת `TTS_FILES`.
+המיפוי המקובל (`speak → filename`) נמצא ב-`packages/learn-booster-kit/src/content/providers/hebrew-letters/tts-files.ts` תחת `TTS_FILES` (תוכן משותף "אותיות וניקוד"; עד 2026-11-19 היה ב-`src/lib/utils/letters.ts`).
 
 ---
 

@@ -2,7 +2,7 @@
  * שירות TTS — שולף קבצי MP3 מ-CDN סטטי (R2) במקום סינתזה חיה.
  *
  * זרימה:
- *   1. `speak(text)` → חיפוש ב-`TTS_FILES` (ב-`letters.ts`) → שם קובץ.
+ *   1. `speak(text)` → חיפוש ב-`TTS_FILES` (תוכן "אותיות וניקוד" בקיט) → שם קובץ.
  *   2. אם נמצא: fetch מ-`${VITE_STATIC_BASE_URL}/shared/tts/find-letter/<file>`,
  *      cache ב-IndexedDB, ניגון.
  *   3. אם לא נמצא או fetch נכשל: console.error + fallback ל-Web Speech.
@@ -13,11 +13,11 @@
  */
 
 import { get, set, createStore } from 'idb-keyval';
-import { getTtsFilename } from './letters';
+import { getTtsFilename, TTS_STATIC_PATH } from 'learn-booster-kit/content/hebrew-letters';
 
 const LANG = 'he-IL';
 const CACHE_PREFIX = 'audio:';
-const STATIC_PATH = '/shared/tts/find-letter';
+const STATIC_PATH = TTS_STATIC_PATH;
 
 // ===== Cache (IndexedDB) =====
 
