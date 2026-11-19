@@ -16,7 +16,8 @@ describe('CooldownRing (SSR)', () => {
 		expect(body).toContain('var(--theme-feedback-error)');
 		expect(body).toContain('var(--theme-border-subtle)');
 		expect(body).toContain('opacity-100');
-		expect(body).toContain('h-14 w-14 sm:h-20 sm:w-20');
+		expect(body).toContain('lbk-ring');
+		expect(body).toContain('lbk-ring-number');
 	});
 
 	it('הקשת משקפת את החלק שנותר', () => {

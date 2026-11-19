@@ -6,6 +6,26 @@
 
 ---
 
+## 2026-11-19 10:46
+
+### קיט: תיקונים — header כהה של `slate`, גדלי `CooldownRing`, טיפוס ב-`tts`
+
+- **`slate.css` — ה-header הכהה לא עבד.** הבלוק `[data-theme='slate'] header.lbk-header-bar`
+  דרס רק `--theme-*`, אבל ה-utilities (`bg-surface-sunken`, `text-text-secondary`…) קוראים
+  `--color-*`, ש-Tailwind מגדיר ב-`:root` כ-`var(--theme-*)` — והערך נפתר פעם אחת ב-`:root`.
+  נמדד ב-sort-cards: כפתור ב-header קיבל `rgb(254, 243, 199)` (ה-sunken הבהיר) במקום
+  `rgba(255,255,255,0.12)`. התיקון דורס באותו בלוק גם את ה-aliases `--color-*`.
+- **`CooldownRing` — ברירות המחדל של הגודל עברו ל-CSS של הקומפוננטה ב-`@layer components`.**
+  `SiteBoosterMain` / `SettingsMain` של הקיט מייבאים את `ui/app.css`, שמריץ build שני של
+  Tailwind (סורק רק את האפליקציה). ה-chunk הזה נטען אחרי ה-CSS של האפליקציה ומגדיר
+  שוב `.text-xl` באותו layer, כך ש-`sm:text-3xl` של הטבעת "נדרס" (נמדד: 20px במקום 30px
+  ב-1024px). ‏`ringClass` / `numberClass` / `messageClass` ריקים כברירת מחדל ו-utilities
+  של הצרכן עדיין גוברות. (ה-build הכפול עצמו נשאר — ראה בעיות פתוחות בדוח P5.)
+- **`tts.ts`** — cast מפורש של `SpeechSynthesisUtterance` ל-`UtteranceLike`; ה-tsconfig
+  הקפדני של האפליקציות דחה את ההשמה (`onend` עם פרמטר צר יותר).
+
+---
+
 ## 2026-11-19 10:43
 
 ### קיט: `StartScreen` — `layout="fill"`, תוכן בין הכותרת לכפתור, ו-tokens תצוגה ל-`slate`

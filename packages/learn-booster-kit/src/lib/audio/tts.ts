@@ -64,7 +64,7 @@ export function getDefaultTtsEnv(): TtsEnv {
 		speechSynthesis: 'speechSynthesis' in window ? w.speechSynthesis : undefined,
 		createUtterance:
 			typeof SpeechSynthesisUtterance !== 'undefined'
-				? (text) => new SpeechSynthesisUtterance(text)
+				? (text) => new SpeechSynthesisUtterance(text) as unknown as UtteranceLike
 				: undefined
 	};
 }

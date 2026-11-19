@@ -89,4 +89,18 @@
 	/* Borders white-tinted */
 	--theme-border-subtle: rgba(255, 255, 255, 0.18);
 	--theme-border-strong: rgba(255, 255, 255, 0.35);
+
+	/* ה-utilities (bg-surface-sunken, text-text-secondary...) קוראים את --color-*,
+	   ש-Tailwind מגדיר ב-:root כ-var(--theme-*) — ולכן נפתרים פעם אחת ב-:root.
+	   דריסת --theme-* כאן לבדה לא מגיעה ל-utilities; צריך לדרוס גם את ה-aliases. */
+	--color-surface-sunken: var(--theme-surface-sunken);
+	--color-surface-elevated: var(--theme-surface-elevated);
+	--color-text-primary: var(--theme-text-primary);
+	--color-text-secondary: var(--theme-text-secondary);
+	--color-text-tertiary: var(--theme-text-tertiary);
+	--color-feedback-success-bg: var(--theme-feedback-success-bg);
+	--color-feedback-warning-bg: var(--theme-feedback-warning-bg);
+	--color-feedback-error-bg: var(--theme-feedback-error-bg);
+	--color-border-subtle: var(--theme-border-subtle);
+	--color-border-strong: var(--theme-border-strong);
 }

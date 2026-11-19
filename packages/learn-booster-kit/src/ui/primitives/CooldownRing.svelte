@@ -23,11 +23,15 @@
 		onComplete?: () => void;
 		/** classes לעטיפה החיצונית (append-only). */
 		class?: string;
-		/** גודל הטבעת. ברירת מחדל: `h-14 w-14 sm:h-20 sm:w-20`. */
+		/**
+		 * classes לגודל הטבעת (למשל `h-10 w-10`). בלי — 56px, ומ-640px ומעלה 80px.
+		 * ברירות המחדל יושבות ב-CSS של הקומפוננטה תחת `@layer components`,
+		 * כך ש-utilities של הצרכן גוברות עליהן.
+		 */
 		ringClass?: string;
-		/** גודל המספר. ברירת מחדל: `text-xl sm:text-3xl`. */
+		/** classes לגודל המספר. בלי — 1.25rem, ומ-640px ומעלה 1.875rem. */
 		numberClass?: string;
-		/** עיצוב ההודעה. ברירת מחדל: `text-lg font-medium`. */
+		/** classes להודעה. בלי — 1.125rem, משקל 500. */
 		messageClass?: string;
 	}
 
@@ -38,9 +42,9 @@
 		reserveSpace = true,
 		onComplete,
 		class: className = '',
-		ringClass = 'h-14 w-14 sm:h-20 sm:w-20',
-		numberClass = 'text-xl sm:text-3xl',
-		messageClass = 'text-lg font-medium'
+		ringClass = '',
+		numberClass = '',
+		messageClass = ''
 	}: Props = $props();
 
 	let now = $state(Date.now());
@@ -73,8 +77,8 @@
 			: 'invisible opacity-0'} {className}"
 		aria-hidden={!isActive}
 	>
-		<div class="relative flex items-center justify-center {ringClass}">
-			<svg class="absolute -rotate-90 {ringClass}" viewBox="0 0 80 80" aria-hidden="true">
+		<div class="lbk-ring relative flex items-center justify-center {ringClass}">
+			<svg class="lbk-ring absolute -rotate-90 {ringClass}" viewBox="0 0 80 80" aria-hidden="true">
 				<circle
 					cx="40"
 					cy="40"
@@ -95,14 +99,44 @@
 				/>
 			</svg>
 			<span
-				class="font-bold tabular-nums {numberClass}"
+				class="lbk-ring-number font-bold tabular-nums {numberClass}"
 				style="color: var(--theme-feedback-error)"
 			>
 				{remainingSec}
 			</span>
 		</div>
 		{#if message}
-			<span class="text-text-secondary {messageClass}">{message}</span>
+			<span class="lbk-ring-message text-text-secondary {messageClass}">{message}</span>
 		{/if}
 	</div>
 {/if}
+
+<style>
+	/* ברירות מחדל ב-@layer components: utilities של הצרכן (ringClass וכו') גוברות עליהן,
+	   ו-CSS בלי layer שנטען אחר כך לא "דורס" breakpoints כמו ש-utility כפולה הייתה עושה. */
+	@layer components {
+		.lbk-ring {
+			width: 3.5rem;
+			height: 3.5rem;
+		}
+		.lbk-ring-number {
+			font-size: 1.25rem;
+			line-height: 1.75rem;
+		}
+		.lbk-ring-message {
+			font-size: 1.125rem;
+			line-height: 1.75rem;
+			font-weight: 500;
+		}
+		@media (min-width: 40rem) {
+			.lbk-ring {
+				width: 5rem;
+				height: 5rem;
+			}
+			.lbk-ring-number {
+				font-size: 1.875rem;
+				line-height: 2.25rem;
+			}
+		}
+	}
+</style>
