@@ -9,6 +9,8 @@
  */
 export const hebrewLettersLanguage = {
 	providerName: 'אותיות וניקוד',
+	/** אייקון ה-Provider (בורר סוג התוכן) — שונה מ-🔤 של ספק "אותיות" בלוטו */
+	providerIcon: 'אַ',
 	axes: {
 		letters: 'אותיות',
 		vowels: 'ניקוד'

@@ -35,6 +35,7 @@ describe('hebrewLettersProvider — מבנה', () => {
 		expect(provider.id).toBe(HEBREW_LETTERS_PROVIDER_ID);
 		expect(provider.id).toBe('hebrew-letters');
 		expect(provider.displayName).toBe(hebrewLettersLanguage.providerName);
+		expect(provider.icon).toBe(hebrewLettersLanguage.providerIcon);
 	});
 
 	it('שני צירים: letters (26, סדר א-ב, מינימום 2) ו-vowels (10, סדר פדגוגי, מינימום 1)', () => {

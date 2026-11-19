@@ -128,7 +128,7 @@ export function createHebrewLettersProvider(
 	return {
 		id: HEBREW_LETTERS_PROVIDER_ID,
 		displayName: labels.providerName,
-		icon: options.icon ?? '🔤',
+		icon: options.icon ?? hebrewLettersLanguage.providerIcon,
 		selectionAxes: axes,
 
 		generateDeck(selection) {
