@@ -6,6 +6,23 @@
 
 ---
 
+## 2026-11-19 10:40
+
+### קיט: `CooldownRing` ו-`HomeIcon`
+
+- **`CooldownRing`** (`src/ui/primitives/`) — טבעת ספירה לאחור **inline**, בתוך זרימת הדף.
+  ב-sort-cards וב-train-addition הטבעת יושבת מתחת לכרטיס / לכפתורי התשובה והתוכן
+  נשאר גלוי, כך ש-`CooldownOverlay` (שחוסם את המסך) לא מתאים. ‏props: `untilTs`,
+  `durationMs`, `message`, `reserveSpace` (ברירת מחדל `true` — שקופה אבל תופסת מקום,
+  כמו במשחקים), `onComplete`, ו-`ringClass` / `numberClass` / `messageClass` עם ברירות
+  מחדל שמשחזרות את הגדלים של המשחקים. צבעים מה-theme: `feedback-error` לקשת ולמספר,
+  `border-subtle` למסלול.
+- **`HomeIcon`** — אייקון בית (Feather), אותו API כמו שאר האייקונים. מחליף את
+  `home.svg` המקומי בכפתורי הבית של ה-header.
+- טסטים: `test/ui/primitives/cooldown-ring-ssr.spec.ts` (7, node).
+
+---
+
 ## 2026-11-19 10:33
 
 ### קיט: כלי אודיו משותפים — `sound`, `tts`, הקלטות קוליות, ו-`shuffleArray` ב-index

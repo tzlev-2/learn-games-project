@@ -54,3 +54,5 @@ export { default as StartScreen } from "./ui/shell/StartScreen.svelte";
 // === Games shell (P5): audio (sound / tts / voice assets), shuffle, CooldownRing, HomeIcon ===
 export * from "./lib/audio";
 export { shuffleArray } from "./lib/utils/shuffle-array";
+export { default as CooldownRing } from "./ui/primitives/CooldownRing.svelte";
+export { default as HomeIcon } from "./ui/primitives/icons/HomeIcon.svelte";
