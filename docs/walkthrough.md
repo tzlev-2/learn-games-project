@@ -6,6 +6,42 @@
 
 ---
 
+## 2026-11-19 10:33
+
+### קיט: כלי אודיו משותפים — `sound`, `tts`, הקלטות קוליות, ו-`shuffleArray` ב-index
+
+שלב 5 בתוכנית הפלטפורמה (`docs/platform-plan.md` §9.2) מחלץ את הכפילויות של
+`sound.ts` ו-`tts.ts` מהמשחקים לקיט. המודול החדש `src/lib/audio/` מיוצא מ-`index.ts`
+בבלוק אחד (יחד עם `shuffleArray`, `CooldownRing`, `HomeIcon`).
+
+#### מה בוצע?
+
+- **`sound.ts`** — `createUiSounds({ success, error, win })` מחזיר `playSuccess` /
+  `playError` / `playWin` (no-op כשלא הוגדר). כל צליל הוא `{ src, volume }`; ‏`src`
+  יכול להיות פונקציה שנפתרת בזמן ההשמעה (למשל lookup ב-manifest של wordys).
+  גם `createSoundPlayer` לשמות חופשיים ו-`playAudio(url)` שמתממש בסוף ההשמעה.
+  הנתיבים נשארים אצל כל משחק — הקיט לא קובע איפה הקבצים יושבים.
+- **`tts.ts`** — `speakText(text, options)`: ‏Fully Kiosk → Web Speech (`he-IL`, 0.9,
+  `cancel()` לפני הקראה) → שקט. ב-Fully ה-Promise מתממש אחרי 800ms (Fully לא מדווח
+  סיום). `useFully: false` למשחק שהקריא רק ב-Web Speech (wordys).
+- **`voice-assets.ts`** — `createVoiceAssetPlayer({ assets, baseUrl })`: הקלטות MP3
+  שנטענות ומפוענחות פעם אחת לזיכרון (Web Audio), עם fallback ל-TTS מהטקסט של הנכס
+  כשהקובץ עוד לא נטען. חולץ מ-train-addition.
+- **`shuffleArray`** — היה קיים בקיט אבל לא יוצא מ-`index.ts`; עכשיו מיוצא.
+- **טסטים** — `test/audio/{sound,tts,voice-assets}.spec.ts` (31 טסטים, node). הסביבה
+  (`Audio`, `speechSynthesis`, `fully`, `fetch`, `AudioContext`) מוזרקת דרך options.
+
+#### החלטות
+
+- **סוג `FullyTts` מינימלי** — העותקים המקומיים הצהירו `declare global { Window.fully }`
+  עם interface חלקי, וזה התנגש בהצהרה של הקיט (6 שגיאות `svelte-check` ב-sort-cards,
+  train-addition ו-passcode). המודול של הקיט לא מצהיר על `Window` — הוא קורא את
+  `window.fully` דרך cast מקומי.
+- **התנהגות זהה לעותקים** — `Audio` חדש בכל השמעה, כשלים ב-`console.warn` בלבד,
+  Promise שתמיד מתממש.
+
+---
+
 ## 2026-11-19 10:25
 
 ### קיט: `PlayIcon`

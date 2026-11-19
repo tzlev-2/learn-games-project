@@ -50,3 +50,7 @@ export { cooldownProgress } from "./ui/primitives/cooldown-math";
 export { default as HeaderBar } from "./ui/shell/HeaderBar.svelte";
 export { default as GameShell } from "./ui/shell/GameShell.svelte";
 export { default as StartScreen } from "./ui/shell/StartScreen.svelte";
+
+// === Games shell (P5): audio (sound / tts / voice assets), shuffle, CooldownRing, HomeIcon ===
+export * from "./lib/audio";
+export { shuffleArray } from "./lib/utils/shuffle-array";
