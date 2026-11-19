@@ -68,6 +68,46 @@ export function clearAxis(selection: ProviderSelection, axisId: string): Provide
   return setAxisSelection(selection, axisId, []);
 }
 
+/**
+ * המינימום שאי אפשר לרדת ממנו בעריכה אינטראקטיבית: 0 לציר `allowEmpty`
+ * (ריק מותר), אחרת `minSelected` (ברירת מחדל 1).
+ */
+export function axisFloor(axis: AnySelectionAxis): number {
+  if (axis.allowEmpty) return 0;
+  return Math.max(axis.minSelected ?? 1, 0);
+}
+
+/**
+ * כמו `toggleAxisItem`, אבל ביטול סימון שיוריד את הציר מתחת ל-`minSelected`
+ * לא מתבצע (הבחירה מוחזרת כמו שהיא). ציר `allowEmpty` מותר להתרוקן לגמרי.
+ */
+export function toggleAxisItemWithinMinimum(
+  selection: ProviderSelection,
+  axis: AnySelectionAxis,
+  itemId: string,
+  checked?: boolean,
+): ProviderSelection {
+  const next = toggleAxisItem(selection, axis.id, itemId, checked);
+  const count = getAxisSelection(next, axis.id).length;
+  const shrinking = count < getAxisSelection(selection, axis.id).length;
+  if (shrinking && count < requiredMinimum(axis, count)) return selection;
+  return next;
+}
+
+/**
+ * "נקה" שמכבד מינימום: ציר `allowEmpty` (או `minSelected: 0`) מתרוקן;
+ * אחרת נשארים `minSelected` הפריטים הראשונים לפי סדר הציר.
+ */
+export function clearAxisToMinimum(selection: ProviderSelection, axis: AnySelectionAxis): ProviderSelection {
+  const floor = axisFloor(axis);
+  if (floor === 0) return clearAxis(selection, axis.id);
+  const keep = axis
+    .getAvailableItems()
+    .slice(0, floor)
+    .map((item) => item.id);
+  return setAxisSelection(selection, axis.id, keep);
+}
+
 /** בחירת כל הפריטים בכל הצירים */
 export function selectAllAxes(axes: readonly AnySelectionAxis[]): ProviderSelection {
   return axes.reduce<ProviderSelection>((acc, axis) => selectAllOnAxis(acc, axis), {});

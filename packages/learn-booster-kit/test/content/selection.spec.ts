@@ -13,6 +13,9 @@ const {
   sanitizeSelection,
   validateSelection,
   parseSelection,
+  axisFloor,
+  toggleAxisItemWithinMinimum,
+  clearAxisToMinimum,
 } = content;
 
 describe('selection — קריאה', () => {
@@ -142,5 +145,40 @@ describe('parseSelection (ArkType)', () => {
     const result = parseSelection(raw);
     expect(result.isErr()).toBe(true);
     expect(result._unsafeUnwrapErr().kind).toBe('validation');
+  });
+});
+
+describe('עריכה שמכבדת מינימום (AxisSelector enforceMinSelected)', () => {
+  const minTwo = { ...lettersAxis, minSelected: 2 };
+
+  it('axisFloor: minSelected / ברירת מחדל 1 / 0 ל-allowEmpty', () => {
+    expect(axisFloor(minTwo)).toBe(2);
+    expect(axisFloor(lettersAxis)).toBe(1);
+    expect(axisFloor(optionalAxis)).toBe(0);
+  });
+
+  it('toggleAxisItemWithinMinimum: חוסם ירידה מתחת למינימום ומחזיר את אותו אובייקט', () => {
+    const selection = { letters: ['a', 'b'] };
+    expect(toggleAxisItemWithinMinimum(selection, minTwo, 'a', false)).toBe(selection);
+    expect(toggleAxisItemWithinMinimum(selection, minTwo, 'final-k', true)).toEqual({
+      letters: ['a', 'b', 'final-k'],
+    });
+    expect(
+      toggleAxisItemWithinMinimum({ letters: ['a', 'b', 'final-k'] }, minTwo, 'a', false),
+    ).toEqual({ letters: ['b', 'final-k'] });
+  });
+
+  it('toggleAxisItemWithinMinimum: ציר allowEmpty מתרוקן, אבל לא נשאר מתחת ל-minSelected כשאינו ריק', () => {
+    expect(toggleAxisItemWithinMinimum({ extras: ['x'] }, optionalAxis, 'x', false)).toEqual({ extras: [] });
+    const two = { extras: ['x', 'y'] };
+    expect(toggleAxisItemWithinMinimum(two, optionalAxis, 'x', false)).toBe(two);
+  });
+
+  it('clearAxisToMinimum: משאיר את המינימום לפי סדר הציר; allowEmpty מתרוקן', () => {
+    expect(clearAxisToMinimum({ letters: ['final-k'], vowels: ['shva'] }, minTwo)).toEqual({
+      letters: ['a', 'b'],
+      vowels: ['shva'],
+    });
+    expect(clearAxisToMinimum({ extras: ['x', 'y'] }, optionalAxis)).toEqual({ extras: [] });
   });
 });

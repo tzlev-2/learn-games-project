@@ -5,13 +5,20 @@
 	 * fieldset לכל ציר, כפתורי "בחר הכל" / "נקה" לכל ציר, ו-checkbox לכל פריט.
 	 * כל המחרוזות מגיעות מהצרכן (`labels`, `axis.displayName`) — אין עברית בקיט.
 	 * הקומפוננטה controlled: מקבלת `selection` ומדווחת בחירה חדשה ב-`onchange`.
+	 *
+	 * אופציונלי (additive): `enforceMinSelected` — אי אפשר לרדת מתחת ל-`minSelected`
+	 * של הציר (ביטול סימון נחסם, "נקה" משאיר את המינימום); `defaultSelection` +
+	 * `labels.reset` — כפתור "ברירת מחדל" לכל ציר.
 	 */
 	import {
 		clearAxis,
+		clearAxisToMinimum,
 		getAxisSelection,
 		isItemSelected,
 		selectAllOnAxis,
-		toggleAxisItem
+		setAxisSelection,
+		toggleAxisItem,
+		toggleAxisItemWithinMinimum
 	} from './selection';
 	import type { AnySelectionAxis, AxisSelectorLabels, ProviderSelection } from './types';
 
@@ -25,6 +32,10 @@
 		/** רוחב מינימלי לפריט ב-grid (CSS value). ברירת מחדל: 3.5rem */
 		itemMinWidth?: string;
 		disabled?: boolean;
+		/** חסימת ירידה מתחת ל-`minSelected` של הציר. ברירת מחדל: false */
+		enforceMinSelected?: boolean;
+		/** בחירת ברירת המחדל — מאפשרת כפתור "ברירת מחדל" (עם `labels.reset`) */
+		defaultSelection?: ProviderSelection;
 		class?: string;
 	}
 
@@ -36,8 +47,28 @@
 		formatCount = (selected, total) => `${selected}/${total}`,
 		itemMinWidth = '3.5rem',
 		disabled = false,
+		enforceMinSelected = false,
+		defaultSelection,
 		class: className = ''
 	}: Props = $props();
+
+	/** מחזיר את הבחירה החדשה — כדי לסנכרן את ה-checkbox כשהשינוי נחסם */
+	function handleToggle(axis: AnySelectionAxis, itemId: string, checked: boolean): ProviderSelection {
+		const next = enforceMinSelected
+			? toggleAxisItemWithinMinimum(selection, axis, itemId, checked)
+			: toggleAxisItem(selection, axis.id, itemId, checked);
+		if (next !== selection) onchange(next);
+		return next;
+	}
+
+	function handleClear(axis: AnySelectionAxis) {
+		onchange(enforceMinSelected ? clearAxisToMinimum(selection, axis) : clearAxis(selection, axis.id));
+	}
+
+	function handleReset(axis: AnySelectionAxis) {
+		if (!defaultSelection) return;
+		onchange(setAxisSelection(selection, axis.id, getAxisSelection(defaultSelection, axis.id)));
+	}
 
 	function countSelected(axis: AnySelectionAxis): number {
 		const available = new Set(axis.getAvailableItems().map((item) => item.id));
@@ -71,10 +102,21 @@
 					<button
 						type="button"
 						class="cursor-pointer rounded-sm border-0 bg-transparent px-2 py-1 font-medium text-text-secondary transition-colors hover:bg-surface-sunken hover:text-text-primary"
-						onclick={() => onchange(clearAxis(selection, axis.id))}
+						onclick={() => handleClear(axis)}
 					>
 						{labels.clearAll}
 					</button>
+					{#if defaultSelection && labels.reset}
+						<span class="text-border-strong" aria-hidden="true">|</span>
+						<button
+							type="button"
+							class="cursor-pointer rounded-sm border-0 bg-transparent px-2 py-1 font-medium text-text-secondary transition-colors hover:bg-surface-sunken hover:text-text-primary"
+							data-action="reset"
+							onclick={() => handleReset(axis)}
+						>
+							{labels.reset}
+						</button>
+					{/if}
 				</div>
 			</div>
 
@@ -96,8 +138,11 @@
 							type="checkbox"
 							class="sr-only"
 							checked={selected}
-							onchange={(e) =>
-								onchange(toggleAxisItem(selection, axis.id, item.id, e.currentTarget.checked))}
+							onchange={(e) => {
+								const next = handleToggle(axis, item.id, e.currentTarget.checked);
+								// controlled: אם השינוי נחסם (מינימום) — מחזירים את מצב ה-checkbox
+								e.currentTarget.checked = isItemSelected(next, axis.id, item.id);
+							}}
 						/>
 						{#if ItemComponent}
 							<ItemComponent {item} {selected} />

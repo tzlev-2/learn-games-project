@@ -168,4 +168,6 @@ export function isContentProvider(value: unknown): value is AnyContentProvider {
 export interface AxisSelectorLabels {
   selectAll: string;
   clearAll: string;
+  /** כפתור "ברירת מחדל" — מוצג רק כשיש גם `defaultSelection` ב-AxisSelector */
+  reset?: string;
 }

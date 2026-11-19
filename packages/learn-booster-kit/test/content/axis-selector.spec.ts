@@ -93,4 +93,66 @@ describe('AxisSelector', () => {
     const { target } = renderSelector({}, { disabled: true });
     target.querySelectorAll('fieldset').forEach((f) => expect(f.disabled).toBe(true));
   });
+
+  describe('enforceMinSelected + ברירת מחדל (additive)', () => {
+    const minLetters = { ...lettersAxis, minSelected: 2 };
+    function renderMin(selection: ProviderSelection, extra: Record<string, unknown> = {}) {
+      const onchange = vi.fn();
+      const target = document.createElement('div');
+      document.body.appendChild(target);
+      instance = mount(AxisSelector, {
+        target,
+        props: {
+          axes: [minLetters],
+          selection,
+          onchange,
+          labels: { ...labels, reset: 'DEFAULT' },
+          enforceMinSelected: true,
+          ...extra,
+        },
+      });
+      flushSync();
+      return { target, onchange };
+    }
+
+    it('ביטול סימון שיוריד מתחת ל-minSelected נחסם וה-checkbox חוזר למצב מסומן', () => {
+      const { target, onchange } = renderMin({ letters: ['a', 'b'] });
+      const a = target.querySelector<HTMLInputElement>('label[data-item-id="a"] input')!;
+      a.checked = false;
+      a.dispatchEvent(new Event('change', { bubbles: true }));
+      expect(onchange).not.toHaveBeenCalled();
+      expect(a.checked).toBe(true);
+    });
+
+    it('ביטול סימון מעל המינימום מותר', () => {
+      const { target, onchange } = renderMin({ letters: ['a', 'b', 'final-k'] });
+      const a = target.querySelector<HTMLInputElement>('label[data-item-id="a"] input')!;
+      a.checked = false;
+      a.dispatchEvent(new Event('change', { bubbles: true }));
+      expect(onchange).toHaveBeenCalledWith({ letters: ['b', 'final-k'] });
+    });
+
+    it('"נקה" משאיר את המינימום לפי סדר הציר', () => {
+      const { target, onchange } = renderMin({ letters: ['final-k', 'b'] });
+      const [, clearAll] = [...target.querySelectorAll('button')];
+      clearAll.click();
+      expect(onchange).toHaveBeenLastCalledWith({ letters: ['a', 'b'] });
+    });
+
+    it('כפתור "ברירת מחדל" מוצג רק עם defaultSelection ומחזיר את בחירת ברירת המחדל לציר', () => {
+      const without = renderMin({ letters: ['a', 'b'] });
+      expect(without.target.querySelector('[data-action="reset"]')).toBeNull();
+      unmount(instance!);
+      instance = undefined;
+
+      const { target, onchange } = renderMin(
+        { letters: ['a', 'b'], other: ['x'] },
+        { defaultSelection: { letters: ['b', 'final-k'] } },
+      );
+      const reset = target.querySelector<HTMLButtonElement>('[data-action="reset"]')!;
+      expect(reset.textContent?.trim()).toBe('DEFAULT');
+      reset.click();
+      expect(onchange).toHaveBeenLastCalledWith({ letters: ['b', 'final-k'], other: ['x'] });
+    });
+  });
 });

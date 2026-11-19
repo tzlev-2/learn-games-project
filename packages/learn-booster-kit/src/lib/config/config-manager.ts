@@ -9,6 +9,7 @@ import {
   addProfilesListener,
 } from "./profile-manager";
 import { getDefaultBoosterConfig } from "./default-config";
+import { getRegisteredGameSchemaVersion } from "./migrations";
 import { loadVideoUrls } from "../video/video-loader";
 import {
   BOOSTER_CONFIG_SCHEMA_REGISTRY,
@@ -275,9 +276,12 @@ export async function updateGameSettings<T = unknown>(
   gameId: string,
   settings: T,
 ): Promise<Result<BoosterConfig, ValidationError>> {
-  // קובע את ה-schemaVersion הנוכחי — מ-registry אם רשום, 1 כברירת מחדל
+  // קובע את ה-schemaVersion: המשחק כותב נתונים בצורה הנוכחית, לכן משחק רשום
+  // מקבל את ה-currentVersion שלו. אחרת — הגרסה הקיימת, או 1 כברירת מחדל.
+  // (בעבר נכתבה תמיד הגרסה הקיימת/1, ואז נתונים עדכניים סומנו כ-v1 והמיגרציה
+  // הייתה רצה עליהם שוב בטעינה הבאה.)
   const existing = getActiveProfileGameSettings(gameId);
-  const schemaVersion = existing?.schemaVersion ?? 1;
+  const schemaVersion = getRegisteredGameSchemaVersion(gameId) ?? existing?.schemaVersion ?? 1;
 
   const wrapped = { schemaVersion, data: settings };
 
