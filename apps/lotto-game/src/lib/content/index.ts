@@ -2,15 +2,25 @@
  * ייצוא מרכזי של מערכת התוכן המודולרית
  */
 
-// טיפוסים בסיסיים
-export type { ContentProvider, ContentItem, CardContent, CardStyleOptions } from './types';
+// טיפוסים בסיסיים (מהקיט)
+export type {
+	ContentProvider,
+	ContentItem,
+	CardContent,
+	CardStyleOptions,
+	ProviderSelection
+} from './types';
 export { isContentProvider } from './types';
 
-// Registry
+// Registry + הצהרת המשחק (הייבוא מבצע רישום של ה-Providers)
 export { contentRegistry } from './registry';
+export { lottoContent, LOTTO_CONTENT_DECLARATION } from './game-content';
 
-// Providers - ייבוא מבצע רישום אוטומטי
-import './providers';
-
-export type { LettersProviderSettings, ShapesProviderSettings, ShapeDefinition } from './providers';
-export { SHAPES } from './providers';
+export type {
+	LettersProviderSettings,
+	ShapesProviderSettings,
+	ShapeDefinition,
+	ReadingProviderSettings,
+	ReadingItem
+} from './providers';
+export { SHAPES, READING_ITEMS } from './providers';

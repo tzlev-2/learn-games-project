@@ -2,8 +2,12 @@
  * בדיקות עבור Letters Content Provider
  */
 import { describe, it, expect } from 'vitest';
-import { lettersProvider } from './index';
+import { isContentProvider, validateSelection, type ContentItem } from 'learn-booster-kit';
+import { lettersProvider, lettersAxis } from './index';
 import type { LettersProviderSettings } from './index';
+
+/** עטיפת אות כ-ContentItem (כמו שה-deck מחזיר) */
+const asItem = (letter: string): ContentItem<string> => ({ id: letter, value: letter, label: letter });
 
 describe('Letters Provider', () => {
 	describe('Provider Metadata', () => {
@@ -23,19 +27,30 @@ describe('Letters Provider', () => {
 			expect(lettersProvider.renderComponent).toBeDefined();
 		});
 
-		it('should have settings component', () => {
-			expect(lettersProvider.settingsComponent).toBeDefined();
+		it('should have no extra settings component (selection is rendered by AxisSelector)', () => {
+			expect(lettersProvider.settingsComponent).toBeUndefined();
+		});
+
+		it('should be a valid kit ContentProvider', () => {
+			expect(isContentProvider(lettersProvider)).toBe(true);
+		});
+
+		it('should expose a single "letters" selection axis', () => {
+			expect(lettersProvider.selectionAxes).toHaveLength(1);
+			expect(lettersProvider.selectionAxes[0]).toBe(lettersAxis);
+			expect(lettersAxis.id).toBe('letters');
+			expect(lettersAxis.displayName).toBeTruthy();
 		});
 	});
 
-	describe('getAvailableItems', () => {
+	describe('getAvailableItems (letters axis)', () => {
 		it('should return all Hebrew letters', () => {
-			const items = lettersProvider.getAvailableItems();
+			const items = lettersAxis.getAvailableItems();
 			expect(items).toHaveLength(22); // אבגדהוזחטיכלמנסעפצקרשת
 		});
 
 		it('should return items with correct structure', () => {
-			const items = lettersProvider.getAvailableItems();
+			const items = lettersAxis.getAvailableItems();
 			const firstItem = items[0];
 
 			expect(firstItem).toHaveProperty('id');
@@ -47,7 +62,7 @@ describe('Letters Provider', () => {
 		});
 
 		it('should have matching id, value, and label for each letter', () => {
-			const items = lettersProvider.getAvailableItems();
+			const items = lettersAxis.getAvailableItems();
 			items.forEach(item => {
 				expect(item.id).toBe(item.value);
 				expect(item.label).toBe(item.value);
@@ -55,37 +70,42 @@ describe('Letters Provider', () => {
 		});
 
 		it('should include aleph', () => {
-			const items = lettersProvider.getAvailableItems();
+			const items = lettersAxis.getAvailableItems();
 			const aleph = items.find(item => item.value === 'א');
 			expect(aleph).toBeDefined();
 		});
 
 		it('should include tav', () => {
-			const items = lettersProvider.getAvailableItems();
+			const items = lettersAxis.getAvailableItems();
 			const tav = items.find(item => item.value === 'ת');
 			expect(tav).toBeDefined();
 		});
 	});
 
-	describe('getDefaultSettings', () => {
-		it('should return settings with all letters selected', () => {
-			const settings = lettersProvider.getDefaultSettings();
-			expect(settings.selectedLetters).toHaveLength(22);
+	describe('getDefaultSelection / getDefaultSettings', () => {
+		it('should select all letters by default', () => {
+			const selection = lettersProvider.getDefaultSelection();
+			expect(selection.letters).toHaveLength(22);
 		});
 
-		it('should have selectedLetters property', () => {
-			const settings = lettersProvider.getDefaultSettings();
-			expect(settings).toHaveProperty('selectedLetters');
-			expect(Array.isArray(settings.selectedLetters)).toBe(true);
+		it('should have letters axis in default selection', () => {
+			const selection = lettersProvider.getDefaultSelection();
+			expect(selection).toHaveProperty('letters');
+			expect(Array.isArray(selection.letters)).toBe(true);
+			expect(validateSelection(lettersProvider.selectionAxes, selection).isOk()).toBe(true);
+		});
+
+		it('should have empty default settings (no selection inside settings)', () => {
+			expect(lettersProvider.getDefaultSettings!()).toEqual({});
 		});
 	});
 
 	describe('generateCardContent', () => {
 		it('should generate correct card content', () => {
 			const letter = 'א';
-			const settings: LettersProviderSettings = { selectedLetters: ['א', 'ב'] };
+			const settings: LettersProviderSettings = {};
 			
-			const content = lettersProvider.generateCardContent(letter, settings);
+			const content = lettersProvider.generateCardContent(asItem(letter), settings);
 
 			expect(content.providerId).toBe('letters');
 			expect(content.itemId).toBe('א');
@@ -93,10 +113,10 @@ describe('Letters Provider', () => {
 		});
 
 		it('should work for different letters', () => {
-			const settings: LettersProviderSettings = { selectedLetters: [] };
+			const settings: LettersProviderSettings = {};
 			
-			const contentA = lettersProvider.generateCardContent('א', settings);
-			const contentB = lettersProvider.generateCardContent('ב', settings);
+			const contentA = lettersProvider.generateCardContent(asItem('א'), settings);
+			const contentB = lettersProvider.generateCardContent(asItem('ב'), settings);
 
 			expect(contentA.itemId).toBe('א');
 			expect(contentB.itemId).toBe('ב');
@@ -105,102 +125,82 @@ describe('Letters Provider', () => {
 	});
 
 	describe('contentMatches', () => {
-		const settings: LettersProviderSettings = { selectedLetters: [] };
+		const settings: LettersProviderSettings = {};
 
 		it('should match cards with same letter', () => {
-			const card1 = lettersProvider.generateCardContent('א', settings);
-			const card2 = lettersProvider.generateCardContent('א', settings);
+			const card1 = lettersProvider.generateCardContent(asItem('א'), settings);
+			const card2 = lettersProvider.generateCardContent(asItem('א'), settings);
 
 			expect(lettersProvider.contentMatches(card1, card2)).toBe(true);
 		});
 
 		it('should not match cards with different letters', () => {
-			const card1 = lettersProvider.generateCardContent('א', settings);
-			const card2 = lettersProvider.generateCardContent('ב', settings);
+			const card1 = lettersProvider.generateCardContent(asItem('א'), settings);
+			const card2 = lettersProvider.generateCardContent(asItem('ב'), settings);
 
 			expect(lettersProvider.contentMatches(card1, card2)).toBe(false);
 		});
 	});
 
-	describe('getSelectedItemIds', () => {
-		it('should return selected letters as array', () => {
-			const settings: LettersProviderSettings = { selectedLetters: ['א', 'ב', 'ג'] };
-			const ids = lettersProvider.getSelectedItemIds(settings);
+	describe('generateDeck', () => {
+		const settings: LettersProviderSettings = {};
 
-			expect(ids).toEqual(['א', 'ב', 'ג']);
+		it('should return selected letters (in alphabet order)', () => {
+			const deck = lettersProvider.generateDeck({ letters: ['ג', 'א', 'ב'] }, settings);
+
+			expect(deck.map((item) => item.id)).toEqual(['א', 'ב', 'ג']);
+			expect(deck[0]).toEqual(asItem('א'));
 		});
 
 		it('should return empty array for empty selection', () => {
-			const settings: LettersProviderSettings = { selectedLetters: [] };
-			const ids = lettersProvider.getSelectedItemIds(settings);
-
-			expect(ids).toEqual([]);
+			expect(lettersProvider.generateDeck({ letters: [] }, settings)).toEqual([]);
+			expect(lettersProvider.generateDeck({}, settings)).toEqual([]);
 		});
 
-		it('should not mutate original settings', () => {
-			const settings: LettersProviderSettings = { selectedLetters: ['א', 'ב'] };
-			const originalLetters = [...settings.selectedLetters];
-			
-			const ids = lettersProvider.getSelectedItemIds(settings);
-			ids.push('ג');
-
-			expect(settings.selectedLetters).toEqual(originalLetters);
-		});
-	});
-
-	describe('updateSelectedItems', () => {
-		it('should update selected letters', () => {
-			const settings: LettersProviderSettings = { selectedLetters: ['א'] };
-			const newSettings = lettersProvider.updateSelectedItems(settings, ['א', 'ב', 'ג']);
-
-			expect(newSettings.selectedLetters).toEqual(['א', 'ב', 'ג']);
+		it('should ignore unknown ids (e.g. final letters, latin)', () => {
+			const deck = lettersProvider.generateDeck({ letters: ['א', 'ך', 'x'] }, settings);
+			expect(deck.map((item) => item.id)).toEqual(['א']);
 		});
 
-		it('should not mutate original settings', () => {
-			const settings: LettersProviderSettings = { selectedLetters: ['א'] };
-			const original = { ...settings };
-			
-			lettersProvider.updateSelectedItems(settings, ['א', 'ב']);
+		it('should not mutate selection', () => {
+			const selection = { letters: ['ב', 'א'] };
+			const original = structuredClone(selection);
 
-			expect(settings).toEqual(original);
+			const deck = lettersProvider.generateDeck(selection, settings);
+			deck.pop();
+
+			expect(selection).toEqual(original);
 		});
 
-		it('should work with empty array', () => {
-			const settings: LettersProviderSettings = { selectedLetters: ['א', 'ב'] };
-			const newSettings = lettersProvider.updateSelectedItems(settings, []);
-
-			expect(newSettings.selectedLetters).toEqual([]);
-		});
-
-		it('should return new object (immutability)', () => {
-			const settings: LettersProviderSettings = { selectedLetters: ['א'] };
-			const newSettings = lettersProvider.updateSelectedItems(settings, ['ב']);
-
-			expect(newSettings).not.toBe(settings);
+		it('should return new array each call (immutability)', () => {
+			const selection = { letters: ['א'] };
+			expect(lettersProvider.generateDeck(selection, settings)).not.toBe(
+				lettersProvider.generateDeck(selection, settings)
+			);
 		});
 	});
 
 	describe('Integration: full workflow', () => {
 		it('should handle complete provider workflow', () => {
 			// 1. קבלת ברירת מחדל
-			const defaultSettings = lettersProvider.getDefaultSettings();
-			expect(defaultSettings.selectedLetters).toHaveLength(22);
+			const defaultSelection = lettersProvider.getDefaultSelection();
+			expect(defaultSelection.letters).toHaveLength(22);
+			const settings = lettersProvider.getDefaultSettings!();
 
 			// 2. עדכון בחירה
-			const updatedSettings = lettersProvider.updateSelectedItems(defaultSettings, ['א', 'ב', 'ג']);
-			expect(updatedSettings.selectedLetters).toEqual(['א', 'ב', 'ג']);
+			const selection = { ...defaultSelection, letters: ['א', 'ב', 'ג'] };
 
-			// 3. שליפת IDs
-			const ids = lettersProvider.getSelectedItemIds(updatedSettings);
-			expect(ids).toEqual(['א', 'ב', 'ג']);
+			// 3. ייצור deck
+			const deck = lettersProvider.generateDeck(selection, settings);
+			expect(deck.map((item) => item.id)).toEqual(['א', 'ב', 'ג']);
 
 			// 4. יצירת תוכן כרטיס
-			const content = lettersProvider.generateCardContent('א', updatedSettings);
+			const content = lettersProvider.generateCardContent(deck[0], settings);
 			expect(content.providerId).toBe('letters');
 			expect(content.itemId).toBe('א');
 
 			// 5. בדיקת התאמה
-			const content2 = lettersProvider.generateCardContent('א', updatedSettings);
+			const content2 = lettersProvider.generateCardContent(deck[0], settings);
 			expect(lettersProvider.contentMatches(content, content2)).toBe(true);
 		});
 	});

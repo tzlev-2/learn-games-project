@@ -13,10 +13,10 @@
 	let { content }: Props = $props();
 
 	// שליפת ה-provider המתאים
-	const provider = $derived(contentRegistry.get(content.providerId));
+	const provider = $derived(contentRegistry.getOrThrow(content.providerId));
 
 	// הרכיב לתצוגה
-	const component = $derived(provider.renderComponent);
+	const Component = $derived(provider.renderComponent);
 </script>
 
-<svelte:component this={component} {content} />
+<Component {content} />

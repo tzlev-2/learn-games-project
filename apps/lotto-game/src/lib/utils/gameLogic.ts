@@ -2,7 +2,7 @@
  * לוגיקת משחק הלוטו - גרסה מודולרית
  * תומכת בספקי תוכן (Content Providers) דינמיים
  */
-import type { CardContent, ContentProvider } from '$lib/content/types';
+import type { AnyContentProvider, CardContent, ProviderSelection } from '$lib/content/types';
 
 // ===== טיפוסים =====
 
@@ -51,8 +51,9 @@ function selectItems<T>(items: T[], count: number): T[] {
 /** פרמטרים ליצירת כרטיסים */
 export interface GenerateCardsParams<TSettings = unknown> {
 	pairCount: number;
-	provider: ContentProvider<unknown, TSettings>;
-	selectedItemIds: string[];
+	provider: AnyContentProvider;
+	/** בחירת המורה (axisId → itemIds) */
+	selection: ProviderSelection;
 	settings: TSettings;
 }
 
@@ -63,13 +64,10 @@ export interface GenerateCardsParams<TSettings = unknown> {
 export function generateCards<TSettings = unknown>(
 	params: GenerateCardsParams<TSettings>
 ): Card[] {
-	const { pairCount, provider, selectedItemIds, settings } = params;
+	const { pairCount, provider, selection, settings } = params;
 
-	if (selectedItemIds.length === 0) return [];
-
-	// שליפת הפריטים שנבחרו
-	const availableItems = provider.getAvailableItems();
-	const selectedItems = availableItems.filter((item) => selectedItemIds.includes(item.id));
+	// ה-deck מה-provider: הפריטים שנבחרו (או הצירופים התקינים, ב-provider רב-צירי)
+	const selectedItems = provider.generateDeck(selection, settings);
 
 	if (selectedItems.length === 0) return [];
 
@@ -83,7 +81,7 @@ export function generateCards<TSettings = unknown>(
 	// יצירת זוגות כרטיסים
 	gameItems.forEach((item) => {
 		// יצירת תוכן הכרטיס
-		const content = provider.generateCardContent(item.value, settings);
+		const content = provider.generateCardContent(item, settings);
 
 		// כרטיס ראשון בזוג
 		cards.push({
@@ -112,7 +110,7 @@ export function generateCards<TSettings = unknown>(
 export function contentMatches(
 	card1: Card,
 	card2: Card,
-	provider: ContentProvider
+	provider: AnyContentProvider
 ): boolean {
 	return provider.contentMatches(card1.content, card2.content);
 }

@@ -1,10 +1,12 @@
 /**
- * ספק תוכן לצורות גיאומטריות
+ * ספק תוכן לצורות גיאומטריות — ציר בחירה יחיד (`shapes`) + הגדרת מצב צבעים
  */
-import type { ContentProvider, ContentItem, CardContent } from '$lib/content/types';
+import { selectAxisItems } from 'learn-booster-kit';
+import type { ContentProvider, ContentItem, CardContent, SelectionAxis } from '../../types';
+import { language } from '$lib/language';
 import ShapeContent from './ShapeContent.svelte';
 import ShapesSettings from './ShapesSettings.svelte';
-import { contentRegistry } from '../../registry';
+import ShapeAxisItem from './ShapeAxisItem.svelte';
 
 /** הגדרת צורה גיאומטרית */
 export interface ShapeDefinition {
@@ -75,9 +77,8 @@ function getNextUniqueColor(): string {
 	return shuffledColorPool[colorPoolIndex++];
 }
 
-/** הגדרות ספק הצורות */
+/** הגדרות ספק הצורות (הבחירה עצמה נשמרת בנפרד, ב-ProviderSelection) */
 export interface ShapesProviderSettings {
-	selectedShapes: string[];
 	colorMode: 'uniform' | 'random';
 }
 
@@ -87,12 +88,10 @@ interface ShapeContentData {
 	color: string;
 }
 
-/** ספק הצורות */
-export const shapesProvider: ContentProvider<ShapeDefinition, ShapesProviderSettings> = {
+/** ציר בחירת הצורות */
+export const shapesAxis: SelectionAxis<ShapeDefinition> = {
 	id: 'shapes',
-	displayName: 'צורות',
-	icon: '🔷',
-
+	displayName: language.content.axes.shapes,
 	getAvailableItems(): ContentItem<ShapeDefinition>[] {
 		return SHAPES.map((shape) => ({
 			id: shape.id,
@@ -100,10 +99,27 @@ export const shapesProvider: ContentProvider<ShapeDefinition, ShapesProviderSett
 			label: shape.name
 		}));
 	},
+	itemComponent: ShapeAxisItem
+};
+
+/** ספק הצורות */
+export const shapesProvider: ContentProvider<ShapesProviderSettings, ShapeDefinition> = {
+	id: 'shapes',
+	displayName: language.content.providers.shapes,
+	icon: '🔷',
+
+	selectionAxes: [shapesAxis],
+
+	generateDeck(selection) {
+		return selectAxisItems(shapesAxis, selection);
+	},
+
+	getDefaultSelection() {
+		return { [shapesAxis.id]: SHAPES.map((s) => s.id) };
+	},
 
 	getDefaultSettings(): ShapesProviderSettings {
 		return {
-			selectedShapes: SHAPES.map((s) => s.id),
 			colorMode: 'random'
 		};
 	},
@@ -112,7 +128,9 @@ export const shapesProvider: ContentProvider<ShapeDefinition, ShapesProviderSett
 		resetColorPool();
 	},
 
-	generateCardContent(shape: ShapeDefinition, settings: ShapesProviderSettings): CardContent {
+	generateCardContent(item: ContentItem<ShapeDefinition>, settings: ShapesProviderSettings): CardContent {
+		const shape = item.value;
+
 		// קביעת צבע לפי מצב הצבעים
 		let color: string;
 
@@ -143,17 +161,6 @@ export const shapesProvider: ContentProvider<ShapeDefinition, ShapesProviderSett
 		return dataA.shapeId === dataB.shapeId && dataA.color === dataB.color;
 	},
 
-	getSelectedItemIds(settings: ShapesProviderSettings): string[] {
-		return [...settings.selectedShapes];
-	},
-
-	updateSelectedItems(settings: ShapesProviderSettings, selectedIds: string[]): ShapesProviderSettings {
-		return { ...settings, selectedShapes: selectedIds };
-	},
-
-	renderComponent: ShapeContent as any,
-	settingsComponent: ShapesSettings as any
+	renderComponent: ShapeContent,
+	settingsComponent: ShapesSettings
 };
-
-// רישום אוטומטי
-contentRegistry.register(shapesProvider);

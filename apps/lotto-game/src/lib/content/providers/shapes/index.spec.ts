@@ -1,9 +1,20 @@
 /**
- * בדיקות עבור Shapes Content Provider
+ * בדיקות עבור Shapes Content Provider (ContentProvider רב-צירי של הקיט, ציר יחיד)
  */
 import { describe, it, expect } from 'vitest';
-import { shapesProvider, SHAPES } from './index';
+import { isContentProvider, validateSelection, type ContentItem } from 'learn-booster-kit';
+import { shapesProvider, shapesAxis, SHAPES } from './index';
 import type { ShapesProviderSettings, ShapeDefinition } from './index';
+
+/** עטיפת הגדרת צורה כ-ContentItem (כמו שה-deck מחזיר) */
+const asItem = (shape: ShapeDefinition): ContentItem<ShapeDefinition> => ({
+	id: shape.id,
+	value: shape,
+	label: shape.name
+});
+
+const circle = asItem({ id: 'circle', name: 'עיגול' });
+const square = asItem({ id: 'square', name: 'ריבוע' });
 
 describe('Shapes Provider', () => {
 	describe('Provider Metadata', () => {
@@ -26,16 +37,28 @@ describe('Shapes Provider', () => {
 		it('should have settings component', () => {
 			expect(shapesProvider.settingsComponent).toBeDefined();
 		});
+
+		it('should be a valid kit ContentProvider', () => {
+			expect(isContentProvider(shapesProvider)).toBe(true);
+		});
+
+		it('should expose a single "shapes" selection axis with item component', () => {
+			expect(shapesProvider.selectionAxes).toHaveLength(1);
+			expect(shapesProvider.selectionAxes[0]).toBe(shapesAxis);
+			expect(shapesAxis.id).toBe('shapes');
+			expect(shapesAxis.displayName).toBeTruthy();
+			expect(shapesAxis.itemComponent).toBeDefined();
+		});
 	});
 
-	describe('getAvailableItems', () => {
+	describe('getAvailableItems (shapes axis)', () => {
 		it('should return all shape definitions', () => {
-			const items = shapesProvider.getAvailableItems();
+			const items = shapesAxis.getAvailableItems();
 			expect(items).toHaveLength(10); // circle, square, triangle, star, heart, diamond, hexagon, semicircle, pentagon, cross
 		});
 
 		it('should return items with correct structure', () => {
-			const items = shapesProvider.getAvailableItems();
+			const items = shapesAxis.getAvailableItems();
 			const firstItem = items[0];
 
 			expect(firstItem).toHaveProperty('id');
@@ -47,49 +70,50 @@ describe('Shapes Provider', () => {
 		});
 
 		it('should include circle', () => {
-			const items = shapesProvider.getAvailableItems();
-			const circle = items.find(item => item.value.id === 'circle');
-			expect(circle).toBeDefined();
-			expect(circle?.value.name).toBe('עיגול');
+			const items = shapesAxis.getAvailableItems();
+			const found = items.find((item) => item.value.id === 'circle');
+			expect(found).toBeDefined();
+			expect(found?.value.name).toBe('עיגול');
 		});
 
 		it('should include all shapes from SHAPES constant', () => {
-			const items = shapesProvider.getAvailableItems();
-			SHAPES.forEach(shape => {
-				const found = items.find(item => item.value.id === shape.id);
+			const items = shapesAxis.getAvailableItems();
+			SHAPES.forEach((shape) => {
+				const found = items.find((item) => item.value.id === shape.id);
 				expect(found).toBeDefined();
 			});
 		});
 	});
 
-	describe('getDefaultSettings', () => {
-		it('should return settings with all shapes selected', () => {
-			const settings = shapesProvider.getDefaultSettings();
-			expect(settings.selectedShapes).toHaveLength(10);
+	describe('getDefaultSelection / getDefaultSettings', () => {
+		it('should select all shapes by default', () => {
+			const selection = shapesProvider.getDefaultSelection();
+			expect(selection.shapes).toHaveLength(10);
 		});
 
-		it('should have selectedShapes property', () => {
-			const settings = shapesProvider.getDefaultSettings();
-			expect(settings).toHaveProperty('selectedShapes');
-			expect(Array.isArray(settings.selectedShapes)).toBe(true);
+		it('should have shapes axis in default selection', () => {
+			const selection = shapesProvider.getDefaultSelection();
+			expect(selection).toHaveProperty('shapes');
+			expect(Array.isArray(selection.shapes)).toBe(true);
+			expect(validateSelection(shapesProvider.selectionAxes, selection).isOk()).toBe(true);
 		});
 
 		it('should have colorMode property', () => {
-			const settings = shapesProvider.getDefaultSettings();
+			const settings = shapesProvider.getDefaultSettings!();
 			expect(settings).toHaveProperty('colorMode');
 			expect(settings.colorMode).toBe('random');
+		});
+
+		it('should not keep the selection inside settings', () => {
+			expect(shapesProvider.getDefaultSettings!()).not.toHaveProperty('selectedShapes');
 		});
 	});
 
 	describe('generateCardContent', () => {
 		it('should generate correct card content with uniform color', () => {
-			const shape: ShapeDefinition = { id: 'circle', name: 'עיגול' };
-			const settings: ShapesProviderSettings = { 
-				selectedShapes: ['circle'], 
-				colorMode: 'uniform' 
-			};
-			
-			const content = shapesProvider.generateCardContent(shape, settings);
+			const settings: ShapesProviderSettings = { colorMode: 'uniform' };
+
+			const content = shapesProvider.generateCardContent(circle, settings);
 
 			expect(content.providerId).toBe('shapes');
 			expect(content.itemId).toBe('circle');
@@ -100,32 +124,28 @@ describe('Shapes Provider', () => {
 		});
 
 		it('should generate content with random color', () => {
-			const shape: ShapeDefinition = { id: 'circle', name: 'עיגול' };
-			const settings: ShapesProviderSettings = { 
-				selectedShapes: ['circle'], 
-				colorMode: 'random' 
-			};
-			
-			const content = shapesProvider.generateCardContent(shape, settings);
+			const settings: ShapesProviderSettings = { colorMode: 'random' };
+
+			const content = shapesProvider.generateCardContent(circle, settings);
 			const data = content.data as any;
 
 			expect(data.color).toMatch(/^#[0-9A-F]{6}$/i); // Valid hex color
 		});
 
+		it('should give unique colors per pair after prepareForGame (random mode)', () => {
+			const settings: ShapesProviderSettings = { colorMode: 'random' };
+			shapesProvider.prepareForGame?.();
+			const colors = Array.from({ length: 20 }, () =>
+				(shapesProvider.generateCardContent(circle, settings).data as any).color
+			);
+			expect(new Set(colors).size).toBe(20);
+		});
+
 		it('should work for different shapes', () => {
-			const settings: ShapesProviderSettings = { 
-				selectedShapes: [], 
-				colorMode: 'uniform' 
-			};
-			
-			const contentCircle = shapesProvider.generateCardContent(
-				{ id: 'circle', name: 'עיגול' }, 
-				settings
-			);
-			const contentSquare = shapesProvider.generateCardContent(
-				{ id: 'square', name: 'ריבוע' }, 
-				settings
-			);
+			const settings: ShapesProviderSettings = { colorMode: 'uniform' };
+
+			const contentCircle = shapesProvider.generateCardContent(circle, settings);
+			const contentSquare = shapesProvider.generateCardContent(square, settings);
 
 			expect(contentCircle.itemId).toBe('circle');
 			expect(contentSquare.itemId).toBe('square');
@@ -135,39 +155,24 @@ describe('Shapes Provider', () => {
 
 	describe('contentMatches', () => {
 		it('should match cards with same shape and color', () => {
-			const settings: ShapesProviderSettings = { 
-				selectedShapes: ['circle'], 
-				colorMode: 'uniform' 
-			};
-			const shape: ShapeDefinition = { id: 'circle', name: 'עיגול' };
+			const settings: ShapesProviderSettings = { colorMode: 'uniform' };
 
-			const card1 = shapesProvider.generateCardContent(shape, settings);
-			const card2 = shapesProvider.generateCardContent(shape, settings);
+			const card1 = shapesProvider.generateCardContent(circle, settings);
+			const card2 = shapesProvider.generateCardContent(circle, settings);
 
 			expect(shapesProvider.contentMatches(card1, card2)).toBe(true);
 		});
 
 		it('should not match cards with different shapes', () => {
-			const settings: ShapesProviderSettings = { 
-				selectedShapes: [], 
-				colorMode: 'uniform' 
-			};
+			const settings: ShapesProviderSettings = { colorMode: 'uniform' };
 
-			const card1 = shapesProvider.generateCardContent(
-				{ id: 'circle', name: 'עיגול' }, 
-				settings
-			);
-			const card2 = shapesProvider.generateCardContent(
-				{ id: 'square', name: 'ריבוע' }, 
-				settings
-			);
+			const card1 = shapesProvider.generateCardContent(circle, settings);
+			const card2 = shapesProvider.generateCardContent(square, settings);
 
 			expect(shapesProvider.contentMatches(card1, card2)).toBe(false);
 		});
 
 		it('should not match cards with same shape but different colors', () => {
-			const shape: ShapeDefinition = { id: 'circle', name: 'עיגול' };
-			
 			// יצירת שני כרטיסים עם צבעים שונים באופן ידני
 			const card1 = {
 				providerId: 'shapes',
@@ -184,131 +189,75 @@ describe('Shapes Provider', () => {
 		});
 	});
 
-	describe('getSelectedItemIds', () => {
-		it('should return selected shapes as array', () => {
-			const settings: ShapesProviderSettings = { 
-				selectedShapes: ['circle', 'square', 'triangle'], 
-				colorMode: 'uniform' 
-			};
-			const ids = shapesProvider.getSelectedItemIds(settings);
+	describe('generateDeck', () => {
+		const settings: ShapesProviderSettings = { colorMode: 'uniform' };
 
-			expect(ids).toEqual(['circle', 'square', 'triangle']);
+		it('should return selected shapes (in shapes order)', () => {
+			const deck = shapesProvider.generateDeck({ shapes: ['triangle', 'circle', 'square'] }, settings);
+
+			expect(deck.map((item) => item.id)).toEqual(['circle', 'square', 'triangle']);
+			expect(deck[0]).toEqual(circle);
 		});
 
 		it('should return empty array for empty selection', () => {
-			const settings: ShapesProviderSettings = { 
-				selectedShapes: [], 
-				colorMode: 'random' 
-			};
-			const ids = shapesProvider.getSelectedItemIds(settings);
-
-			expect(ids).toEqual([]);
+			expect(shapesProvider.generateDeck({ shapes: [] }, settings)).toEqual([]);
+			expect(shapesProvider.generateDeck({}, settings)).toEqual([]);
 		});
 
-		it('should not mutate original settings', () => {
-			const settings: ShapesProviderSettings = { 
-				selectedShapes: ['circle', 'square'], 
-				colorMode: 'uniform' 
-			};
-			const originalShapes = [...settings.selectedShapes];
-			
-			const ids = shapesProvider.getSelectedItemIds(settings);
-			ids.push('triangle');
-
-			expect(settings.selectedShapes).toEqual(originalShapes);
+		it('should ignore unknown shape ids', () => {
+			const deck = shapesProvider.generateDeck({ shapes: ['circle', 'blob'] }, settings);
+			expect(deck.map((item) => item.id)).toEqual(['circle']);
 		});
-	});
 
-	describe('updateSelectedItems', () => {
-		it('should update selected shapes', () => {
-			const settings: ShapesProviderSettings = { 
-				selectedShapes: ['circle'], 
-				colorMode: 'uniform' 
-			};
-			const newSettings = shapesProvider.updateSelectedItems(
-				settings, 
-				['circle', 'square', 'triangle']
+		it('should not depend on colorMode', () => {
+			const selection = { shapes: ['circle', 'square'] };
+			expect(shapesProvider.generateDeck(selection, { colorMode: 'random' })).toEqual(
+				shapesProvider.generateDeck(selection, { colorMode: 'uniform' })
 			);
-
-			expect(newSettings.selectedShapes).toEqual(['circle', 'square', 'triangle']);
 		});
 
-		it('should preserve colorMode', () => {
-			const settings: ShapesProviderSettings = { 
-				selectedShapes: ['circle'], 
-				colorMode: 'random' 
-			};
-			const newSettings = shapesProvider.updateSelectedItems(
-				settings, 
-				['square']
+		it('should not mutate selection or settings', () => {
+			const selection = { shapes: ['square', 'circle'] };
+			const localSettings: ShapesProviderSettings = { colorMode: 'random' };
+			const originalSelection = structuredClone(selection);
+			const originalSettings = { ...localSettings };
+
+			const deck = shapesProvider.generateDeck(selection, localSettings);
+			deck.pop();
+
+			expect(selection).toEqual(originalSelection);
+			expect(localSettings).toEqual(originalSettings);
+		});
+
+		it('should return new array each call (immutability)', () => {
+			const selection = { shapes: ['circle'] };
+			expect(shapesProvider.generateDeck(selection, settings)).not.toBe(
+				shapesProvider.generateDeck(selection, settings)
 			);
-
-			expect(newSettings.colorMode).toBe('random');
-		});
-
-		it('should not mutate original settings', () => {
-			const settings: ShapesProviderSettings = { 
-				selectedShapes: ['circle'], 
-				colorMode: 'uniform' 
-			};
-			const original = { ...settings };
-			
-			shapesProvider.updateSelectedItems(settings, ['circle', 'square']);
-
-			expect(settings).toEqual(original);
-		});
-
-		it('should work with empty array', () => {
-			const settings: ShapesProviderSettings = { 
-				selectedShapes: ['circle', 'square'], 
-				colorMode: 'uniform' 
-			};
-			const newSettings = shapesProvider.updateSelectedItems(settings, []);
-
-			expect(newSettings.selectedShapes).toEqual([]);
-		});
-
-		it('should return new object (immutability)', () => {
-			const settings: ShapesProviderSettings = { 
-				selectedShapes: ['circle'], 
-				colorMode: 'uniform' 
-			};
-			const newSettings = shapesProvider.updateSelectedItems(settings, ['square']);
-
-			expect(newSettings).not.toBe(settings);
 		});
 	});
 
 	describe('Integration: full workflow', () => {
 		it('should handle complete provider workflow with uniform color', () => {
 			// 1. קבלת ברירת מחדל
-			const defaultSettings = shapesProvider.getDefaultSettings();
-			expect(defaultSettings.selectedShapes).toHaveLength(10);
+			const defaultSelection = shapesProvider.getDefaultSelection();
+			expect(defaultSelection.shapes).toHaveLength(10);
+			const settings: ShapesProviderSettings = { ...shapesProvider.getDefaultSettings!(), colorMode: 'uniform' };
 
 			// 2. עדכון בחירה
-			const updatedSettings = shapesProvider.updateSelectedItems(
-				{ ...defaultSettings, colorMode: 'uniform' },
-				['circle', 'square']
-			);
-			expect(updatedSettings.selectedShapes).toEqual(['circle', 'square']);
+			const selection = { ...defaultSelection, shapes: ['circle', 'square'] };
 
-			// 3. שליפת IDs
-			const ids = shapesProvider.getSelectedItemIds(updatedSettings);
-			expect(ids).toEqual(['circle', 'square']);
+			// 3. ייצור deck
+			const deck = shapesProvider.generateDeck(selection, settings);
+			expect(deck.map((item) => item.id)).toEqual(['circle', 'square']);
 
 			// 4. יצירת תוכן כרטיס
-			const content = shapesProvider.generateCardContent(
-				{ id: 'circle', name: 'עיגול' },
-				updatedSettings
-			);
+			const content = shapesProvider.generateCardContent(deck[0], settings);
 			expect(content.providerId).toBe('shapes');
 			expect(content.itemId).toBe('circle');
 
 			// 5. בדיקת התאמה (במצב uniform שני כרטיסים של אותה צורה תמיד יתאימו)
-			const content2 = shapesProvider.generateCardContent(
-				{ id: 'circle', name: 'עיגול' },
-				updatedSettings
-			);
+			const content2 = shapesProvider.generateCardContent(deck[0], settings);
 			expect(shapesProvider.contentMatches(content, content2)).toBe(true);
 		});
 	});
@@ -319,7 +268,7 @@ describe('Shapes Provider', () => {
 		});
 
 		it('should have all required shapes', () => {
-			const shapeIds = SHAPES.map(s => s.id);
+			const shapeIds = SHAPES.map((s) => s.id);
 			expect(shapeIds).toContain('circle');
 			expect(shapeIds).toContain('square');
 			expect(shapeIds).toContain('triangle');
@@ -333,7 +282,7 @@ describe('Shapes Provider', () => {
 		});
 
 		it('should have Hebrew names', () => {
-			SHAPES.forEach(shape => {
+			SHAPES.forEach((shape) => {
 				expect(shape.name).toBeTruthy();
 				expect(typeof shape.name).toBe('string');
 			});

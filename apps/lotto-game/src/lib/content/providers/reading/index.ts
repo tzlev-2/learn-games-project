@@ -1,11 +1,12 @@
 /**
- * ספק תוכן "ציור של קריאה"
+ * ספק תוכן "ציור של קריאה" — ציר בחירה יחיד (`readingItems`)
  * שיטת עופרה כלב - תומכי זיכרון חזותיים לאותיות עבריות
  */
-import type { ContentProvider, ContentItem, CardContent } from '$lib/content/types';
-import { contentRegistry } from '../../registry';
+import { selectAxisItems } from 'learn-booster-kit';
+import type { ContentProvider, ContentItem, CardContent, SelectionAxis } from '../../types';
+import { language } from '$lib/language';
 import ReadingContent from './ReadingContent.svelte';
-import ReadingSettings from './ReadingSettings.svelte';
+import ReadingAxisItem from './ReadingAxisItem.svelte';
 
 /** הגדרת פריט קריאה - אות עם תומך זיכרון */
 export interface ReadingItem {
@@ -27,10 +28,8 @@ export const READING_ITEMS: ReadingItem[] = [
 	{ id: 'het', letter: 'חָ', imagePath: '/reading-icons/het_window.png', helper: 'חלון' }
 ];
 
-/** הגדרות ספק הקריאה */
-export interface ReadingProviderSettings {
-	selectedItems: string[];
-}
+/** לספק הקריאה אין הגדרות מעבר לבחירה */
+export type ReadingProviderSettings = Record<string, never>;
 
 /** תוכן כרטיס קריאה */
 interface ReadingContentData {
@@ -39,12 +38,10 @@ interface ReadingContentData {
 	helper: string;
 }
 
-/** ספק "ציור של קריאה" */
-export const readingProvider: ContentProvider<ReadingItem, ReadingProviderSettings> = {
-	id: 'reading',
-	displayName: 'ציור של קריאה',
-	icon: '📖',
-
+/** ציר בחירת פריטי הקריאה */
+export const readingAxis: SelectionAxis<ReadingItem> = {
+	id: 'readingItems',
+	displayName: language.content.axes.readingItems,
 	getAvailableItems(): ContentItem<ReadingItem>[] {
 		return READING_ITEMS.map((item) => ({
 			id: item.id,
@@ -52,19 +49,32 @@ export const readingProvider: ContentProvider<ReadingItem, ReadingProviderSettin
 			label: `${item.letter} - ${item.helper}`
 		}));
 	},
+	itemComponent: ReadingAxisItem
+};
 
-	getDefaultSettings(): ReadingProviderSettings {
-		return {
-			selectedItems: READING_ITEMS.map((item) => item.id)
-		};
+/** ספק "ציור של קריאה" */
+export const readingProvider: ContentProvider<ReadingProviderSettings, ReadingItem> = {
+	id: 'reading',
+	displayName: language.content.providers.reading,
+	icon: '📖',
+
+	selectionAxes: [readingAxis],
+
+	generateDeck(selection) {
+		return selectAxisItems(readingAxis, selection);
 	},
 
-	generateCardContent(item: ReadingItem): CardContent {
-		const data: ReadingContentData = {
-			letter: item.letter,
-			imagePath: item.imagePath,
-			helper: item.helper
-		};
+	getDefaultSelection() {
+		return { [readingAxis.id]: READING_ITEMS.map((item) => item.id) };
+	},
+
+	getDefaultSettings(): ReadingProviderSettings {
+		return {};
+	},
+
+	generateCardContent(item: ContentItem<ReadingItem>): CardContent {
+		const { letter, imagePath, helper } = item.value;
+		const data: ReadingContentData = { letter, imagePath, helper };
 
 		return {
 			providerId: 'reading',
@@ -78,16 +88,7 @@ export const readingProvider: ContentProvider<ReadingItem, ReadingProviderSettin
 		return a.itemId === b.itemId;
 	},
 
-	getSelectedItemIds(settings: ReadingProviderSettings): string[] {
-		return [...settings.selectedItems];
-	},
-
-	updateSelectedItems(settings: ReadingProviderSettings, selectedIds: string[]): ReadingProviderSettings {
-		return { ...settings, selectedItems: selectedIds };
-	},
-
-	renderComponent: ReadingContent as any,
-	settingsComponent: ReadingSettings as any,
+	renderComponent: ReadingContent,
 
 	// עיצוב כרטיס מותאם - אות למעלה, תמונה למטה
 	cardStyles: {
@@ -95,6 +96,3 @@ export const readingProvider: ContentProvider<ReadingItem, ReadingProviderSettin
 		padding: '0.5rem'
 	}
 };
-
-// רישום אוטומטי
-contentRegistry.register(readingProvider);

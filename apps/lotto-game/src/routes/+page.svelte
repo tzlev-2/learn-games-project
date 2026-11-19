@@ -10,7 +10,6 @@
 	import { playSuccess, playError, playWin } from '$lib/utils/sound';
 	import { boosterService, AdminGate } from 'learn-booster-kit';
 	import { settings } from '$lib/stores/settings.svelte';
-	import { contentRegistry } from '$lib/content/registry';
 	import Confetti from './_components/Confetti.svelte';
 	import Board from './_components/Board.svelte';
 	import winnerLogo from '$lib/assets/winner_logo.png';
@@ -28,7 +27,7 @@
 	let isRewardPending = $state(false);
 
 	// כותרת דינמית לפי סוג התוכן ומצב המשחק
-	const provider = $derived(contentRegistry.get(settings.contentProviderId));
+	const provider = $derived(settings.currentProvider);
 	const gameTitle = $derived(
 		settings.gameMode === 'memory'
 			? `משחק זיכרון ${provider.displayName}`
@@ -64,16 +63,16 @@
 
 	function startNewGame(round = 1) {
 		// שליפת ה-provider והגדרות
-		const currentProvider = contentRegistry.get(settings.contentProviderId);
+		const currentProvider = settings.currentProvider;
 		const providerSettings = settings.getCurrentProviderSettings();
-		
-		// שליפת רשימת ה-IDs של הפריטים שנבחרו באמצעות המתודה הגנרית
-		const selectedItemIds = currentProvider.getSelectedItemIds(providerSettings);
-		
+
+		// בחירת המורה (ProviderSelection) — ה-provider מייצר ממנה את ה-deck
+		const selection = settings.getCurrentSelection();
+
 		const newCards = generateCards({
 			pairCount: settings.pairCount,
 			provider: currentProvider,
-			selectedItemIds,
+			selection,
 			settings: providerSettings
 		});
 		
@@ -122,7 +121,7 @@
 			const secondCard = cards[secondIndex];
 
 			// השתמש בפונקציית ההשוואה מה-provider
-			const currentProvider = contentRegistry.get(settings.contentProviderId);
+			const currentProvider = settings.currentProvider;
 			const feedbackMs = settings.feedbackDurationSec * 1000;
 			const unlockDelayMs = feedbackMs + 500; // חצי שנייה נוספת אחרי המשוב
 
