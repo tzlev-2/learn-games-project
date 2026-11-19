@@ -15,8 +15,9 @@
 <button
 	type="button"
 	class="letter-card"
-	class:shake={isShaking}
-	class:pop-success={isSuccess}
+	class:lbk-anim-shake={isShaking}
+	class:lbk-anim-pop={isSuccess}
+	class:success={isSuccess}
 	class:disabled
 	{disabled}
 	onclick={() => onclick(card)}
@@ -30,8 +31,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: white;
-		border: 2px solid #e5e7eb;
+		background: var(--theme-surface-elevated);
+		border: 2px solid var(--theme-border-subtle);
 		border-radius: 1.25rem;
 		box-shadow:
 			0 1px 0 rgba(15, 23, 42, 0.04),
@@ -67,15 +68,16 @@
 		cursor: default;
 	}
 
-	.letter-card.pop-success {
-		background: #dcfce7;
-		border-color: #22c55e;
+	/* הבזק הצלחה — האנימציה מגיעה מהקיט (lbk-anim-pop), הצבעים מה-theme */
+	.letter-card.success {
+		background: var(--theme-feedback-success-bg);
+		border-color: var(--theme-feedback-success);
 	}
 
 	.letter {
 		font-family: 'David', 'Frank Ruehl CLM', 'Times New Roman', serif;
 		font-weight: 800;
-		color: #1e3a8a;
+		color: var(--theme-brand-primary);
 		/* גודל הפונט מתאים את עצמו לגודל הכרטיס — 60% מהגובה הזמין */
 		font-size: 60cqh;
 		line-height: 1;

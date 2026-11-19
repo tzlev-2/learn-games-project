@@ -1,5 +1,49 @@
 # יומן פיתוח — איפה האות?
 
+## 2026-11-19 10:40
+
+### מיגרציה לקומפוננטות ול-theme של הקיט (שלב 1 בתוכנית הפלטפורמה)
+
+ה-shell וה-UI של המשחק עברו מקומפוננטות מקומיות לקומפוננטות של `learn-booster-kit`.
+ה-theme הוא `find-letter`. ההתנהגות לא השתנתה: AdminGate, booster, `settings`/`configManager`, TTS,
+cooldown, והפיצול מסך פתיחה → `/play` (gesture לאודיו).
+
+#### מה בוצע?
+
+- **Theme** — ‏`app.html` קובע `<html data-theme="find-letter">` (בזמן SSR, בלי הבהוב), ו-`app.css` מייבא
+  את `learn-booster-kit/styles` (tokens, themes, אנימציות, fonts). הפונט של הדף הוא `--theme-font-body` (Heebo).
+- **מסך פתיחה (`/`)** — ‏`StartScreen` של הקיט: `background="none"` (ה-gradient של ה-layout נשאר),
+  CTA בצבע `secondary` עם `PlayIcon`. האות המונפשת היא `heroIllustration`, והטיפ הוא `secondaryActions`.
+  גלגל ההגדרות בפינה: `AdminGate` + `IconButton` + `SettingsIcon`.
+- **מסך משחק (`/play`)** — ‏`GameShell layout="fill" background="none"` + `HeaderBar balanced`:
+  "השמע שוב" = `IconButton solid secondary showLabel` + `SpeakerIcon`; "משחק חדש" = `Button secondary sm`;
+  הניקוד = `ScoreBadge`; הגדרות = `AdminGate` + `IconButton`.
+- **Cooldown** — ‏`CooldownOverlay` של הקיט עם `position="absolute"` (מכסה את אזור המשחק בלבד, ה-header גלוי),
+  `ariaLabel` ו-`message` מ-`language.ts`.
+- **לוח וכרטיסים** — ‏`Board`/`LetterCard` נשארו מקומיים (לוגיקת משחק) אבל צבעיהם מה-theme:
+  `--theme-accent-frame` למסגרת, `--theme-feedback-success(-bg)` להצלחה, `--theme-brand-primary` לאות.
+  האנימציות `shake`/`pop-success` המקומיות הוחלפו ב-`lbk-anim-shake`/`lbk-anim-pop` של הקיט (keyframes זהים).
+- **נמחקו** — ‏`_components/HeaderBar.svelte`, `_components/CooldownOverlay.svelte` (+ הטסט ה-skipped שלו),
+  ו-`lib/utils/cooldown.ts` (+ 9 הטסטים שלו). החישוב קיים בקיט (`cooldownProgress`) ונבדק שם.
+  ספירת הטסטים של האפליקציה ירדה מ-136 ל-127 בגלל זה.
+- **`language.ts`** — ‏`progressLabel` (היה "לפרס" קשיח ב-`/play`) ו-`startScreenHeroLetter`.
+
+#### עיטורים מקומיים מעל הקיט
+
+כדי לשמור על המראה, כמה פרטים נשארו כ-CSS מקומי עם class שמועבר לקומפוננטת הקיט:
+gradient + pulse ל-CTA (`fl-start-cta`), gradient ל"השמע שוב" (`fl-repeat-btn`), גודל טקסט ל"משחק חדש"
+(`fl-new-game`) וצבע brand לניקוד (`fl-score`). ה-CSS הזה של הקומפוננטה אינו ב-`@layer` ולכן גובר על utilities
+של Tailwind בלי `!important`. הצבעים נלקחים מה-theme.
+
+#### הבדלים ויזואליים ידועים (מול לפני — צילומים ב-`learn-games-reports/p1/`)
+
+- פונט Heebo (ה-theme) במקום `"Segoe UI", Tahoma…`.
+- כפתור ההתחלה רחב וגבוה מעט יותר (`Button lg` ברוחב `max-w-xs`), והמרווחים במסך הפתיחה גדולים מעט יותר.
+- רקע ה-overlay של ה-cooldown כהה מעט יותר (`--theme-surface-overlay`) ובלי blur; הספרה בצבע `feedback-error`.
+- גלגל ההגדרות הוא `SettingsIcon` של הקיט, על רקע `surface-sunken` ובלי סיבוב ב-hover.
+
+---
+
 ## 2026-05-28 15:30
 
 ### LetterSelectionGrid — הצגת אות בלי פתח

@@ -1,10 +1,21 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { boosterService, ProgressWidget, type Config } from 'learn-booster-kit';
-	import HeaderBar from '../_components/HeaderBar.svelte';
+	import {
+		boosterService,
+		ProgressWidget,
+		type Config,
+		AdminGate,
+		GameShell,
+		HeaderBar,
+		Button,
+		IconButton,
+		ScoreBadge,
+		CooldownOverlay,
+		SpeakerIcon,
+		SettingsIcon
+	} from 'learn-booster-kit';
 	import Board from '../_components/Board.svelte';
-	import CooldownOverlay from '../_components/CooldownOverlay.svelte';
 	import { gameState } from '$lib/stores/game-state.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { language } from '$lib/services/language';
@@ -54,50 +65,100 @@
 	const progressMax = $derived(settings.totalQuestionsPerSet);
 </script>
 
-<HeaderBar />
+<!-- layout="fill": ה-shell ממלא את מסגרת ה-layout (h-screen) כך שהלוח מחשב את גודלו
+     מהשטח שנשאר מתחת ל-header. background="none": ה-gradient של ה-layout נשאר. -->
+<GameShell layout="fill" background="none">
+	{#snippet header()}
+		<HeaderBar balanced>
+			{#snippet leftActions()}
+				<IconButton
+					label={language.listenAgainLabel}
+					showLabel
+					variant="solid"
+					color="secondary"
+					class="fl-repeat-btn"
+					onclick={() => gameState.repeatTarget()}
+				>
+					{#snippet icon()}<SpeakerIcon size={28} />{/snippet}
+				</IconButton>
 
-<main class="game-main">
-	<!-- Progress Widget בצד הלוח (פינה שמאלית) — כמו במשחקים האחרים -->
-	{#if settings.boosterEnabled && boosterConfig}
-		<div class="progress-widget-pos">
-			<ProgressWidget
-				value={gameState.correctInCurrentSet}
-				max={progressMax}
-				orientation="vertical"
-				label="לפרס"
+				<Button
+					variant="secondary"
+					size="sm"
+					class="fl-new-game"
+					onclick={() => gameState.resetGame()}
+				>
+					{language.newGameLabel}
+				</Button>
+			{/snippet}
+
+			{#snippet centerInfo()}
+				<div class="title-wrap">
+					<h1 class="title">{language.gameTitle}</h1>
+					<p class="subtitle">{language.headerSubtitle}</p>
+				</div>
+			{/snippet}
+
+			{#snippet rightActions()}
+				<ScoreBadge label="{language.scoreLabel}:" value={gameState.score} class="fl-score" />
+
+				<!-- כפתור הגדרות מוגן בסיסמה (AdminGate חוסם תלמידים) -->
+				<AdminGate onUnlock={() => goto('/settings')}>
+					<IconButton label={language.settingsLabel}>
+						{#snippet icon()}<SettingsIcon size={22} />{/snippet}
+					</IconButton>
+				</AdminGate>
+			{/snippet}
+		</HeaderBar>
+	{/snippet}
+
+	<div class="game-main">
+		<!-- Progress Widget בצד הלוח (פינה שמאלית) — כמו במשחקים האחרים -->
+		{#if settings.boosterEnabled && boosterConfig}
+			<div class="progress-widget-pos">
+				<ProgressWidget
+					value={gameState.correctInCurrentSet}
+					max={progressMax}
+					orientation="vertical"
+					label={language.progressLabel}
+				/>
+			</div>
+		{/if}
+
+		{#if gameState.status === 'IDLE'}
+			<div class="empty">{language.startPrompt}</div>
+		{:else}
+			<Board
+				board={gameState.board}
+				shakingId={gameState.shakingId}
+				{successId}
+				disabled={isLocked}
+				gridSize={settings.gridSize}
+				onCardClick={(card) => gameState.handleClick(card)}
 			/>
-		</div>
-	{/if}
+		{/if}
 
-	{#if gameState.status === 'IDLE'}
-		<div class="empty">{language.startPrompt}</div>
-	{:else}
-		<Board
-			board={gameState.board}
-			shakingId={gameState.shakingId}
-			{successId}
-			disabled={isLocked}
-			gridSize={settings.gridSize}
-			onCardClick={(card) => gameState.handleClick(card)}
-		/>
-	{/if}
-
-	<!-- overlay ספירה לאחור — מוצג מעל הלוח בזמן עונש על טעות -->
-	{#if gameState.status === 'COOLDOWN'}
-		<CooldownOverlay
-			untilTs={gameState.cooldownUntilTs}
-			durationMs={settings.cooldownMs}
-		/>
-	{/if}
-</main>
+		<!-- overlay ספירה לאחור — מוצג מעל הלוח בלבד (position="absolute"; ה-header נשאר גלוי) -->
+		{#if gameState.status === 'COOLDOWN'}
+			<CooldownOverlay
+				untilTs={gameState.cooldownUntilTs}
+				durationMs={settings.cooldownMs}
+				position="absolute"
+				ariaLabel={language.cooldownTitle}
+				message={language.cooldownHint}
+			/>
+		{/if}
+	</div>
+</GameShell>
 
 <style>
 	.game-main {
-		flex: 1;
+		height: 100%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		padding: 1rem;
+		box-sizing: border-box;
 		min-height: 0;
 		position: relative;
 	}
@@ -113,7 +174,57 @@
 
 	.empty {
 		font-size: 1.5rem;
-		color: #475569;
+		color: var(--theme-text-secondary);
 		text-align: center;
+	}
+
+	.title-wrap {
+		text-align: center;
+	}
+
+	.title {
+		margin: 0;
+		font-size: 1.5rem;
+		font-weight: 900;
+		color: var(--theme-text-heading, var(--theme-brand-primary));
+	}
+
+	.subtitle {
+		margin: 0;
+		font-size: 0.85rem;
+		color: var(--theme-text-secondary);
+	}
+
+	/*
+	 * עיטורים מעל הקומפוננטות של הקיט (CSS של קומפוננטה אינו ב-@layer ולכן גובר על
+	 * utilities של Tailwind): gradient ו-weight לכפתור "השמע שוב", גודל טקסט ל"משחק חדש",
+	 * צבע ה-brand לניקוד.
+	 */
+	:global(.fl-repeat-btn) {
+		background-image: linear-gradient(
+			135deg,
+			var(--theme-brand-secondary),
+			var(--theme-brand-secondary-hover)
+		);
+		font-weight: 800;
+		transition: transform 120ms ease;
+	}
+
+	:global(.fl-repeat-btn:hover) {
+		transform: translateY(-1px);
+	}
+
+	:global(.fl-repeat-btn:active) {
+		transform: translateY(0);
+	}
+
+	/* "משחק חדש" — טקסט בגודל רגיל (ה-sm של הקיט הוא text-sm) */
+	:global(.fl-new-game) {
+		font-size: 1rem;
+	}
+
+	:global(.fl-score) {
+		color: var(--theme-brand-primary);
+		font-weight: 800;
 	}
 </style>

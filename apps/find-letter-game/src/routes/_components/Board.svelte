@@ -100,9 +100,10 @@
 		display: grid;
 		gap: 12px;
 		padding: 16px;
-		border: 6px solid var(--color-frame, #ff6a3d);
+		/* מסגרת כתומה — accent-frame של ה-theme (find-letter: #ff6a3d) */
+		border: 6px solid var(--theme-accent-frame);
 		border-radius: 1.5rem;
-		background: white;
+		background: var(--theme-surface-elevated);
 		box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
 		box-sizing: border-box;
 	}

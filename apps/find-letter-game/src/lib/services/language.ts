@@ -10,6 +10,8 @@ export const language = {
 	newGameLabel: 'משחק חדש',
 	settingsLabel: 'הגדרות',
 	scoreLabel: 'נכון',
+	/** תווית ה-ProgressWidget בצד הלוח */
+	progressLabel: 'לפרס',
 	roundLabel: 'סיבוב',
 	promptPrefix: 'איפה',
 	promptSuffix: '?',
@@ -43,6 +45,9 @@ export const language = {
 	settingBoardsPerSet: 'לוחות בסבב',
 	settingBoardsPerSetHint: 'כמה לוחות התלמיד מסיים לפני שהוא מקבל פרס.',
 	settingsSummary: 'סך השאלות לפרס',
+	/** ערך הסליידר "שאלות בכל לוח" כשהוא 0 — כל הכרטיסים; `{n}` = מספר התאים */
+	allCellsLabel: 'הכל ({n})',
+	loadingLabel: 'טוען…',
 
 	// בחירת אותיות
 	letterSelectionHeader: 'אותיות להצגה',
@@ -87,5 +92,7 @@ export const language = {
 	// === מסך פתיחה ===
 	startScreenSubtitle: 'משחק זיהוי אותיות בעברית',
 	startButtonLabel: 'להתחלת המשחק',
-	startScreenTip: 'הקשיבו ולחצו על האות הנכונה'
+	startScreenTip: 'הקשיבו ולחצו על האות הנכונה',
+	/** האות הדקורטיבית (aria-hidden) במסך הפתיחה */
+	startScreenHeroLetter: 'בַּ'
 } as const;

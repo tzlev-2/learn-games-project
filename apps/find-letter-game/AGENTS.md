@@ -31,6 +31,7 @@ After completing the code, ask the user if they want a playground link. Only cal
 **סטטוס:**
 - ✅ הכי מתקדם בפלטפורמיזציה — SettingsStore מחובר ל-`configManager` של הקיט
 - ✅ migration system עבד (schemaVersion 1)
+- ✅ UI מהקיט: `StartScreen`, `GameShell`, `HeaderBar`, `CooldownOverlay`, primitives ו-icons; theme `find-letter` (`<html data-theme>` ב-`app.html`). ‏`Board`/`LetterCard` מקומיים עם tokens של ה-theme
 - ⚠️ עדיין לא רשום ב-`registerGameSchema` — passthrough כרגע
 
 **הפניות:**
