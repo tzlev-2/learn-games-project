@@ -23,7 +23,7 @@
   subtitle={language.startSubtitle}
   background="none"
   layout="fill"
-  class="sc-fade-in py-4"
+  class="sc-start sc-fade-in py-4"
   primaryAction={{
     label: language.startButton,
     onclick: handleStart,
@@ -81,6 +81,13 @@
 
   :global(.sc-fade-in) {
     animation: sc-fade-in 0.6s ease-out;
+  }
+
+  /* תת-הכותרת: text-xl → md:text-2xl כמו במקור */
+  @media (min-width: 48rem) {
+    :global(.sc-start) {
+      --theme-font-size-lg: 1.5rem;
+    }
   }
 
   /* ה-CTA של המשחק: gradient ירוק, פינות rounded-2xl וטקסט גדול — על בסיס Button של הקיט */
