@@ -6,6 +6,16 @@
 
 ---
 
+## 2026-11-19 10:51
+
+### קיט: `slate` — גודל כותרת התצוגה לפי רוחב המסך
+
+`--theme-font-size-display` של `slate` שונה מ-`clamp(3rem, 7vmin, 3.75rem)` ל-`clamp(3rem, 6vw, 3.75rem)`.
+במשחקים הכותרת היא `text-5xl md:text-6xl` — תלויה ברוחב, ולכן 60px גם במסך נמוך כמו
+1097×685 (עם `vmin` יצא 48px). נמדד בצילומי sort-cards ו-train-addition.
+
+---
+
 ## 2026-11-19 10:46
 
 ### קיט: תיקונים — header כהה של `slate`, גדלי `CooldownRing`, טיפוס ב-`tts`
