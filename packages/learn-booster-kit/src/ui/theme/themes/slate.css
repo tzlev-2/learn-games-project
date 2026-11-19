@@ -61,6 +61,13 @@
 	--theme-font-size-xl: 1.5rem;
 	--theme-font-weight-regular: 400;
 	--theme-font-weight-bold: 700;
+
+	/* Display (tokens אופציונליים) — כותרת מסך הפתיחה: slate-800, 900, גדולה
+	   (text-5xl → md:text-6xl במשחקים). משחק עם כותרת בהירה (train-addition)
+	   דורס את --theme-text-heading מקומית. */
+	--theme-text-heading: #1e293b;
+	--theme-font-size-display: clamp(3rem, 7vmin, 3.75rem);
+	--theme-font-weight-display: 900;
 }
 
 /* Header dark — scoped token overrides */

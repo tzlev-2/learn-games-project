@@ -6,6 +6,26 @@
 
 ---
 
+## 2026-11-19 10:43
+
+### קיט: `StartScreen` — `layout="fill"`, תוכן בין הכותרת לכפתור, ו-tokens תצוגה ל-`slate`
+
+מסך הפתיחה של sort-cards יושב מתחת ל-header ויש בו בורר נושא ברוחב `max-w-lg`
+בין הכותרת לכפתור. כדי להעביר אותו ל-`StartScreen` נוספו props תוספתיים:
+
+- **`layout: 'screen' | 'fill'`** (ברירת מחדל `screen` — `min-h-screen` כמו קודם).
+  ‏`fill` ממלא את ההורה (`h-full`), גולל בתוכו ומרכז ב-`justify-center-safe`, כך שתוכן
+  גבוה מהמסך מתחיל מלמעלה ולא נחתך משני הצדדים.
+- **`children`** — snippet בין הכותרת לכפתור, מחוץ לעמודת הכפתור (`max-w-xs`).
+- **`class`** — classes נוספים לעטיפה (ריווח, אנימציית כניסה).
+- **`slate.css`** — הוגדרו ה-tokens האופציונליים של הכותרת (`--theme-text-heading`
+  slate-800, ‏`--theme-font-size-display` ‏`clamp(3rem, 7vmin, 3.75rem)`, משקל 900),
+  כמו `text-5xl md:text-6xl font-black` במשחקים. היום רק ה-showcase של
+  `kit-test-screen` משתמש ב-`slate`.
+- טסטים: 3 טסטים נוספים ב-`test/ui/shell/shell-ssr.spec.ts`.
+
+---
+
 ## 2026-11-19 10:40
 
 ### קיט: `CooldownRing` ו-`HomeIcon`

@@ -123,4 +123,35 @@ describe('StartScreen', () => {
 		// אייקון מוביל — לפני ה-label בסדר ה-DOM
 		expect(body.indexOf('ICON')).toBeLessThan(body.indexOf('GO'));
 	});
+
+	it('ברירת מחדל: layout=screen עם min-h-screen ו-justify-center', () => {
+		const { body } = render(StartScreen, { props: base });
+		expect(body).toContain('data-layout="screen"');
+		const root = classOf(body, /<div data-background[^>]*>/);
+		expect(root).toContain('min-h-screen');
+		expect(root).toContain('justify-center');
+		expect(root).not.toContain('h-full');
+	});
+
+	it('layout=fill: ממלא את ההורה, גולל, מרכוז safe', () => {
+		const { body } = render(StartScreen, { props: { ...base, layout: 'fill', class: 'py-4' } });
+		expect(body).toContain('data-layout="fill"');
+		const root = classOf(body, /<div data-background[^>]*>/);
+		expect(root).toContain('h-full');
+		expect(root).toContain('overflow-y-auto');
+		expect(root).toContain('justify-center-safe');
+		expect(root).not.toContain('min-h-screen');
+		expect(root).toContain('py-4');
+	});
+
+	it('children: מרונדר בין הכותרת לכפתור, מחוץ לעמודת הכפתור', () => {
+		const { body } = render(StartScreen, { props: { ...base, children: text('PICKER') } });
+		const iTitle = body.indexOf('>T<');
+		const iPicker = body.indexOf('PICKER');
+		const iCol = body.indexOf('max-w-xs');
+		expect(iTitle).toBeGreaterThan(-1);
+		expect(iPicker).toBeGreaterThan(iTitle);
+		expect(iPicker).toBeLessThan(iCol);
+		expect(iCol).toBeLessThan(body.indexOf('GO'));
+	});
 });
