@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+/* tokens + themes + fonts של הקיט. ה-theme הפעיל נקבע ב-app.html: <html data-theme="wordys"> */
 @import 'learn-booster-kit/styles';
 
 @theme {
@@ -7,4 +8,73 @@
 
 body {
 	font-family: var(--font-sans);
+}
+
+/* ה-tokens של הקיט ממפים את rounded-sm/md/lg של Tailwind ל-radius של ה-theme
+   (wordys: 12/20/32px). קוד המשחק (מקשים, שדות, כרטיסים, admin) נכתב מול
+   4/8/16px — הערכים שהיו בפועל לפני data-theme="wordys" (נמדד) — ולכן נשמרים.
+   קומפוננטות הקיט שבשימוש כאן (Button, IconButton) הן pill ולא מושפעות. */
+[data-theme='wordys'] {
+	--radius-sm: 4px;
+	--radius-md: 8px;
+	--radius-lg: 16px;
+}
+
+/* צבעי כפתורים של המשחק מעל Button של הקיט (ה-theme מגדיר כתום/ענבר; הכפתורים
+   הירוקים/הסגולים/האפורים של wordys נשמרים). CSS בלי layer גובר על ה-utilities. */
+.wd-btn-green {
+	background-color: #22c55e;
+	color: #ffffff;
+}
+.wd-btn-green:hover {
+	background-color: #16a34a;
+}
+.wd-btn-slate {
+	background-color: #f1f5f9;
+	color: #334155;
+	border-color: transparent;
+}
+.wd-btn-slate:hover {
+	background-color: #e2e8f0;
+}
+.wd-btn-purple {
+	background-color: #a855f7;
+	color: #ffffff;
+}
+.wd-btn-purple:hover {
+	background-color: #9333ea;
+}
+
+/* "➡️ חזרה" במסכי הבחירה: עיגול לבן, טקסט כתום, צל קטן */
+.wd-back-btn {
+	background-color: #ffffff;
+	color: #ea580c;
+	font-weight: 400;
+	font-size: 1rem;
+	padding: 0.5rem;
+	box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+.wd-back-btn:hover {
+	background-color: #ffedd5;
+}
+
+/* "התחל משחק! ▶": rounded-xl, text-xl font-black, צל */
+.wd-start-game-btn {
+	border-radius: 0.75rem;
+	font-size: 1.25rem;
+	font-weight: 900;
+	padding-inline: 2rem;
+	box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+/* כפתורי מסך הסיום: rounded-2xl, text-xl, צל, הרמה ב-hover */
+.wd-completion-btn {
+	border-radius: 1rem;
+	font-size: 1.25rem;
+	min-height: 60px;
+	box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+	transition: all 0.15s;
+}
+.wd-completion-btn:hover {
+	transform: translateY(-0.25rem);
 }

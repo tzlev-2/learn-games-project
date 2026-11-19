@@ -3,6 +3,8 @@
 	import { shelvesStore } from '$lib/stores/shelves.svelte';
 	import { fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
+	import { Button } from 'learn-booster-kit';
+	import { language } from '$lib/services/language';
 	import { browser } from '$app/environment';
 	import type { Card } from '$lib/types';
 	import { getCardImage } from '$lib/services/assets';
@@ -81,12 +83,9 @@
 <div class="max-w-6xl mx-auto p-6" in:fade>
 	<div class="flex items-center justify-between mb-8">
 		<div class="flex items-center gap-4">
-			<button
-				onclick={() => goto(`/select/${shelfId}`)}
-				class="p-2 bg-white rounded-full shadow-sm hover:bg-orange-100 text-orange-600 transition-colors"
-			>
-				➡️ חזרה
-			</button>
+			<Button variant="ghost" size="sm" onclick={() => goto(`/select/${shelfId}`)} class="wd-back-btn">
+				{language.backLabel}
+			</Button>
 			<div class="flex flex-col">
 				<h1 class="text-3xl font-bold text-slate-800">
 					קופסה: {box?.name ?? 'טוען...'}
@@ -123,13 +122,13 @@
 						נבחרו: {selectedCards.length}
 					</span>
 				</div>
-				<button
+				<Button
 					onclick={startGame}
 					disabled={selectedCards.length === 0}
-					class="px-8 py-3 bg-green-500 text-white font-black text-xl rounded-xl shadow-lg hover:bg-green-600 hover:shadow-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+					class="wd-btn-green wd-start-game-btn"
 				>
-					התחל משחק! ▶
-				</button>
+					{language.startGameButton}
+				</Button>
 			</div>
 
 			<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
