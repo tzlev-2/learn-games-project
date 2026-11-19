@@ -1,5 +1,22 @@
 # יומן פיתוח — איפה האות?
 
+## 2026-11-19 10:50
+
+### מסך ההגדרות — `SegmentedControl` ו-`Card` של הקיט
+
+- **גודל לוח** — ה-`size-picker` המקומי (כפתורים עם `aria-pressed` בתוך `role="radiogroup"`) הוחלף
+  ב-`SegmentedControl` של הקיט (`role="radio"` + `aria-checked` + ניווט חיצים). ה-`<label for="grid-size">`
+  שהצביע על id שלא קיים הפך ל-`<span>`, והשם הנגיש עבר ל-`aria-label`.
+- **כרטיסי הסקשנים** — `<section class="card">` → `Card` (elevated) של הקיט. ה-CSS המקומי של `.card`,
+  `.size-picker` ו-`.size-btn` נמחק.
+- **מחרוזות** — `הכל (N)` ו-`טוען…` הקשיחים עברו ל-`language.allCellsLabel` / `language.loadingLabel`.
+- **נשאר מקומי** — כפתור "חזרה למשחק" הירוק (אין לו variant ירוק בקיט), הסליידרים וה-checkboxes.
+
+הבדל ויזואלי: ה-`SegmentedControl` קטן מעט יותר מהבורר הקודם, בפינות `radius-md` במקום pill,
+וטקסט הבחירה בצבע ה-brand. הכרטיסים ברדיוס `radius-lg` (20px) במקום 16px.
+
+---
+
 ## 2026-11-19 10:40
 
 ### מיגרציה לקומפוננטות ול-theme של הקיט (שלב 1 בתוכנית הפלטפורמה)

@@ -5,7 +5,9 @@
 		boosterService,
 		type Config,
 		updateConfig as updateBoosterConfig,
-		Settings as BoosterSettings
+		Settings as BoosterSettings,
+		SegmentedControl,
+		Card
 	} from 'learn-booster-kit';
 	import { language } from '$lib/services/language';
 	import { settings, type GridSize } from '$lib/stores/settings.svelte';
@@ -15,6 +17,7 @@
 	import type { VowelCode } from '$lib/data/vowels';
 
 	const sizes: GridSize[] = ['2x3', '3x3', '3x4', '4x4'];
+	const sizeOptions = sizes.map((size) => ({ value: size, label: size }));
 
 	// === Booster config ===
 	let config = $state<Config>();
@@ -77,23 +80,19 @@
 		</header>
 
 		<!-- Section: הגדרות משחק -->
-		<section class="card">
+		<Card>
 			<h2 class="card-title">{language.gameSettingsHeader}</h2>
 
 			<div class="field">
-				<label class="field-label" for="grid-size">{language.settingGridSize}</label>
-				<div class="size-picker" role="radiogroup">
-					{#each sizes as size}
-						<button
-							class="size-btn"
-							class:active={settings.gridSize === size}
-							onclick={() => (settings.gridSize = size)}
-							aria-pressed={settings.gridSize === size}
-						>
-							{size}
-						</button>
-					{/each}
-				</div>
+				<span class="field-label">{language.settingGridSize}</span>
+				<!-- radiogroup של הקיט: role=radio + aria-checked + ניווט חיצים -->
+				<SegmentedControl
+					options={sizeOptions}
+					value={settings.gridSize}
+					onchange={(size) => (settings.gridSize = size)}
+					aria-label={language.settingGridSize}
+					class="self-start"
+				/>
 			</div>
 
 			<div class="field">
@@ -109,7 +108,7 @@
 					/>
 					<span class="range-value">
 						{settings.questionsPerBoard === 0
-							? `הכל (${settings.totalCellsInGrid})`
+							? language.allCellsLabel.replace('{n}', String(settings.totalCellsInGrid))
 							: settings.questionsPerBoard}
 					</span>
 				</div>
@@ -195,30 +194,30 @@
 					</div>
 				</label>
 			</div>
-		</section>
+		</Card>
 
 		<!-- Section: בחירת אותיות -->
-		<section class="card">
+		<Card>
 			<h2 class="card-title">{language.letterSelectionHeader}</h2>
 			<p class="muted small">{language.letterSelectionHint}</p>
 			<LetterSelectionGrid
 				selectedIds={settings.selectedLetterIds}
 				onChange={(next) => (settings.selectedLetterIds = next)}
 			/>
-		</section>
+		</Card>
 
 		<!-- Section: בחירת ניקוד -->
-		<section class="card">
+		<Card>
 			<h2 class="card-title">{language.vowelSelectionHeader}</h2>
 			<p class="muted small">{language.vowelSelectionHint}</p>
 			<VowelSelectionGrid
 				selectedCodes={settings.selectedVowels}
 				onChange={(next: VowelCode[]) => (settings.selectedVowels = next)}
 			/>
-		</section>
+		</Card>
 
 		<!-- Section: הגדרות חיזוקים -->
-		<section class="card">
+		<Card>
 			<h2 class="card-title">{language.boosterSettingsHeader}</h2>
 
 			{#if !settings.boosterEnabled}
@@ -229,9 +228,9 @@
 					<BoosterSettings {config} handleShowVideo={handleShowVideo as never} />
 				</div>
 			{:else}
-				<div class="loading">טוען…</div>
+				<div class="loading">{language.loadingLabel}</div>
 			{/if}
-		</section>
+		</Card>
 	</div>
 </div>
 
@@ -279,14 +278,6 @@
 		background: #15803d;
 	}
 
-	.card {
-		background: white;
-		border-radius: 1rem;
-		padding: 1.25rem 1.5rem;
-		box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
-		border: 1px solid #e5e7eb;
-	}
-
 	.card-title {
 		font-size: 1.25rem;
 		font-weight: 800;
@@ -311,29 +302,6 @@
 		font-weight: 700;
 		color: #334155;
 		font-size: 0.95rem;
-	}
-
-	.size-picker {
-		display: inline-flex;
-		gap: 0.25rem;
-		padding: 0.25rem;
-		background: #f1f5f9;
-		border-radius: 999px;
-		width: fit-content;
-	}
-
-	.size-btn {
-		font-weight: 700;
-		padding: 0.5rem 1rem;
-		border-radius: 999px;
-		font-size: 0.9rem;
-		color: #475569;
-	}
-
-	.size-btn.active {
-		background: white;
-		color: #0f172a;
-		box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
 	}
 
 	.toggle {
