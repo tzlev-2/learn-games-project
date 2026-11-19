@@ -1,8 +1,20 @@
 <script lang="ts">
   import "./app.css";
-  import HeaderBar from "$lib/components/HeaderBar.svelte";
+  import { goto } from "$app/navigation";
   import { settings } from "$lib/stores/settings.svelte";
-  import { boosterService, BoosterContainer } from "learn-booster-kit";
+  import { gameState } from "$lib/stores/game-state.svelte";
+  import { language } from "$lib/services/language";
+  import {
+    boosterService,
+    BoosterContainer,
+    AdminGate,
+    GameShell,
+    HeaderBar,
+    IconButton,
+    ScoreBadge,
+    HomeIcon,
+    SettingsIcon,
+  } from "learn-booster-kit";
   import { onMount } from "svelte";
 
   let { children } = $props();
@@ -12,16 +24,68 @@
       boosterService.init();
     }
   });
+
+  function handleHome() {
+    gameState.reset();
+    goto("/");
+  }
 </script>
 
-<!-- רקע כהה בסגנון מסך נעילה של iOS -->
+<svelte:head>
+  <title>{language.pageTitle}</title>
+</svelte:head>
+
+<!-- רקע כהה בסגנון מסך נעילה של iOS — נשאר מאחורי ה-shell (background="none") -->
 <div
-  class="flex h-screen flex-col overflow-hidden bg-gradient-to-b from-slate-800 via-slate-700 to-slate-900"
+  class="h-screen overflow-hidden bg-gradient-to-b from-slate-800 via-slate-700 to-slate-900"
 >
-  <HeaderBar />
-  {@render children()}
+  <GameShell layout="fill" background="none">
+    {#snippet header()}
+      <HeaderBar balanced class="pc-header relative z-10">
+        {#snippet leftActions()}
+          <IconButton label={language.homeLabel} onclick={handleHome}>
+            {#snippet icon()}<HomeIcon size={24} />{/snippet}
+          </IconButton>
+        {/snippet}
+
+        {#snippet centerInfo()}
+          <ScoreBadge
+            label={language.successCountLabel}
+            value={gameState.correctCount}
+            variant="success"
+            class="pc-score"
+          />
+        {/snippet}
+
+        {#snippet rightActions()}
+          <!-- כפתור הגדרות מוגן (AdminGate חוסם תלמידים) -->
+          <AdminGate onUnlock={() => goto("/settings")}>
+            <IconButton label={language.settingsLabel}>
+              {#snippet icon()}<SettingsIcon size={24} />{/snippet}
+            </IconButton>
+          </AdminGate>
+        {/snippet}
+      </HeaderBar>
+    {/snippet}
+
+    <div class="flex h-full flex-col">
+      {@render children()}
+    </div>
+  </GameShell>
 </div>
 
 <div class="relative z-[9999] pointer-events-none">
   <BoosterContainer />
 </div>
+
+<style>
+  /* ה-header המקורי: slate-800 בלי מסגרת תחתונה, על רקע כהה */
+  :global(.pc-header) {
+    border-bottom-color: transparent;
+  }
+  /* הערך במקור: text-xl ירוק, בלי מסגרת */
+  :global(.pc-score) {
+    font-size: 1.25rem;
+    border-color: transparent;
+  }
+</style>

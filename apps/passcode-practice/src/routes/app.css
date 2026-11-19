@@ -1,14 +1,12 @@
 @import "tailwindcss";
+/* tokens + themes + אנימציות + fonts של הקיט.
+   ה-theme הפעיל נקבע ב-app.html: <html data-theme="slate"> */
+@import "learn-booster-kit/styles";
 @source "../../../../packages/learn-booster-kit";
-
-:root {
-  --color-correct: #22c55e;
-  --color-wrong: #ef4444;
-}
 
 html,
 body {
   height: 100%;
   margin: 0;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: var(--theme-font-body);
 }

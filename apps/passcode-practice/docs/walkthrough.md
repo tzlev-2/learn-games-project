@@ -1,5 +1,44 @@
 # Passcode Practice — יומן פיתוח
 
+## 2026-11-19 11:00
+
+### מיגרציה לקומפוננטות ול-theme של הקיט (שלב 5)
+
+ה-header וה-TTS עברו ל-`learn-booster-kit`, וה-theme הוא `slate` (header כהה). הרקע הכהה
+בסגנון מסך נעילה נשאר של המשחק.
+
+#### מה בוצע?
+
+- **Theme** — `<html data-theme="slate">`; ‏`app.css` מייבא את `learn-booster-kit/styles`;
+  הפונט `--theme-font-body`. ‏`--color-correct/wrong` שלא היו בשימוש נמחקו.
+- **Layout** — `GameShell layout="fill" background="none"` עם `HeaderBar balanced`: בית
+  (`IconButton` + `HomeIcon`, מאפס את המשחק כמו קודם), `ScoreBadge` להצלחות, והגדרות
+  (`AdminGate` + `SettingsIcon`). ‏`HeaderBar.svelte` ו-2 ה-SVG נמחקו.
+- **מסך המשחק** — `<main>` הפך ל-`<div>` (ה-shell כבר מספק `<main>`); תווית ה-ProgressWidget
+  ו"שניות להמתנה" עברו ל-`language.ts`.
+- **הגדרות** — "חזרה" הוא `Button` של הקיט (slate-700 ו-`rounded-xl` כמו במקור).
+- **TTS** — `tts.ts` משאיר רק את המשפטים של המשחק מעל `speakText` של הקיט. למשחק אין
+  `sound.ts` ואין ערבוב.
+- **`language.ts`** (חדש, `src/lib/services/`).
+
+#### בדיקות
+
+- `bun run check`: ‏6 שגיאות / 10 אזהרות → **0 / 10** (ה-`declare global` של `tts.ts` המקומי).
+- `bun run build` עובר. אין בדיקות יחידה. צילומים: `learn-games-reports/p5/passcode/`.
+
+#### מה לא הוחלף
+
+- **פאנלי ההגדרות** — לבן שקוף (`bg-white/10`) על הרקע הכהה; `Card` של הקיט הוא משטח בהיר.
+- **ספירת ההמתנה** — pill אדום קטן ("N שניות להמתנה") ולא טבעת; אין רכיב קיט מקביל.
+- לוח המקשים, הנקודות, הרמז ו-`FeedbackOverlay`.
+
+#### הבדלים ויזואליים ידועים
+
+1. ה-header: מונה ההצלחות ב-pill ירוק (`ScoreBadge`); כפתורים לבן שקוף; גבוה ב-1px.
+2. פונט `system-ui` של `slate` במקום `"Segoe UI"` (זהה בפועל ב-Windows).
+
+---
+
 ## 2026-04-03 22:30
 
 ### מצב תרגול עיוור + כפתור רמז עם צינון
