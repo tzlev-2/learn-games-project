@@ -35,6 +35,7 @@ export { default as RefreshIcon } from "./ui/primitives/icons/RefreshIcon.svelte
 export { default as SettingsIcon } from "./ui/primitives/icons/SettingsIcon.svelte";
 export { default as CheckIcon } from "./ui/primitives/icons/CheckIcon.svelte";
 export { default as XIcon } from "./ui/primitives/icons/XIcon.svelte";
+export { default as PlayIcon } from "./ui/primitives/icons/PlayIcon.svelte";
 
 // === Primitives ===
 export { default as Button } from "./ui/primitives/Button.svelte";

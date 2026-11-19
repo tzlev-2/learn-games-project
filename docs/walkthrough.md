@@ -6,6 +6,16 @@
 
 ---
 
+## 2026-11-19 10:25
+
+### קיט: `PlayIcon`
+
+אייקון ▶ מלא (`fill="currentColor"`) נוסף ל-`src/ui/primitives/icons/` ומיוצא מ-`index.ts`,
+באותו API כמו שאר האייקונים (`size`, `class`). ‏"איפה האות?" משתמש בו בכפתור
+ההתחלה של מסך הפתיחה. טסט: `test/ui/primitives/play-icon-ssr.spec.ts`.
+
+---
+
 ## 2026-11-19 10:20
 
 ### קיט: הרחבות תוספתיות ל-shell ול-CooldownOverlay לקראת מיגרציית find-letter
