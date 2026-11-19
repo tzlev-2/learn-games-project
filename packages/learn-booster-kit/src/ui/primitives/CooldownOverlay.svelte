@@ -10,9 +10,24 @@
 		message?: string;
 		subMessage?: string;
 		onComplete?: () => void;
+		/**
+		 * `fixed` (ברירת מחדל) — מכסה את כל ה-viewport.
+		 * `absolute` — מכסה רק את ההורה הממוקם (position: relative) הקרוב, למשל אזור המשחק בלי ה-header.
+		 */
+		position?: 'fixed' | 'absolute';
+		/** שם נגיש ל-alertdialog (למשל "טעות"). */
+		ariaLabel?: string;
 	}
 
-	let { untilTs, durationMs, message, subMessage, onComplete }: Props = $props();
+	let {
+		untilTs,
+		durationMs,
+		message,
+		subMessage,
+		onComplete,
+		position = 'fixed',
+		ariaLabel
+	}: Props = $props();
 
 	let now = $state(Date.now());
 	let completed = $state(false);
@@ -38,11 +53,13 @@
 
 {#if isActive && untilTs > now}
 	<div
-		class="fixed inset-0 flex items-center justify-center z-50"
+		data-position={position}
+		class="{position === 'absolute' ? 'absolute' : 'fixed'} inset-0 flex items-center justify-center z-50"
 		style="background: var(--theme-surface-overlay)"
 	>
 		<div
 			role="alertdialog"
+			aria-label={ariaLabel}
 			class="bg-surface-elevated rounded-lg p-8 flex flex-col items-center gap-4 shadow-elevated"
 		>
 			<!-- טבעת countdown -->

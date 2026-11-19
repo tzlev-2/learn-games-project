@@ -5,6 +5,11 @@
    ל-CSS variables של ה-theme (--theme-*).
    Tailwind 4 מייצר utility classes מה-@theme block.
    ה-var(--theme-*) נפתר ב-runtime לפי [data-theme] הפעיל.
+
+   Tokens אופציונליים (לא חובה בכל theme; הצרכן משתמש ב-fallback):
+   - --theme-text-heading        → fallback: --theme-text-primary   (StartScreen title)
+   - --theme-font-size-display   → fallback: --theme-font-size-xl   (StartScreen title)
+   - --theme-font-weight-display → fallback: 700                    (StartScreen title)
 */
 
 @theme {

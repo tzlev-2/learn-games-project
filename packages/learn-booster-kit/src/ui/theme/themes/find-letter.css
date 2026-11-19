@@ -60,4 +60,10 @@
 	--theme-font-size-xl: 1.5rem;
 	--theme-font-weight-regular: 400;
 	--theme-font-weight-bold: 700;
+
+	/* Display (tokens אופציונליים — רק themes שמגדירים אותם; לשאר יש fallback בקומפוננטה)
+	   כותרת מסך הפתיחה של "איפה האות?": navy, 900, גודל שמתאים את עצמו למסך */
+	--theme-text-heading: #1e3a8a;
+	--theme-font-size-display: clamp(2rem, 5vmin, 2.75rem);
+	--theme-font-weight-display: 900;
 }

@@ -6,6 +6,41 @@
 
 ---
 
+## 2026-11-19 10:20
+
+### קיט: הרחבות תוספתיות ל-shell ול-CooldownOverlay לקראת מיגרציית find-letter
+
+שלב 1 בתוכנית הפלטפורמה (`docs/platform-plan.md`) מעביר את "איפה האות?"
+לקומפוננטות של הקיט. כדי לשמור על המראה של המשחק, נוספו לקומפוננטות props
+עם ברירות מחדל שלא משנות את ההתנהגות הקיימת.
+
+#### מה בוצע?
+
+- **`GameShell`** — `background: 'none'` (שקוף, כשהאפליקציה מציירת gradient משלה)
+  ו-`layout: 'page' | 'fill'`. ‏`fill` ממלא את ההורה (`h-full`) ונותן ל-`<main>`
+  גובה מוגדר, כך שלוח שמחשב את גודלו מ-`height: 100%` לא חורג מהמסך.
+- **`HeaderBar`** — `balanced` (ברירת מחדל `false`). כש-`true` לשני הצדדים יש
+  רוחב שווה והמרכז ממורכז ביחס ל-header כולו.
+- **`StartScreen`** — `background: 'none'`; ל-`primaryAction` נוספו `color`,
+  `icon` (snippet אחרי ה-label) ו-`class`. הכותרת קוראת tokens אופציונליים.
+- **`CooldownOverlay`** — `position: 'fixed' | 'absolute'` (ברירת מחדל `fixed`)
+  ו-`ariaLabel` ל-alertdialog.
+- **Theme** — tokens אופציונליים חדשים: `--theme-text-heading`,
+  `--theme-font-size-display` ו-`--theme-font-weight-display`. רק `find-letter.css`
+  מגדיר אותם; בשאר ה-themes הקומפוננטה נופלת לברירות המחדל הקודמות. הרשימה
+  מתועדת בראש `tokens.css`.
+- **טסטים** — `test/ui/shell/shell-ssr.spec.ts` ו-`test/ui/primitives/cooldown-overlay-ssr.spec.ts`
+  (14 טסטים, `svelte/server` ב-node; לא דורשים דפדפן).
+
+#### החלטות
+
+- **SSR tests בקיט** — טסטי ה-browser של הקומפוננטות ב-`apps/kit-test-screen` דורשים
+  Playwright browser. בדיקות ה-props החדשים רצות ב-node דרך `render` של `svelte/server`
+  על ה-HTML שנוצר.
+- **tokens אופציונליים עם fallback** — במקום להוסיף token חובה לכל 8 ה-themes.
+
+---
+
 ## 2026-05-28 00:00
 
 ### סדר בתיעוד — ארכיון, AGENTS.md לכל apps, תוכנית עבודה
