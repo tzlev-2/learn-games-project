@@ -11,7 +11,8 @@ export type { BoosterServiceInitialized } from "./lib/booster-service";
 export * from "./types";
 export * from "./lib/config";
 export * as configManager from "./lib/config/config-manager";
-export { registerGameSchema } from "./lib/config/migrations";
+export { registerGameSchema, runGameSettingsMigrations } from "./lib/config/migrations";
+export type { GameSchemaEntry } from "./lib/config/migrations";
 export * from "./lib/result";
 
 // Re-export key constants/types from schemas for consumers
@@ -49,3 +50,6 @@ export { cooldownProgress } from "./ui/primitives/cooldown-math";
 export { default as HeaderBar } from "./ui/shell/HeaderBar.svelte";
 export { default as GameShell } from "./ui/shell/GameShell.svelte";
 export { default as StartScreen } from "./ui/shell/StartScreen.svelte";
+
+// === Content (multi-axis ContentProvider — platform-plan §5) ===
+export * from "./content";

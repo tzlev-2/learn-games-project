@@ -1,5 +1,43 @@
 # Learn Booster Kit — יומן פיתוח
 
+## 2026-11-19 10:30 — מודול Content: ContentProvider רב-צירי (שלב 2 בתכנית הפלטפורמה)
+
+#### למה
+
+ה-`ContentProvider` של הלוטו ידע ציר בחירה אחד (`selectedItemIds`), וחי רק בלוטו. find-letter צריך בחירה משני צירים (אותיות × ניקוד) עם סינון צירופים, ומשחקים נוספים אמורים לצרוך את אותם Providers (מודל Bitsboard). לפי `docs/platform-plan.md` §5 החוזה עובר לקיט ומורחב ל-multi-axis.
+
+#### מה נוסף — `src/content/` (ייצוא additive מ-`src/index.ts`)
+
+| קובץ | תוכן |
+|------|------|
+| `types.ts` | `ContentItem`, `CardContent`, `CardStyleOptions`, `SelectionAxis` (+ `itemComponent` אופציונלי), `ProviderSelection`, `ContentProvider<TSettings, TItem>`, `AnyContentProvider`, `isContentProvider` |
+| `selection.ts` | פונקציות טהורות: toggle / select-all / clear / sanitize; `validateSelection → Result<…, SelectionError>`; `parseSelection` (ArkType) |
+| `deck.ts` | `selectAxisItems`, `cartesianCombinations` (עם `allowEmpty` וסינון `isValid`), `generateCartesianDeck`, `combinationKey` |
+| `registry.ts` | `createContentRegistry()` (factory; `get → Result`, `getOrThrow`), `resolveGameContent(registry, { gameId, providerIds, defaultProviderId })` |
+| `legacy-adapter.ts` | `legacyToMultiAxis` (§5.5), `isLegacyContentProvider`, המרת בחירה הלוך-חזור |
+| `AxisSelector.svelte` | מסך בחירה גנרי (§5.6): fieldset לכל ציר, "בחר הכל"/"נקה", checkbox לכל פריט; מחרוזות מהצרכן; design tokens |
+
+נוסף גם ייצוא של `runGameSettingsMigrations` ו-`GameSchemaEntry` — משחק ששומר הגדרות ב-localStorage משלו יכול להריץ את המיגרציות הרשומות שלו דרך מנוע הקיט.
+
+#### החלטות
+
+- **Registry בקיט כ-factory, לא singleton** — כל משחק deploy נפרד; כל משחק יוצר instance ומצהיר אילו Providers הוא צורך (`GameContentDeclaration`). פירוט: `docs/content-provider.md` §5.
+- **הבחירה מחוץ ל-settings** — `ProviderSelection` נפרד; `settingsComponent` עורך רק הגדרות שאינן בחירה.
+- **`generateCardContent` מקבל `ContentItem`** (כמו ב-providerization-plan §2.1), לא את `item.value`.
+- **`allowEmpty`**: ציר ריק עם `allowEmpty` לא משתתף במכפלה; ציר חובה ריק → deck ריק.
+- **`AxisSelector` ב-`src/content/`** ולא ב-`src/ui/` (התיקייה בעבודה של סוכן אחר).
+- **`vite.config.ts`**: בזמן vitest ה-resolve של svelte הוא `browser` — נדרש ל-`mount()` של קומפוננטה ב-jsdom. כל הבדיקות הקיימות עוברות גם כך.
+
+#### בדיקות
+
+`test/content/` — 94 בדיקות חדשות (selection 20, deck 13, registry 28, legacy-adapter 26, AxisSelector 7). סה"כ בקיט: 303 עוברות (בסיס 209). `bun run check`: 0 שגיאות, 0 אזהרות.
+
+#### תיעוד
+
+`docs/content-provider.md` — מדריך כתיבה וצריכה של Provider. צרכן ראשון: `apps/lotto-game`.
+
+---
+
 ## 2026-05-17 14:55 — Migration System — רפקטור 3 שכבות Schema
 
 ### סיכום הרפקטור (5 phases, 5 commits)
