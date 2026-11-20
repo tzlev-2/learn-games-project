@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { configManager, profileManager } from './src';
+import { registerGameSchema, _clearGameSchemaRegistryForTesting } from '../src/lib/config/migrations';
 
 const {
   resetConfig,
@@ -175,6 +176,34 @@ describe('Game Settings API', () => {
 
       await updateGameSettings('lotto-game', { contentProviderId: 'shapes' });
       expect(callback).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('schemaVersion בכתיבה', () => {
+    afterEach(() => _clearGameSchemaRegistryForTesting());
+
+    function storedWrapper(gameId: string) {
+      const raw = JSON.parse(localStorage.getItem('learn-booster-profiles:v1') ?? '{}');
+      return raw.profiles?.[raw.activeProfileId]?.gameSettings?.[gameId];
+    }
+
+    it('משחק לא רשום — נשמר עם schemaVersion 1', async () => {
+      await updateGameSettings('unregistered-game', { a: 1 });
+      expect(storedWrapper('unregistered-game')?.schemaVersion).toBe(1);
+    });
+
+    it('משחק רשום — נשמר עם ה-currentVersion הרשום (גם כשאין רשומה קודמת)', async () => {
+      registerGameSchema('registered-game', { currentVersion: 6, migrate: (d) => d });
+      await updateGameSettings('registered-game', { a: 1 });
+      expect(storedWrapper('registered-game')).toEqual({ schemaVersion: 6, data: { a: 1 } });
+    });
+
+    it('משחק רשום — רשומה קיימת בגרסה ישנה מקבלת את ה-currentVersion בכתיבה', async () => {
+      await updateGameSettings('registered-game', { old: true });
+      expect(storedWrapper('registered-game')?.schemaVersion).toBe(1);
+      registerGameSchema('registered-game', { currentVersion: 3, migrate: (d) => d });
+      await updateGameSettings('registered-game', { a: 2 });
+      expect(storedWrapper('registered-game')).toEqual({ schemaVersion: 3, data: { a: 2 } });
     });
   });
 

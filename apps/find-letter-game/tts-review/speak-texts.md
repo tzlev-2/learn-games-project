@@ -3,7 +3,7 @@
 > ‏תיעוד מלא של ה-text שנשלח ל-ElevenLabs/AAC ליצירת כל קובץ MP3 בשימוש במשחק.
 > נכון ל-2026-05-28, אחרי הסרת חטף-פתח וחטף-סגול.
 >
-> **מקור-אמת לקוד**: ‏`src/lib/data/letters.ts`, `src/lib/data/vowels.ts`, `src/lib/utils/letters.ts`.
+> **מקור-אמת לקוד**: ‏`packages/learn-booster-kit/src/content/providers/hebrew-letters/` (`letters.ts`, `vowels.ts`, `pair.ts`, `tts-files.ts`) — עד 2026-11-19 היה ב-`src/lib/data/` וב-`src/lib/utils/letters.ts`.
 > **לוגיקת ה-Eleven overrides**: `tts-review/produce-batch.ts:computeSpeak()`.
 
 ---

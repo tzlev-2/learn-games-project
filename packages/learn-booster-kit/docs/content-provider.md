@@ -2,7 +2,7 @@
 
 > מודול: `packages/learn-booster-kit/src/content/` · ייצוא: `learn-booster-kit` (additive).
 > רקע ותכנון: `docs/platform-plan.md` §5 (multi-axis), §6.4 (registry); `apps/find-letter-game/docs/plans/providerization-plan.md` §2.1, §6.
-> צרכן ראשון: `apps/lotto-game` (שלב 2 בתכנית הפלטפורמה).
+> צרכנים: `apps/lotto-game` (שלב 2), `apps/find-letter-game` (שלב 3). Provider משותף לשניהם: "אותיות וניקוד" (שלב 4, §7).
 
 ## 1. הרעיון בשתי שורות
 
@@ -69,7 +69,11 @@ interface ContentProvider<TSettings = unknown, TItem = unknown> {
 | `validateSelection` | `(axes, selection) → Result<ProviderSelection, SelectionError>` — `minSelected` / `allowEmpty` |
 | `parseSelection` | `(raw: unknown) → Result<ProviderSelection, ValidationError>` — ArkType (`ProviderSelectionSchema`) |
 
-כולן מחזירות אובייקט חדש ולא משנות את הקלט.
+| `axisFloor` | `(axis) → number` — 0 לציר `allowEmpty`, אחרת `minSelected` (ברירת מחדל 1) |
+| `toggleAxisItemWithinMinimum` | `(selection, axis, itemId, checked?)` — כמו toggle, אבל ביטול שיוריד מתחת למינימום לא מתבצע (מוחזר אותו אובייקט) |
+| `clearAxisToMinimum` | `(selection, axis)` — "נקה" שמשאיר את `minSelected` הפריטים הראשונים לפי סדר הציר (ריק לציר `allowEmpty`) |
+
+כולן מחזירות אובייקט חדש ולא משנות את הקלט (חוץ מהחזרת אותו אובייקט כשעריכה נחסמה).
 
 **סמנטיקה של `allowEmpty` / `minSelected`:** ציר ריק מותר רק עם `allowEmpty`; ציר לא-ריק חייב לפחות `minSelected` (ברירת מחדל 1). `minSelected: 0` מאפשר ריק גם בלי `allowEmpty`.
 
@@ -109,8 +113,12 @@ interface ContentProvider<TSettings = unknown, TItem = unknown> {
   labels={language.content.selector}      // { selectAll, clearAll } — מהמשחק
   formatCount={(s, t) => `${s}/${t}`}      // אופציונלי
   itemMinWidth="4rem"                       // אופציונלי
+  enforceMinSelected                        // אופציונלי: אי אפשר לרדת מתחת ל-minSelected
+  defaultSelection={provider.getDefaultSelection()} // אופציונלי + labels.reset → כפתור "ברירת מחדל"
 />
 ```
+
+`enforceMinSelected` (ברירת מחדל `false`): ביטול סימון שיוריד ציר מתחת ל-`minSelected` נחסם (ה-checkbox חוזר למצב מסומן), ו"נקה" משאיר את המינימום. `defaultSelection` + `labels.reset`: כפתור שלישי לכל ציר שמחזיר אותו לבחירת ברירת המחדל. לציר אחד בכל כרטיס: `axes={[axis]}` (כך find-letter מציג אותיות וניקוד בכרטיסים נפרדים).
 
 fieldset לכל ציר (legend = `axis.displayName`), מונה, "בחר הכל" / "נקה" לכל ציר, checkbox לכל פריט (מוסתר ויזואלית, האריח הוא ה-label). קומפוננטה controlled — לא שומרת state. העיצוב משתמש ב-design tokens של הקיט (`bg-brand-primary`, `bg-surface-sunken`...), כך שהוא מכבד theme. הקומפוננטה יושבת ב-`src/content/` (לא ב-`src/ui/`).
 
@@ -141,7 +149,7 @@ export const lettersProvider: ContentProvider<Record<string, never>, string> = {
 };
 ```
 
-### 3.2 כמה צירים (התכנון ל-find-letter, שלב 3)
+### 3.2 כמה צירים (סקיצה; המימוש בפועל — §7)
 
 ```ts
 const axes = [lettersAxis, vowelsAxis];
@@ -198,9 +206,61 @@ export const hebrewLettersProvider: ContentProvider<Settings, LetterWithVowel> =
 
 - **ה-registry בקיט, כ-factory — לא singleton גלובלי.** כל משחק הוא deploy נפרד, אז singleton בקיט לא היה משותף בין משחקים בכל מקרה; factory נותן בידוד בבדיקות ושליטה בסדר.
 - **משחק מצהיר מה הוא צורך** (`GameContentDeclaration`), וה-`resolveGameContent` מאמת שההצהרה עקבית. ההצהרה היא גם הבסיס לכלי עתידי "איזה תוכן רץ על איזה משחק" (שלב 4).
-- **Provider משותף** בין משחקים יהיה אובייקט מיוצא (בקיט או ב-package תוכן נפרד) — כל משחק רושם אותו ומצהיר עליו.
+- **Provider משותף** בין משחקים הוא אובייקט מיוצא — כל משחק רושם אותו ומצהיר עליו. הראשון: "אותיות וניקוד" בקיט (§7).
 - **תוכן חיצוני (JSON/YAML)** — לא הוחלט; החוזה מאפשר זאת (Provider יכול לבנות צירים מנתונים), אבל אין loader כרגע.
 
 ## 6. בדיקות
 
 `packages/learn-booster-kit/test/content/`: `selection.spec.ts`, `deck.spec.ts`, `registry.spec.ts`, `legacy-adapter.spec.ts`, `axis-selector.spec.ts` (mount ב-jsdom). הרצה: `CI=1 bunx vitest run test/content`.
+`test/content/hebrew-letters/` — ה-Provider המשותף (§7): `provider.spec.ts` (צירים, deck, תקפות, הקראה, דמיון, שני registries), ו-`data` / `pair` / `similarity-tts` (הבדיקות שהועברו מ-find-letter עם התוכן).
+
+## 7. Provider משותף: "אותיות וניקוד" (`hebrew-letters`)
+
+> מקום: `src/content/providers/hebrew-letters/` · ייבוא: `learn-booster-kit/content/hebrew-letters` (subpath ב-`package.json`).
+> צרכנים: `apps/find-letter-game` (ה-Provider היחיד שלו), `apps/lotto-game` (Provider רביעי לצד `letters`/`shapes`/`reading`).
+
+```ts
+import { hebrewLettersProvider } from 'learn-booster-kit/content/hebrew-letters';
+const registry = createContentRegistry([hebrewLettersProvider]);
+```
+
+### 7.1 מה בפנים
+
+| קובץ | תוכן |
+|------|------|
+| `letters.ts` | `Letter`, `ALL_LETTERS_DATA` (26 אותיות), `LETTERS_BY_LEGACY_ID`, `LETTER_IDS_ALPHABETICAL` / `LETTERS_ALPHABETICAL` |
+| `vowels.ts` | `Vowel`, `VowelCode`, `VOWELS_BY_CODE`, `ALL_VOWELS` (10, סדר פדגוגי) |
+| `pair.ts` | `LetterVowelPair`, `makePair` (תאימות מלאה ל-id/display/speak הישנים של find-letter), `isValidLetterVowel` |
+| `similarity.ts` | `PHONETIC_SIMILARITY_PAIRS`, `areSimilar` (וצמדים ויזואליים לעתיד) |
+| `tts-files.ts` | `TTS_FILES` (speak → MP3), `getTtsFilename`, `hasRecordedSpeech`, `TTS_STATIC_PATH` |
+| `language.ts` | `hebrewLettersLanguage` — שם ה-Provider, שמות הצירים ושמות הניקודים |
+| `provider.ts` | `hebrewLettersProvider`, `createHebrewLettersProvider({ labels?, icon? })`, `isValidHebrewCombination`, קבועים |
+| `LetterPairContent.svelte` | `renderComponent` — ה-display של הצירוף בגודל הכרטיס (container query) |
+
+### 7.2 צירים, deck ותקפות
+
+| | ציר `letters` | ציר `vowels` |
+|---|---|---|
+| מזהה פריט | `legacyCardId` (`'ba'`, `'va_rafe'`) | `VowelCode` (`'patah'`, `'hirik'`) |
+| סדר | א-ב (26) | פדגוגי (10) |
+| `minSelected` | 2 | 1 |
+| label | `displayChar` (`'בּ'`) | שם הניקוד (`'חיריק'`) |
+
+- **ברירת מחדל:** כל 26 האותיות × פתח — ההתנהגות ההיסטורית של find-letter.
+- **deck:** `generateCartesianDeck` על שני הצירים; מזהה הפריט = `pair.id` (`'ba'` לפתח, `'b__hirik'` לאחרים), `value` = `LetterVowelPair`, `label` = `pair.display`. הסדר לפי סדר הצירים (לא סדר הבחירה).
+- **`isValidCombination`:** מזהה לא מוכר בציר כלשהו → פסול; אות סופית + שווא/עיצור → פסול (vowels-support-plan §9; אין סופיות במאגר כרגע, החוק מוכן). צירופים **בלי הקלטה** (א/ע + שווא/עיצור — 4 צירופים) **אינם** נפסלים: לפי `tts-production-plan` הם מושמעים ב-Web Speech, ו-find-letter הציג אותם גם קודם. `hasRecordedSpeech` מאפשר למשחק לבדוק.
+- **`getSpeakText`** = `pair.speak` (הטקסט שממופה ל-MP3). **`areItemsSimilar`** = `areSimilar(a.id, b.id)` — הטבלה מכילה מזהי פתח בלבד, בדיוק כמו find-letter לפני ה-Provider.
+- **אין settings** (`HebrewLettersSettings = {}`), אין `settingsComponent`.
+
+### 7.3 למה בקיט (ולא package תוכן נפרד)
+
+- **בלי תלות חדשה ובלי שינוי lockfile** — שני המשחקים כבר תלויים בקיט; package חדש מחייב workspace dep ו-`bun.lock` חדש בכל app.
+- **subpath נפרד** (`learn-booster-kit/content/hebrew-letters`) — שמות התוכן (`Letter`, `ALL_VOWELS`...) לא נכנסים ל-root export של הקיט.
+- **חריג מוצהר לכלל "בלי עברית בקיט":** זו חבילת תוכן, והתוכן הוא עברית. מחרוזות ה-UI שלה מרוכזות ב-`language.ts` שלה, וצרכן יכול להחליף את שמות ה-Provider והצירים ב-`createHebrewLettersProvider({ labels })`.
+- **מתי להוציא ל-package:** כשיהיו כמה חבילות תוכן, או כשתוכן ייטען מבחוץ (JSON/YAML) — אז `packages/content-*` עם אותו API. ההחלטה: `docs/platform-plan.md` §6.4.
+
+### 7.4 איך כל משחק מציג את אותו תוכן
+
+- **find-letter**: deck → `pickBoard` (עם `areItemsSimilar`) → `BoardCard { id, display, speak }` → `LetterCard` משלו; ההקראה מ-`getSpeakText` דרך שירות ה-TTS של המשחק. בחירה: `AxisSelector` לכל ציר בכרטיס נפרד, `enforceMinSelected` + ברירת מחדל.
+- **לוטו**: deck → זוגות כרטיסים; הכרטיס מציג `renderComponent` (`LetterPairContent`); התאמה ב-`contentMatches` (`itemId`). בחירה: `AxisSelector` עם שני הצירים.
+

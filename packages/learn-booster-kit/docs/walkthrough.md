@@ -1,5 +1,51 @@
 # Learn Booster Kit — יומן פיתוח
 
+## 2026-11-20 15:10 — Theme "lotto"
+
+#### למה
+
+הלוטו עובר לקומפוננטות ה-shell של הקיט (`GameShell`, `HeaderBar`, `ScoreBadge`, `IconButton`, `Button`). צריך theme שממפה את המראה שלו: אינדיגו/סגול, ירוק לפעולות "המשך", גופן המערכת.
+
+#### מה נוסף
+
+- **`src/ui/theme/themes/lotto.css`** (`[data-theme='lotto']`) — כל ה-tokens של theme ברירת המחדל. הערכים הם צבעי Tailwind 4 (oklch) שהלוטו השתמש בהם: primary = indigo-600, secondary = green-500, sunken = indigo-50, border-subtle = indigo-100, כותרת = indigo-800 (`--theme-text-heading`), גופן = `font-sans` של Tailwind.
+- **Radius 4/8/16px** — הערכים שהלוטו קיבל בפועל לפני ה-theme (נמדד ב-build של הבסיס: `--radius-lg` = 16px, `--radius-md` = 8px, מ-theme ברירת המחדל). כך אף `rounded-sm/md/lg` במשחק לא משתנה (ראו p5, open issue 2).
+- `styles.css` מייבא את ה-theme; `kit-test-screen` — אפשרות "Lotto" בבורר ה-theme.
+
+#### בדיקות
+
+`test/ui/theme/lotto-theme.spec.ts` (4): scope, כל ה-tokens של ברירת המחדל קיימים, radius כמו ברירת המחדל, import לפני `tokens.css`. קיט: 450 → 454.
+
+## 2026-11-19 10:50 — Provider משותף "אותיות וניקוד" + הרחבות ל-AxisSelector (שלבים 3–4 בתכנית הפלטפורמה)
+
+#### למה
+
+שלב 4 בתכנית הפלטפורמה: תוכן אחד שרץ על כמה משחקים. find-letter ("איפה האות?") והלוטו צריכים לצרוך את אותו מאגר אותיות × ניקוד — אותם פריטים, אותם צירים, אותם חוקים. המאגר ישב בתוך find-letter (`src/lib/data/`, `utils/pair.ts`, `utils/letters.ts`).
+
+#### מה נוסף
+
+- **`src/content/providers/hebrew-letters/`** — ה-Provider `hebrewLettersProvider` (`id: 'hebrew-letters'`), שני צירים: `letters` (26, `minSelected: 2`) × `vowels` (10, `minSelected: 1`); deck קרטזי (`generateCartesianDeck`); `isValidCombination` (מזהה לא מוכר / סופית + שווא-עיצור); `getSpeakText`; `areItemsSimilar`; `LetterPairContent.svelte` כ-`renderComponent`. המאגר (אותיות, ניקודים, `makePair`, צמדי דמיון, מיפוי TTS) הועבר מ-find-letter בלי שינוי ערכים.
+- **ייצוא ב-subpath** `learn-booster-kit/content/hebrew-letters` (`package.json` → `exports`) — לא דרך `src/index.ts`, כדי לא להעמיס שמות תוכן על ה-root export.
+- **`AxisSelector`** (additive): `enforceMinSelected` (חסימת ירידה מתחת ל-`minSelected`, "נקה" משאיר מינימום) ו-`defaultSelection` + `labels.reset` (כפתור "ברירת מחדל"). ברירות המחדל שומרות על ההתנהגות הקודמת.
+- **`selection.ts`**: `axisFloor`, `toggleAxisItemWithinMinimum`, `clearAxisToMinimum` (טהורות).
+- **`config-manager.updateGameSettings`** כותב את ה-`currentVersion` הרשום של המשחק (`getRegisteredGameSchemaVersion` ב-`migrations.ts`). קודם נכתבה תמיד הגרסה הקיימת או 1, כך שנתונים עדכניים סומנו v1 והמיגרציה רצה עליהם שוב בטעינה הבאה. רלוונטי עכשיו כי find-letter נרשם (`registerGameSchema`).
+
+#### החלטות
+
+- **בקיט ולא package תוכן נפרד** — בלי תלות חדשה ובלי שינוי `bun.lock`; subpath נפרד; חריג מוצהר לכלל "בלי עברית בקיט" (חבילת תוכן, מחרוזות ב-`language.ts` שלה, שמות ניתנים להחלפה ב-`createHebrewLettersProvider({ labels })`). פירוט: `docs/content-provider.md` §7.3.
+- **צירופים בלי הקלטה לא נפסלים** — א/ע + שווא/עיצור מושמעים ב-Web Speech כמו קודם (`tts-production-plan`). `hasRecordedSpeech` חושף את המידע.
+- **מזהים יציבים** — מזהי הציר הם ה-`legacyCardId` וה-`VowelCode` שכבר נשמרו בהגדרות find-letter, כך שהמיגרציה שם היא העברת שדות בלבד.
+
+#### בדיקות
+
++130 בדיקות (320 → 450): `test/content/hebrew-letters/` — provider 21 חדשות; data 27, pair 45, similarity-tts 26 שהועברו מ-find-letter עם התוכן (עם `helpers.ts` שמשחזר את ה-API הישן מעל ה-Provider); `selection` +4, `axis-selector` +4, `game-settings` +3. `bun run check`: 0/0; `tsc -p tsconfig.app.json`: 0 שגיאות.
+
+#### תיעוד
+
+`docs/content-provider.md` — §2.2 (פונקציות חדשות), §2.6 (props חדשים), §7 (ה-Provider המשותף).
+
+---
+
 ## 2026-11-19 10:30 — מודול Content: ContentProvider רב-צירי (שלב 2 בתכנית הפלטפורמה)
 
 #### למה

@@ -30,8 +30,14 @@
  */
 
 import { boosterService } from 'learn-booster-kit';
-import { pickBoard, generateDeck, type LetterCard } from '../utils/letters';
-import { settings } from './settings.svelte';
+import { pickBoard } from '../utils/pick-board';
+import { toBoardCard, type BoardCard } from '../content/board-card';
+import {
+	settings,
+	currentProvider,
+	currentSelection,
+	currentProviderSettings
+} from './settings.svelte';
 import { speak } from '../utils/tts';
 import { playSuccess, playError, playWin } from '../utils/sound';
 
@@ -52,8 +58,8 @@ function shuffle<T>(arr: T[]): T[] {
 
 class GameState {
 	status = $state<GameStatus>('IDLE');
-	board = $state<LetterCard[]>([]);
-	target = $state<LetterCard | null>(null);
+	board = $state<BoardCard[]>([]);
+	target = $state<BoardCard | null>(null);
 	/** מונה כל הזמן (היסטורי) — מוצג ב"נכון: N" של ה-HeaderBar */
 	score = $state(0);
 	/** מונה רץ של מספר ה-target הנוכחי בכל המשחק (לדיבוג) */
@@ -74,7 +80,7 @@ class GameState {
 	cooldownUntilTs = $state(0);
 
 	/** תור הכרטיסים שעוד לא נשאלו בלוח הנוכחי (Fisher-Yates) */
-	private remainingTargets: LetterCard[] = [];
+	private remainingTargets: BoardCard[] = [];
 
 	// =================== DERIVED ===================
 
@@ -86,17 +92,20 @@ class GameState {
 	// =================== ACTIONS ===================
 
 	/**
-	 * התחלת לוח חדש: מגריל אותיות ובונה תור שאלות.
+	 * התחלת לוח חדש: deck מה-Provider (לפי בחירת המורה), בחירת לוח, ותור שאלות.
 	 * אורך התור הוא לפי `settings.effectiveQuestionsPerBoard` (לא בהכרח כל
 	 * הכרטיסים על הלוח — אם questionsPerBoard מוגדר נמוך יותר).
 	 */
 	startBoard(): void {
-		const deck = generateDeck(settings.selectedLetterIds, settings.selectedVowels);
+		const provider = currentProvider();
+		const deck = provider.generateDeck(currentSelection(), currentProviderSettings());
+		const areItemsSimilar = provider.areItemsSimilar?.bind(provider);
 		this.board = pickBoard({
 			count: settings.totalCellsInGrid,
-			pairs: deck,
-			avoidSimilar: settings.avoidSimilar
-		});
+			items: deck,
+			avoidSimilar: settings.avoidSimilar,
+			isSimilar: areItemsSimilar
+		}).map((item) => toBoardCard(provider, item));
 
 		// מאפסים את מונה השאלות בלוח החדש
 		this.questionsAnsweredInBoard = 0;
@@ -152,7 +161,7 @@ class GameState {
 	/**
 	 * טיפול בלחיצה על כרטיס.
 	 */
-	handleClick(card: LetterCard): void {
+	handleClick(card: BoardCard): void {
 		if (this.status !== 'PLAYING' || !this.target) return;
 		if (this.isOnCooldown) return;
 
@@ -187,7 +196,7 @@ class GameState {
 	/**
 	 * תשובה שגויה — צליל error, רעידה, ועונש (cooldown).
 	 */
-	private handleWrong(card: LetterCard): void {
+	private handleWrong(card: BoardCard): void {
 		this.shakingId = card.id;
 		this.status = 'COOLDOWN';
 		this.cooldownUntilTs = Date.now() + settings.cooldownMs;

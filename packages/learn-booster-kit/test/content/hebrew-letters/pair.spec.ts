@@ -3,10 +3,10 @@
  * TDD — כתוב לפני הקוד
  */
 import { describe, it, expect } from 'vitest';
-import { makePair, generateDeck, isValidCombination } from './pair';
-import { LETTERS_BY_LEGACY_ID, ALL_LETTERS_DATA } from '../data/letters';
-import { VOWELS_BY_CODE } from '../data/vowels';
-import { ALL_LETTERS, DEFAULT_LETTER_IDS } from './letters';
+import { makePair, isValidLetterVowel as isValidCombination } from '../../../src/content/providers/hebrew-letters';
+import { LETTERS_BY_LEGACY_ID, ALL_LETTERS_DATA } from '../../../src/content/providers/hebrew-letters';
+import { VOWELS_BY_CODE } from '../../../src/content/providers/hebrew-letters';
+import { ALL_LETTERS, DEFAULT_LETTER_IDS, generateDeck } from './helpers';
 
 const bLetter = LETTERS_BY_LEGACY_ID.get('ba')!;
 const gLetter = LETTERS_BY_LEGACY_ID.get('ga')!;

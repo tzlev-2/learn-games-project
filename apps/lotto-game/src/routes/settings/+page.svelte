@@ -1,16 +1,18 @@
 <script lang="ts">
 	import SettingsControls from './_components/SettingsControls.svelte';
 	import { goto } from '$app/navigation';
+	import { Button } from 'learn-booster-kit';
+	import { language } from '$lib/language';
 </script>
 
 <div class="settings-page" dir="rtl">
 	<div class="settings-inner">
 		<!-- Header -->
 		<div class="header">
-			<h1 class="title">הגדרות משחק</h1>
-			<button onclick={() => goto('/')} class="back-button">
-				חזרה למשחק
-			</button>
+			<h1 class="title">{language.settingsPage.title}</h1>
+			<Button color="secondary" class="lotto-back-button" onclick={() => goto('/')}>
+				{language.settingsPage.backToGame}
+			</Button>
 		</div>
 
 		<SettingsControls />
@@ -30,7 +32,7 @@
 		@apply p-4 md:p-8;
 
 		/* Visual */
-		@apply bg-slate-50;
+		background-color: var(--theme-surface-base);
 	}
 
 	.settings-inner {
@@ -60,16 +62,11 @@
 		@apply text-3xl font-bold text-slate-800;
 	}
 
-	.back-button {
-		/* Spacing */
-		@apply px-5 py-2.5;
-
-		/* Visual */
-		@apply bg-green-600 text-white font-bold rounded-xl;
-		@apply shadow-lg;
-
-		/* Interactive */
-		@apply hover:bg-green-700 hover:shadow-green-500/20;
-		@apply transition-colors active:scale-95;
+	/* Button של הקיט (secondary = ירוק ב-theme) — גודל וצל כמו הכפתור הקודם */
+	:global(.lotto-back-button) {
+		min-height: auto;
+		padding: 0.625rem 1.25rem;
+		border-radius: 0.75rem;
+		box-shadow: var(--theme-shadow-elevated);
 	}
 </style>

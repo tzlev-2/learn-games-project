@@ -1,5 +1,56 @@
 # יומן פיתוח - משחק לוטו (Lotto Game)
 
+## 2026-11-20 15:10
+
+### ה-UI על קומפוננטות הקיט + theme "lotto"
+
+#### מה בוצע?
+
+- **Theme:** `app.html` — `<html lang="he" dir="rtl" data-theme="lotto">` (קודם `lang="en"`; ה-RTL הגיע רק מ-`body` של ה-CSS של הבוסטר).
+- **מסך המשחק `/`:** `GameShell layout="fill" background="none"` (ה-gradient של הדף נשאר) עם `HeaderBar`:
+  - הכותרת (לחיצה = משחק חדש): `Button variant="secondary"` — רקע/מסגרת מ-`surface-sunken`/`border-subtle` של ה-theme.
+  - המונים (זוגות / סבב / ניסיונות): `ScoreBadge`; "ניסיונות" ב-`variant="warning"`.
+  - הגדרות: `AdminGate` + `IconButton` + `SettingsIcon` של הקיט (במקום SVG מקומי).
+  - "שחק שוב" בחלון הניצחון: `Button color="secondary"` (ירוק ב-theme).
+- **הגדרות `/settings`:** "חזרה למשחק" — `Button color="secondary"`; רקע הדף מ-`--theme-surface-base`.
+- התאמות קטנות לזהות הלוטו (ריפוד, גודל ערך המונה, צבע סגול למונה הסבב) ב-CSS מקומי דרך `class` של הקומפוננטות — CSS של קומפוננטה אינו ב-`@layer`, ולכן גובר על ה-utilities בלי `!important`.
+- **`language.ts`:** `game.*` (כותרת, מונים, חלון הניצחון) ו-`settingsPage.*` — במקום עברית קשיחה במסכים שנגעתי בהם.
+- **נשאר מקומי:** הלוח והכרטיסים (לוגיקת משחק), חלון הניצחון עצמו (אין Modal בקיט), כפתור הפרס (gradient צהוב-כתום), קישורי "דלג", `SegmentedControl` המקומי (עם אייקונים — לזה של הקיט אין), ופאנלי ההגדרות.
+
+#### השוואה ויזואלית
+
+צילומי before/after ב-1097×685 וב-1024×768 (`learn-games-reports/p34/`). נמדד מול build של הבסיס: radius, ריפוד וגובה של המונים, כפתור הכותרת והכרטיסים זהים. הבדלים:
+1. ה-header גבוה ב-0.8px (גבול תחתון שקוף של `HeaderBar`).
+2. "שחק שוב" גבוה יותר (`Button lg`, מינימום 70px) — 70px במקום כ-60px.
+3. "חזרה למשחק" ב-green-500 (secondary של ה-theme) במקום green-600.
+4. פריטים נבחרים ב-`AxisSelector` באינדיגו (primary של ה-theme) במקום הכחול של theme ברירת המחדל.
+5. כפתור ההגדרות: אייקון ה-gear של הקיט על רקע indigo-50 (קודם gray-100).
+
+#### בדיקות
+
+`bun run check`: 0 שגיאות / 10 אזהרות (כמו הבסיס). server: 130 עוברות. `bun run build`: עובר.
+
+---
+
+## 2026-11-20 14:30
+
+### "אותיות וניקוד" — ה-Provider המשותף עם find-letter (שלב 4: תוכן אחד, כמה משחקים)
+
+#### מה בוצע?
+
+- `content/providers/index.ts` רושם את `hebrewLettersProvider` מ-`learn-booster-kit/content/hebrew-letters` — **אותו אובייקט** ש-find-letter צורך (צירים: אותיות × ניקוד, deck קרטזי מסונן ב-`isValidCombination`).
+- `LOTTO_CONTENT_DECLARATION`: `letters`, `hebrew-letters`, `shapes`, `reading` (ברירת מחדל נשארת `letters`). ספק `letters` של הלוטו (אותיות בלי ניקוד) לא השתנה.
+- הכרטיס מציג את `renderComponent` של ה-Provider (`LetterPairContent`, למשל "בִּ"); התאמה לפי `itemId` של הצירוף.
+- מסך הבחירה: `AxisSelector` מציג שני צירים. כש-Provider מצהיר `minSelected` לציר (רק "אותיות וניקוד": 2 אותיות, ניקוד 1) — `enforceMinSelected` + כפתור "ברירת מחדל" (`language.content.selector.reset`). ספקי הלוטו הוותיקים לא מצהירים מינימום, וההתנהגות שלהם ("נקה הכל" מרוקן) לא השתנתה.
+- **הגדרות שמורות:** אין שינוי צורה — v3 כבר שומר `contentSelections[providerId]`, ולכן הבחירה של `hebrew-letters` נשמרת תחת המפתח שלה בלי מיגרציה. הגדרות v1/v2/v3 קיימות נטענות כמו קודם.
+
+#### בדיקות
+
+- server: 125 → 130. `game-content.spec.ts` (הצהרה עם 4 Providers; `hebrew-letters` הוא האובייקט של הקיט), `gameLogic.spec.ts` (זוגות מה-deck הקרטזי; ציר ריק → אין כרטיסים), `settings-schema.spec.ts` (v3 עם `hebrew-letters` נטען כמו שהוא; v2 `letters` עדיין ממופה לספק `letters`).
+- `bun run check`: 0 שגיאות / 10 אזהרות (כמו הבסיס; כולן בקבצי `ui/` של הקיט).
+
+---
+
 ## 2026-11-19 10:40
 
 ### מעבר ל-ContentProvider הרב-צירי של הקיט + מיגרציית הגדרות v3

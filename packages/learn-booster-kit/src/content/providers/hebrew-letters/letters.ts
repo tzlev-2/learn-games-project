@@ -1,14 +1,17 @@
 /**
- * מאגר אותיות עבריות — מופרד מ-LetterCard הישן.
+ * מאגר אותיות עבריות — תוכן משותף (hebrew-letters).
  *
  * כל ערך מייצג **אות** בלבד (ללא ניקוד).
- * ה-legacyCardId מאפשר תאימות לאחור עם LetterCard.id הישן,
- * עם selectedLetterIds ב-localStorage, ועם PHONETIC_SIMILARITY_PAIRS.
+ * ה-legacyCardId הוא גם מזהה הפריט בציר `letters` של ה-Provider: הוא
+ * נשמר בהגדרות המורה (find-letter: selectedLetterIds → contentSelections)
+ * ומשמש את PHONETIC_SIMILARITY_PAIRS — לכן אסור לשנות אותו בלי מיגרציה.
  *
- * מסמך תכנון: docs/plans/vowels-support-plan.md §3
+ * הועבר מ-`apps/find-letter-game/src/lib/data/letters.ts` (platform-plan שלב 4).
+ * מסמך תכנון: apps/find-letter-game/docs/plans/vowels-support-plan.md §3
  */
 
-import type { LetterGroup } from '../utils/letters';
+/** קבוצת אותיות — לתאימות עם מיגרציות ישנות (find-letter v2 `activeGroups`) */
+export type LetterGroup = 'base' | 'confusing' | 'rafe';
 
 export interface Letter {
 	/** מזהה ייחודי של האות — ללא ניקוד (לדוגמה: 'b', 'k', 'sh') */
@@ -402,4 +405,19 @@ export const ALL_LETTERS_DATA: Letter[] = [
 /** מיפוי legacyCardId → Letter — לשימוש ב-generateDeck */
 export const LETTERS_BY_LEGACY_ID: Map<string, Letter> = new Map(
 	ALL_LETTERS_DATA.map((l) => [l.legacyCardId, l])
+);
+
+/**
+ * סדר האותיות לפי א-ב — סדר הפריטים בציר `letters` ובמסך הבחירה.
+ * הסדר: א, בּ, בַ, ג, ד, ה, ו, ז, ח, ט, י, כּ, כַ, ל, מ, נ, ס, ע, פּ, פַ, צ, ק, ר, שׁ, שׂ, ת
+ */
+export const LETTER_IDS_ALPHABETICAL: readonly string[] = [
+	'a', 'ba', 'va_rafe', 'ga', 'da', 'ha', 'va', 'za', 'cha', 'ta', 'ya',
+	'ka', 'cha_rafe', 'la', 'ma', 'na', 'sa', 'aa', 'pa', 'fa_rafe', 'tza',
+	'qa', 'ra', 'sha', 'sa_sin', 'tav'
+];
+
+/** כל האותיות לפי סדר א-ב */
+export const LETTERS_ALPHABETICAL: readonly Letter[] = LETTER_IDS_ALPHABETICAL.map(
+	(id) => LETTERS_BY_LEGACY_ID.get(id)!
 );

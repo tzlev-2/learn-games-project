@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { LetterCard as LetterCardType } from '$lib/utils/letters';
+	import type { BoardCard as LetterCardType } from '$lib/content/board-card';
 	import LetterCard from './LetterCard.svelte';
 	import { gridDims, type GridSize } from '$lib/stores/settings.svelte';
 

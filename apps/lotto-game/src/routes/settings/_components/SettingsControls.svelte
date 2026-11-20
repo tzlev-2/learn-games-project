@@ -103,6 +103,12 @@
 	const currentSettings = $derived(settings.getCurrentProviderSettings());
 	const currentSelection = $derived(settings.getCurrentSelection());
 
+	// Provider שמצהיר מינימום לציר (כמו "אותיות וניקוד": 2 אותיות, ניקוד 1) — אוכפים אותו
+	// במסך הבחירה ומציעים "ברירת מחדל". ספקי הלוטו הוותיקים לא מצהירים — ההתנהגות שלהם לא משתנה.
+	const enforceAxisMinimum = $derived(
+		currentProvider.selectionAxes.some((axis) => axis.minSelected !== undefined)
+	);
+
 	// רכיב הגדרות דינמי (הגדרות שאינן בחירת פריטים)
 	const SettingsComponent = $derived(currentProvider.settingsComponent);
 
@@ -163,6 +169,8 @@
 				onchange={(selection) => settings.updateSelection(selection)}
 				labels={language.content.selector}
 				itemMinWidth="4rem"
+				enforceMinSelected={enforceAxisMinimum}
+				defaultSelection={enforceAxisMinimum ? currentProvider.getDefaultSelection() : undefined}
 			/>
 		</div>
 

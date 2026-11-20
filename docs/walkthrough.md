@@ -6,6 +6,33 @@
 
 ---
 
+## 2026-11-20 15:10
+
+### קיט: theme "lotto" — הלוטו על קומפוננטות ה-shell
+
+- `packages/learn-booster-kit/src/ui/theme/themes/lotto.css` — theme חדש שממופה מצבעי הלוטו (אינדיגו/סגול, ירוק ל"המשך", גופן המערכת). radius נשאר 4/8/16px — מה שהמשחק קיבל לפניו — כדי שאף `rounded-*` במשחק לא ישתנה.
+- `styles.css` מייבא אותו; `apps/kit-test-screen` — אפשרות "Lotto" בבורר.
+- הלוטו (`app.html`: `data-theme="lotto"`) עובר ל-`GameShell` / `HeaderBar` / `ScoreBadge` / `IconButton` / `Button` — פירוט ב-`apps/lotto-game/docs/walkthrough.md`.
+
+---
+
+## 2026-11-20 14:35
+
+### שלבים 3-4 בתכנית הפלטפורמה — Provider משותף "אותיות וניקוד", find-letter והלוטו עליו
+
+"תוכן אחד, כמה משחקים": המאגר של find-letter (אותיות, ניקוד, צירופים, דמיון, מיפוי TTS) יצא מהמשחק ל-Provider משותף בקיט, ושני משחקים צורכים אותו.
+
+#### מה בוצע?
+
+- **קיט** — `src/content/providers/hebrew-letters/` (subpath `learn-booster-kit/content/hebrew-letters`): `hebrewLettersProvider`, צירים `letters` (26, מינימום 2) × `vowels` (10, מינימום 1), deck קרטזי מסונן ב-`isValidCombination`, `getSpeakText`, `areItemsSimilar`, `LetterPairContent`. `AxisSelector` קיבל `enforceMinSelected` / `defaultSelection` (additive). אייקון ייחודי לבורר סוג התוכן.
+- **find-letter** — המשחק גנרי מעל ה-Provider; הגדרות v6 (`contentProviderId` + `contentSelections`) רשומות ב-`registerGameSchema` עם מיגרציה (סוגר את §9.1).
+- **לוטו** — `hebrew-letters` נרשם כ-Provider רביעי לצד `letters`/`shapes`/`reading`; אין שינוי בצורת ההגדרות השמורות.
+- **תיעוד** — `docs/platform-plan.md` §6.4: איפה ה-Provider המשותף יושב ולמה; `packages/learn-booster-kit/docs/content-provider.md` §7.
+
+#### החלטות ארכיטקטורה
+
+- **התוכן המשותף בקיט ולא ב-package נפרד** — בלי תלות חדשה ובלי שינוי lockfile; subpath נפרד שומר את ה-root export נקי. מעבר ל-`packages/content-*` כשיהיו כמה חבילות תוכן.
+
 ## 2026-11-19 11:04
 
 ### קיט: `wordys` — tokens תצוגה לכותרת מסך הפתיחה

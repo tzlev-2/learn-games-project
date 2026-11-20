@@ -3,6 +3,27 @@
  * הערה: חלק מהמסכים הישנים עדיין מכילים מחרוזות קשיחות; מחרוזות חדשות נכנסות לכאן.
  */
 export const language = {
+	game: {
+		/** כותרת המשחק — לפי מצב המשחק ושם סוג התוכן */
+		title: (mode: 'lotto' | 'memory', providerName: string) =>
+			mode === 'memory' ? `משחק זיכרון ${providerName}` : `משחק לוטו ${providerName}`,
+		pairsLabel: 'זוגות:',
+		roundLabel: 'סבב:',
+		attemptsLabel: 'ניסיונות:',
+		settingsLabel: 'הגדרות',
+		winnerAlt: 'מנצח',
+		winnerTitle: 'כל הכבוד!',
+		winnerText: 'מצאת את כל הזוגות!',
+		rewardButton: 'קבל הפתעה!',
+		skipToNextRound: 'דלג והמשך לסבב הבא',
+		nextRoundIn: 'הסבב הבא מתחיל בעוד:',
+		skipNow: 'דלג והתחל מיד',
+		playAgain: 'שחק שוב'
+	},
+	settingsPage: {
+		title: 'הגדרות משחק',
+		backToGame: 'חזרה למשחק'
+	},
 	content: {
 		providers: {
 			letters: 'אותיות',
@@ -16,7 +37,8 @@ export const language = {
 		},
 		selector: {
 			selectAll: 'בחר הכל',
-			clearAll: 'נקה הכל'
+			clearAll: 'נקה הכל',
+			reset: 'ברירת מחדל'
 		},
 		shapes: {
 			colorModeTitle: 'מצב צבעים',

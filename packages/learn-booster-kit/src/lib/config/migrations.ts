@@ -141,6 +141,14 @@ export function registerGameSchema(gameId: string, entry: GameSchemaEntry): void
   GAME_SCHEMA_REGISTRY.set(gameId, entry);
 }
 
+/**
+ * הגרסה הנוכחית הרשומה למשחק, או `undefined` אם המשחק לא רשום.
+ * `updateGameSettings` כותב אותה — הנתונים שהמשחק שומר הם תמיד בצורה הנוכחית.
+ */
+export function getRegisteredGameSchemaVersion(gameId: string): number | undefined {
+  return GAME_SCHEMA_REGISTRY.get(gameId)?.currentVersion;
+}
+
 /** TEST-ONLY — מנקה את ה-registry בין טסטים */
 export function _clearGameSchemaRegistryForTesting(): void {
   GAME_SCHEMA_REGISTRY.clear();

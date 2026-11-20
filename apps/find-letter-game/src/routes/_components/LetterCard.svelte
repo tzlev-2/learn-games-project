@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { LetterCard as LetterCardType } from '$lib/utils/letters';
+	import type { BoardCard as LetterCardType } from '$lib/content/board-card';
 
 	interface Props {
 		card: LetterCardType;

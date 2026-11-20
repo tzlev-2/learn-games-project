@@ -1,7 +1,17 @@
-import { describe, test, expect, vi } from 'vitest';
-import { areSimilar, PHONETIC_SIMILARITY_PAIRS, VISUAL_SIMILARITY_PAIRS_FUTURE, pickBoard, ALL_LETTERS, ALL_LETTERS_ALPHABETICAL, DEFAULT_LETTER_IDS, getTtsFilename, TTS_FILES } from './letters';
-import { generateDeck } from './pair';
-import type { VowelCode } from '../data/vowels';
+/**
+ * צמדי דמיון ומיפוי TTS של "אותיות וניקוד".
+ * הועבר מ-apps/find-letter-game/src/lib/utils/letters.test.ts (בדיקות pickBoard נשארו במשחק).
+ */
+import { test, expect } from 'vitest';
+import {
+	areSimilar,
+	PHONETIC_SIMILARITY_PAIRS,
+	VISUAL_SIMILARITY_PAIRS_FUTURE,
+	getTtsFilename,
+	TTS_FILES,
+	type VowelCode
+} from '../../../src/content/providers/hebrew-letters';
+import { ALL_LETTERS, ALL_LETTERS_ALPHABETICAL, DEFAULT_LETTER_IDS, generateDeck } from './helpers';
 
 // בדיקה 1: regression — ס ↔ שׂ כבר צריכות לעבור לפני כל שינוי
 test('ס ↔ שׂ נחשבות דומות (regression)', () => {
@@ -57,31 +67,6 @@ test('VISUAL_SIMILARITY_PAIRS_FUTURE מכיל בדיוק 13 צמדים', () => {
 	expect(VISUAL_SIMILARITY_PAIRS_FUTURE.length).toBe(13);
 });
 
-// בדיקה 8: לוח 3x4 עם avoidSimilar=true לא מכיל צמד צלילי-דומה
-test('לוח 3x4 עם avoidSimilar=true אינו מכיל צמד צלילי-דומה (100 ריצות)', () => {
-	const allPairs = generateDeck(DEFAULT_LETTER_IDS, ['patah']);
-	for (let i = 0; i < 100; i++) {
-		const board = pickBoard({ count: 12, pairs: allPairs, avoidSimilar: true });
-		const boardIds = board.map((c) => c.id);
-		for (const pair of PHONETIC_SIMILARITY_PAIRS) {
-			const hasA = boardIds.includes(pair.a);
-			const hasB = boardIds.includes(pair.b);
-			expect(hasA && hasB).toBe(false);
-		}
-	}
-});
-
-// בדיקה 9: אין fallback ללוח 3x4 עם כל 26 האותיות
-test('אין fallback ללוח 3x4 עם כל 26 האותיות (100 ריצות)', () => {
-	const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-	const allPairs = generateDeck(DEFAULT_LETTER_IDS, ['patah']);
-	for (let i = 0; i < 100; i++) {
-		pickBoard({ count: 12, pairs: allPairs, avoidSimilar: true });
-	}
-	expect(warnSpy).not.toHaveBeenCalled();
-	warnSpy.mockRestore();
-});
-
 // בדיקה 10: ALL_LETTERS_ALPHABETICAL מכיל 26 אותיות
 test('ALL_LETTERS_ALPHABETICAL מכיל 26 אותיות', () => {
 	expect(ALL_LETTERS_ALPHABETICAL.length).toBe(26);
@@ -92,26 +77,7 @@ test('DEFAULT_LETTER_IDS מכיל 26 מזהים', () => {
 	expect(DEFAULT_LETTER_IDS.length).toBe(26);
 });
 
-// בדיקה 12 (עודכנה): pickBoard עם pairs ישירות מחזיר רק האותיות הנבחרות
-test('pickBoard עם pairs מחזיר רק האותיות הנבחרות', () => {
-	const pairs = generateDeck(['a', 'ba', 'ga'], ['patah']);
-	const board = pickBoard({ count: 3, pairs, avoidSimilar: false });
-	const ids = board.map(c => c.id).sort();
-	expect(ids).toEqual(['a', 'ba', 'ga']);
-});
 
-// בדיקה 13 (עודכנה): pickBoard מחזיר הכל כש-count גדול מה-pool
-test('pickBoard מחזיר הכל כש-count גדול מה-pool', () => {
-	const pairs = generateDeck(['a', 'ba'], ['patah']);
-	const board = pickBoard({ count: 10, pairs, avoidSimilar: false });
-	expect(board.length).toBe(2);
-});
-
-// בדיקה 14 (עודכנה): pickBoard עם pairs ריק מחזיר []
-test('pickBoard עם pairs ריק מחזיר []', () => {
-	const board = pickBoard({ count: 5, pairs: [], avoidSimilar: false });
-	expect(board).toEqual([]);
-});
 
 // === בדיקות מיפוי TTS ===
 

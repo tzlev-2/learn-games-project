@@ -1,5 +1,44 @@
 # יומן פיתוח — איפה האות?
 
+## 2026-11-19 11:05
+
+### המשחק רץ על ה-ContentProvider המשותף "אותיות וניקוד" (שלבים 3–4 בתכנית הפלטפורמה)
+
+#### למה
+
+שלב 3: לעטוף את מודל הנתונים (Letter, Vowel, Pair, deck, מיפוי TTS) ב-Provider רב-צירי של הקיט, ושהמשחק יצרוך אותו דרך `resolveGameContent`. שלב 4: אותו Provider משמש גם את הלוטו — לכן הוא נוצר ישר בקיט (`learn-booster-kit/content/hebrew-letters`), והמאגר עבר לשם מכאן (providerization-plan §9: "יוצא רק כשמשחק שני באמת יצרוך אותו" — הלוטו).
+
+#### מה בוצע?
+
+- **תוכן** — `src/lib/content/game-content.ts`: registry משלו עם `hebrewLettersProvider` והצהרה `{ gameId: 'find-letter-game', providerIds: ['hebrew-letters'], defaultProviderId: 'hebrew-letters' }`.
+- **המשחק גנרי** — `startBoard` מקבל deck מ-`provider.generateDeck(selection)`, בוחר לוח ב-`pickBoard` (עם `provider.areItemsSimilar`), וממיר לכרטיסי לוח `BoardCard { id, display, speak }` (`content/board-card.ts`; `speak` מ-`getSpeakText`). `Board`/`LetterCard` מציגים את `BoardCard` בלבד.
+- **`utils/pick-board.ts`** — `pickBoard` גנרי (`items` + `isSimilar`); אותו אלגוריתם (50 ניסיונות, השלמה עם אזהרה).
+- **TTS** — `utils/tts.ts` מקבל `getTtsFilename` ו-`TTS_STATIC_PATH` מהתוכן המשותף; הניגון, ה-cache וה-fallback ל-Web Speech לא השתנו.
+- **הגדרות v6** — `selectedLetterIds` + `selectedVowels` → `contentProviderId: 'hebrew-letters'` + `contentSelections: { 'hebrew-letters': { letters, vowels } }` (אותה צורה כמו בלוטו v3). המזהים לא השתנו (legacyCardId / VowelCode), כך שהמיגרציה היא העברת שדות. גישה דרך `currentProvider()` / `currentSelection()` / `updateSelection()` ב-`settings.svelte.ts`.
+- **`registerGameSchema('find-letter-game', { currentVersion: 6 })`** — סוגר את "find-letter לא רשום — passthrough" (platform-plan §9.1). `migrateSettings` אידמפוטנטית ולא סומכת על גרסת ה-wrapper: נתונים שנשמרו לפני הרישום מסומנים ב-wrapper כ-v1 גם כשהם v5. היא רצה גם ב-fast-path, ב-subscribe ובמיגרציית המפתח הישן. שלב legacy → v5 נשמר כ-`migrateLegacyToV5`.
+- **מסך ההגדרות** — `LetterSelectionGrid` ו-`VowelSelectionGrid` הוחלפו ב-`AxisSelector` של הקיט, כרטיס לכל ציר של ה-Provider (`axes={[axis]}`) עם `enforceMinSelected` (מינימום 2 אותיות / ניקוד 1 — כמו קודם, נאכף בלי הודעה) ו-`defaultSelection` (כפתור "ברירת מחדל"). "נקה הכל" משאיר את המינימום כמו קודם.
+- **נמחקו** — `lib/data/{letters,vowels}.ts`, `lib/utils/{letters,pair}.ts` וה-tests שלהם (עברו לקיט), `LetterSelectionGrid`/`VowelSelectionGrid`. מ-`language.ts` ירדו `vowelName*` (עברו ל-`hebrewLettersLanguage`) ו-`minimumLettersHint` / `minimumVowelsHint` (לא בשימוש).
+
+#### הבדלים ויזואליים (מסך ההגדרות בלבד)
+
+- אריח נבחר מלא בצבע ה-brand (כחול כהה) במקום רקע לבן עם מסגרת כתומה; אריח לא נבחר `surface-sunken`.
+- "סמן הכל" / "נקה הכל" / "ברירת מחדל" הם כפתורי טקסט במקום pills כתומים/אפורים.
+- ליד כל ציר מוצגים שמו ומונה (`אותיות (26/26)`, `ניקוד (1/10)`) — מתחת לכותרת הכרטיס.
+- גופן האותיות Heebo של ה-theme ב-1.5rem (override מקומי `.fl-axis-letters`) במקום David/serif.
+
+מסך הפתיחה ומסך המשחק ללא שינוי.
+
+#### ידוע — לא שונה כאן
+
+- **fast-path של ההגדרות קורא את צורת state v1** (`profile.config.gameSettings`) — מאז ש-profile-manager שומר v2 הוא לא מוצא כלום, וההגדרות מגיעות דרך `subscribeGameSettings` אחרי `boosterService.init`. תיקון ידרוש בדיקה של לוגיקת ה-"stale" ב-subscribe.
+- **צמדי הדמיון חלים רק על צירופי פתח** (המזהים בטבלה הם legacyCardId) — כך גם לפני ה-Provider.
+
+#### בדיקות
+
+127 → 42: ‏98 בדיקות התוכן (data/letters, data/vowels, utils/pair, ו-utils/letters חוץ מ-pickBoard) עברו לקיט עם התוכן (`packages/learn-booster-kit/test/content/hebrew-letters/`: data 27, pair 45, similarity-tts 26). `pick-board.test.ts` — 10 בדיקות pickBoard הישנות (מ-utils/letters.test ו-utils/pickBoard.test) + 2 חדשות; `settings-migration.test.ts` +8 ל-v6 (ה-12 הקיימות בודקות את `migrateLegacyToV5`); `game-content.test.ts` 3 חדשות. `bun run check`: 0 שגיאות / 10 אזהרות (אותן אזהרות בקיט). `bun run build`: עובר.
+
+---
+
 ## 2026-11-19 10:50
 
 ### מסך ההגדרות — `SegmentedControl` ו-`Card` של הקיט

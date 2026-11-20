@@ -13,11 +13,11 @@
  *   - shva: 'ְ' — שווא נע, זהה לnone
  *   - none: 'ְ' — שווא נח (עיצור)
  *
- * מסמך תכנון: docs/plans/vowels-support-plan.md §3 ו-§4
- * Brief: docs/plans/briefs/phase-3-remaining-vowels-brief.md
+ * הועבר מ-`apps/find-letter-game/src/lib/data/vowels.ts` (platform-plan שלב 4).
+ * מסמך תכנון: apps/find-letter-game/docs/plans/vowels-support-plan.md §3 ו-§4
  */
 
-import { language } from '../services/language';
+import { hebrewLettersLanguage as language } from './language';
 
 export type VowelCode =
 	| 'patah'
@@ -48,46 +48,46 @@ export interface Vowel {
 export const VOWELS_BY_CODE: Record<VowelCode, Vowel> = {
 	patah: {
 		code: 'patah',
-		displayName: language.vowelNamePatah,
+		displayName: language.vowelNames.patah,
 		mark: '\u05B7', // ַ (U+05B7)
 		// קמץ (ָ U+05B8) + אלף — ל-TTS יציב בדיוק כמו הישן
 		speakSuffix: '\u05B8\u05D0' // ָא
 	},
 	kamatz: {
 		code: 'kamatz',
-		displayName: language.vowelNameKamatz,
+		displayName: language.vowelNames.kamatz,
 		mark: '\u05B8', // ָ (U+05B8)
 		// זהה צלילית לפתח — אותו MP3 בעתיד (ראה vowels-support-plan.md §4.3)
 		speakSuffix: '\u05B8\u05D0' // ָא
 	},
 	hirik: {
 		code: 'hirik',
-		displayName: language.vowelNameHirik,
+		displayName: language.vowelNames.hirik,
 		mark: '\u05B4', // ִ (U+05B4)
 		// חיריק מסיים ב-יוד
 		speakSuffix: '\u05B4\u05D9' // ִי
 	},
 	segol: {
 		code: 'segol',
-		displayName: language.vowelNameSegol,
+		displayName: language.vowelNames.segol,
 		mark: '\u05B6', // ֶ (U+05B6)
 		speakSuffix: '\u05B6\u05D0' // ֶא
 	},
 	tzere: {
 		code: 'tzere',
-		displayName: language.vowelNameTzere,
+		displayName: language.vowelNames.tzere,
 		mark: '\u05B5', // ֵ (U+05B5)
 		speakSuffix: '\u05B5\u05D0' // ֵא
 	},
 	holam: {
 		code: 'holam',
-		displayName: language.vowelNameHolam,
+		displayName: language.vowelNames.holam,
 		mark: '\u05B9', // ֹ (U+05B9)
 		speakSuffix: '\u05B9\u05D0' // ֹא
 	},
 	shuruk: {
 		code: 'shuruk',
-		displayName: language.vowelNameShuruk,
+		displayName: language.vowelNames.shuruk,
 		// שורוק = ו (U+05D5) + דגש (U+05BC) — שני chars!
 		mark: '\u05D5\u05BC', // וּ
 		// speakSuffix זהה ל-mark
@@ -95,21 +95,21 @@ export const VOWELS_BY_CODE: Record<VowelCode, Vowel> = {
 	},
 	kubutz: {
 		code: 'kubutz',
-		displayName: language.vowelNameKubutz,
+		displayName: language.vowelNames.kubutz,
 		mark: '\u05BB', // ֻ (U+05BB)
 		// קצר — בלי תוספת
 		speakSuffix: '\u05BB' // ֻ
 	},
 	shva: {
 		code: 'shva',
-		displayName: language.vowelNameShva,
+		displayName: language.vowelNames.shva,
 		mark: '\u05B0', // ְ (U+05B0)
 		// שווא נע — זהה צלילית ל-none
 		speakSuffix: '\u05B0' // ְ
 	},
 	none: {
 		code: 'none',
-		displayName: language.vowelNameNone,
+		displayName: language.vowelNames.none,
 		mark: '',
 		// שווא נח U+05B0 — "בְּ", "גְ"
 		speakSuffix: '\u05B0' // ְ
@@ -117,7 +117,7 @@ export const VOWELS_BY_CODE: Record<VowelCode, Vowel> = {
 };
 
 // סדר פדגוגי: patah → kamatz → hirik → segol → tzere → holam → shuruk → kubutz → shva → none
-export const ALL_VOWELS: Vowel[] = [
+export const ALL_VOWELS: readonly Vowel[] = [
 	VOWELS_BY_CODE.patah,
 	VOWELS_BY_CODE.kamatz,
 	VOWELS_BY_CODE.hirik,
