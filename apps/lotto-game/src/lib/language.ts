@@ -16,7 +16,8 @@ export const language = {
 		},
 		selector: {
 			selectAll: 'בחר הכל',
-			clearAll: 'נקה הכל'
+			clearAll: 'נקה הכל',
+			reset: 'ברירת מחדל'
 		},
 		shapes: {
 			colorModeTitle: 'מצב צבעים',

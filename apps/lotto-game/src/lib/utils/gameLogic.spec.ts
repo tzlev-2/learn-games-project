@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 import { generateCards, contentMatches } from './gameLogic';
-import { lettersProvider, shapesProvider } from '$lib/content/providers';
+import { hebrewLettersProvider, lettersProvider, shapesProvider } from '$lib/content/providers';
 
 describe('generateCards', () => {
 	it('creates pairCount pairs from the provider deck', () => {
@@ -64,3 +64,38 @@ describe('generateCards', () => {
 		expect(contentMatches(cards[0], cards[1], shapesProvider)).toBe(true);
 	});
 });
+
+describe('generateCards — shared hebrew-letters provider (letters × vowels)', () => {
+	it('builds pairs from the cartesian deck; both cards of a pair match', () => {
+		const cards = generateCards({
+			pairCount: 4,
+			provider: hebrewLettersProvider,
+			selection: { letters: ['ba', 'ga'], vowels: ['patah', 'hirik'] },
+			settings: {}
+		});
+		expect(cards).toHaveLength(8);
+		const ids = cards.map((c) => c.content.itemId);
+		expect(new Set(ids)).toEqual(new Set(['ba', 'b__hirik', 'ga', 'g__hirik']));
+		for (const card of cards) {
+			const twin = cards.find((c) => c !== card && c.content.itemId === card.content.itemId)!;
+			expect(contentMatches(card, twin, hebrewLettersProvider)).toBe(true);
+			expect(card.content.providerId).toBe('hebrew-letters');
+		}
+		const [a, b] = cards.filter((c) => c.content.itemId === 'ba');
+		const other = cards.find((c) => c.content.itemId === 'b__hirik')!;
+		expect(contentMatches(a, b, hebrewLettersProvider)).toBe(true);
+		expect(contentMatches(a, other, hebrewLettersProvider)).toBe(false);
+	});
+
+	it('an empty axis gives no cards', () => {
+		expect(
+			generateCards({
+				pairCount: 3,
+				provider: hebrewLettersProvider,
+				selection: { letters: ['ba', 'ga'], vowels: [] },
+				settings: {}
+			})
+		).toEqual([]);
+	});
+});
+

@@ -1,5 +1,24 @@
 # יומן פיתוח - משחק לוטו (Lotto Game)
 
+## 2026-11-20 14:30
+
+### "אותיות וניקוד" — ה-Provider המשותף עם find-letter (שלב 4: תוכן אחד, כמה משחקים)
+
+#### מה בוצע?
+
+- `content/providers/index.ts` רושם את `hebrewLettersProvider` מ-`learn-booster-kit/content/hebrew-letters` — **אותו אובייקט** ש-find-letter צורך (צירים: אותיות × ניקוד, deck קרטזי מסונן ב-`isValidCombination`).
+- `LOTTO_CONTENT_DECLARATION`: `letters`, `hebrew-letters`, `shapes`, `reading` (ברירת מחדל נשארת `letters`). ספק `letters` של הלוטו (אותיות בלי ניקוד) לא השתנה.
+- הכרטיס מציג את `renderComponent` של ה-Provider (`LetterPairContent`, למשל "בִּ"); התאמה לפי `itemId` של הצירוף.
+- מסך הבחירה: `AxisSelector` מציג שני צירים. כש-Provider מצהיר `minSelected` לציר (רק "אותיות וניקוד": 2 אותיות, ניקוד 1) — `enforceMinSelected` + כפתור "ברירת מחדל" (`language.content.selector.reset`). ספקי הלוטו הוותיקים לא מצהירים מינימום, וההתנהגות שלהם ("נקה הכל" מרוקן) לא השתנתה.
+- **הגדרות שמורות:** אין שינוי צורה — v3 כבר שומר `contentSelections[providerId]`, ולכן הבחירה של `hebrew-letters` נשמרת תחת המפתח שלה בלי מיגרציה. הגדרות v1/v2/v3 קיימות נטענות כמו קודם.
+
+#### בדיקות
+
+- server: 125 → 130. `game-content.spec.ts` (הצהרה עם 4 Providers; `hebrew-letters` הוא האובייקט של הקיט), `gameLogic.spec.ts` (זוגות מה-deck הקרטזי; ציר ריק → אין כרטיסים), `settings-schema.spec.ts` (v3 עם `hebrew-letters` נטען כמו שהוא; v2 `letters` עדיין ממופה לספק `letters`).
+- `bun run check`: 0 שגיאות / 10 אזהרות (כמו הבסיס; כולן בקבצי `ui/` של הקיט).
+
+---
+
 ## 2026-11-19 10:40
 
 ### מעבר ל-ContentProvider הרב-צירי של הקיט + מיגרציית הגדרות v3

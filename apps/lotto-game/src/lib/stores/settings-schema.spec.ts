@@ -215,3 +215,31 @@ describe('loadLottoSettings (migrate + validate)', () => {
 		expect(parseLottoSettings(raw).isErr()).toBe(true);
 	});
 });
+
+describe('hebrew-letters — the shared "letters with vowels" provider (platform-plan phase 4)', () => {
+	it('v3 settings with hebrew-letters load unchanged — no migration needed', () => {
+		const saved = {
+			...DEFAULT_SETTINGS,
+			contentProviderId: 'hebrew-letters',
+			contentSelections: {
+				letters: { letters: ['א', 'ב'] },
+				'hebrew-letters': { letters: ['ba', 'ga'], vowels: ['patah', 'hirik'] }
+			}
+		};
+		const result = loadLottoSettings(saved)._unsafeUnwrap();
+		expect(result.invalidFields).toEqual([]);
+		expect(result.settings.contentProviderId).toBe('hebrew-letters');
+		expect(result.settings.contentSelections).toEqual(saved.contentSelections);
+	});
+
+	it('existing v2 letters settings still migrate to the lotto letters provider', () => {
+		const result = loadLottoSettings({
+			schemaVersion: 2,
+			contentProviderId: 'letters',
+			contentSettings: { selectedLetters: ['ג'] }
+		})._unsafeUnwrap();
+		expect(result.settings.contentProviderId).toBe('letters');
+		expect(result.settings.contentSelections).toEqual({ letters: { letters: ['ג'] } });
+	});
+});
+
