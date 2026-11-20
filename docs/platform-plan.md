@@ -366,6 +366,11 @@ function legacyToMultiAxis<TItem, TSettings>(
 - Provider משותף בין משחקים = אובייקט מיוצא (בקיט או ב-package תוכן), שכל משחק רושם.
 - JSON/YAML חיצוני — עדיין פתוח (החוזה מאפשר, אין loader).
 
+**מומש (2026-11-20, שלבים 3-4 — "תוכן אחד, כמה משחקים"):**
+- ה-Provider המשותף הראשון: **"אותיות וניקוד"** (`hebrew-letters`, צירים אותיות × ניקוד) יושב **בקיט**, ב-`packages/learn-booster-kit/src/content/providers/hebrew-letters/`, ומיובא מה-subpath `learn-booster-kit/content/hebrew-letters`.
+- **למה בקיט ולא package תוכן נפרד:** שני הצרכנים כבר תלויים בקיט — אין תלות חדשה ואין שינוי lockfile; ה-subpath שומר את שמות התוכן (`Letter`, `ALL_VOWELS`) מחוץ ל-root export; מחרוזות התוכן מרוכזות ב-`language.ts` שלו (חריג מוצהר לכלל "בלי עברית בקיט"). כשיהיו כמה חבילות תוכן, או תוכן שנטען מבחוץ — מוציאים ל-`packages/content-*` עם אותו API. פירוט: `packages/learn-booster-kit/docs/content-provider.md` §7.
+- **צרכנים:** `find-letter` (ה-Provider היחיד שלו, הגדרות v6) ו-`lotto-game` (Provider רביעי לצד `letters`/`shapes`/`reading`). שני המשחקים רושמים **אותו אובייקט** ב-registry שלהם; כל אחד מציג את הפריט בדרכו (find-letter: `LetterCard` משלו; לוטו: `renderComponent` של ה-Provider).
+
 ---
 
 ## 7. הצעה לצעד הראשון בפועל
