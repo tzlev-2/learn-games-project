@@ -8,7 +8,17 @@
 		type Card as CardType
 	} from '$lib/utils/gameLogic';
 	import { playSuccess, playError, playWin } from '$lib/utils/sound';
-	import { boosterService, AdminGate } from 'learn-booster-kit';
+	import {
+		boosterService,
+		AdminGate,
+		GameShell,
+		HeaderBar,
+		ScoreBadge,
+		IconButton,
+		Button,
+		SettingsIcon
+	} from 'learn-booster-kit';
+	import { language } from '$lib/language';
 	import { settings } from '$lib/stores/settings.svelte';
 	import Confetti from './_components/Confetti.svelte';
 	import Board from './_components/Board.svelte';
@@ -28,11 +38,7 @@
 
 	// כותרת דינמית לפי סוג התוכן ומצב המשחק
 	const provider = $derived(settings.currentProvider);
-	const gameTitle = $derived(
-		settings.gameMode === 'memory'
-			? `משחק זיכרון ${provider.displayName}`
-			: `משחק לוטו ${provider.displayName}`
-	);
+	const gameTitle = $derived(language.game.title(settings.gameMode, provider.displayName));
 
 	// מונה ניסיונות (רלוונטי למצב זיכרון)
 	let attempts = $state(0);
@@ -230,77 +236,69 @@
 		<Confetti />
 	{/if}
 
-	<!-- Header Bar -->
-	<header class="header">
-		<button onclick={() => startNewGame(1)} class="title-button">
-			<h1 class="title">{gameTitle}</h1>
-		</button>
+	<GameShell layout="fill" background="none">
+		{#snippet header()}
+			<HeaderBar class="lotto-header">
+				{#snippet leftActions()}
+					<!-- לחיצה על הכותרת מתחילה משחק חדש (כמו קודם) -->
+					<Button variant="secondary" class="lotto-title-button" onclick={() => startNewGame(1)}>
+						<h1 class="title">{gameTitle}</h1>
+					</Button>
+				{/snippet}
 
-		<div class="header-stats">
-			<div class="stat-badge pairs">
-				<span class="stat-label">זוגות:</span>
-				<span class="stat-value">{matches}/{settings.pairCount}</span>
-			</div>
+				{#snippet rightActions()}
+					<ScoreBadge
+						label={language.game.pairsLabel}
+						value="{matches}/{settings.pairCount}"
+						class="lotto-stat lotto-stat--pairs"
+					/>
 
-			{#if settings.loopMode === 'finite' && settings.totalRounds > 1}
-				<div class="stat-badge rounds">
-					<span class="stat-label">סבב:</span>
-					<span class="stat-value">{currentRound}/{settings.totalRounds}</span>
-				</div>
-			{/if}
-
-			{#if settings.loopMode === 'infinite'}
-				<div class="stat-badge rounds">
-					<span class="stat-label">סבב:</span>
-					<span class="stat-value">{currentRound}</span>
-				</div>
-			{/if}
-
-			{#if settings.gameMode === 'memory'}
-				<div class="stat-badge attempts">
-					<span class="stat-label">ניסיונות:</span>
-					<span class="stat-value">{attempts}</span>
-				</div>
-			{/if}
-
-			<AdminGate onUnlock={() => goto('/settings')}>
-				<button class="settings-button" title="הגדרות">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="icon"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+					{#if settings.loopMode === 'finite' && settings.totalRounds > 1}
+						<ScoreBadge
+							label={language.game.roundLabel}
+							value="{currentRound}/{settings.totalRounds}"
+							class="lotto-stat lotto-stat--rounds"
 						/>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+					{/if}
+
+					{#if settings.loopMode === 'infinite'}
+						<ScoreBadge
+							label={language.game.roundLabel}
+							value={currentRound}
+							class="lotto-stat lotto-stat--rounds"
 						/>
-					</svg>
-				</button>
-			</AdminGate>
+					{/if}
+
+					{#if settings.gameMode === 'memory'}
+						<ScoreBadge
+							label={language.game.attemptsLabel}
+							value={attempts}
+							variant="warning"
+							class="lotto-stat lotto-stat--attempts"
+						/>
+					{/if}
+
+					<AdminGate onUnlock={() => goto('/settings')}>
+						<IconButton label={language.game.settingsLabel} class="lotto-settings-button">
+							{#snippet icon()}<SettingsIcon size={24} />{/snippet}
+						</IconButton>
+					</AdminGate>
+				{/snippet}
+			</HeaderBar>
+		{/snippet}
+
+		<!-- Main Game Area -->
+		<div class="game-container">
+			<Board {cards} onCardClick={handleCardClick} {isLocked} />
 		</div>
-	</header>
-
-	<!-- Main Game Area -->
-	<main class="game-container">
-		<Board {cards} onCardClick={handleCardClick} {isLocked} />
-	</main>
+	</GameShell>
 
 	{#if won}
 		<div class="modal-overlay" transition:fade>
 			<div class="modal-content" transition:scale>
-				<img src={winnerLogo} alt="Winner" class="winner-logo" />
-				<h2 class="winner-title">כל הכבוד!</h2>
-				<p class="winner-text">מצאת את כל הזוגות!</p>
+				<img src={winnerLogo} alt={language.game.winnerAlt} class="winner-logo" />
+				<h2 class="winner-title">{language.game.winnerTitle}</h2>
+				<p class="winner-text">{language.game.winnerText}</p>
 
 				{#if showRewardButton}
 					<!-- כפתור פרס גדול -->
@@ -311,25 +309,30 @@
 						class:disabled={isRewardPending}
 					>
 						<span>🎁</span>
-						<span>קבל הפתעה!</span>
+						<span>{language.game.rewardButton}</span>
 					</button>
 					<div class="skip-wrapper">
 						<button onclick={() => startNewGame(currentRound + 1)} class="skip-button">
-							דלג והמשך לסבב הבא
+							{language.game.skipToNextRound}
 						</button>
 					</div>
 				{:else if nextRoundTimer !== null}
 					<div class="timer-section">
-						<p class="timer-label">הסבב הבא מתחיל בעוד:</p>
+						<p class="timer-label">{language.game.nextRoundIn}</p>
 						<div class="timer-value">{nextRoundTimer}</div>
 						<button onclick={() => (nextRoundTimer = 1)} class="timer-skip">
-							דלג והתחל מיד
+							{language.game.skipNow}
 						</button>
 					</div>
 				{:else}
-					<button onclick={() => startNewGame(1)} class="play-again-button">
-						שחק שוב
-					</button>
+					<Button
+						size="lg"
+						color="secondary"
+						class="lotto-play-again"
+						onclick={() => startNewGame(1)}
+					>
+						{language.game.playAgain}
+					</Button>
 				{/if}
 			</div>
 		</div>
@@ -349,121 +352,86 @@
 		@apply bg-gradient-to-br from-indigo-100 to-purple-100;
 	}
 
-	/* Header */
-	.header {
-		/* Layout */
-		@apply flex justify-between items-center;
-		@apply shrink-0 z-10;
-
-		/* Spacing */
-		@apply p-4;
-
-		/* Visual */
-		@apply bg-white shadow-md;
+	/* Header — HeaderBar של הקיט; ההתאמות שומרות על המראה של הלוטו.
+	   CSS של קומפוננטה אינו ב-@layer, ולכן גובר על ה-utilities של הקיט בלי !important. */
+	:global(.lotto-header) {
+		position: relative;
+		z-index: 10;
+		padding: 1rem;
+		border-bottom-color: transparent;
 	}
 
-	.title-button {
-		/* Spacing */
-		@apply px-4 py-2;
-
-		/* Visual */
-		@apply bg-indigo-50 rounded-lg;
-		@apply border border-indigo-100;
-
-		/* Interactive */
-		@apply cursor-pointer;
+	:global(.lotto-title-button) {
+		/* זהות הכותרת: רקע ומסגרת עדינים (surface-sunken / border-subtle של ה-theme) */
+		min-height: auto;
+		padding: 0.5rem 1rem;
+		border-radius: var(--theme-radius-lg);
 	}
 
 	.title {
-		/* Visual */
-		@apply text-2xl font-bold text-indigo-800 font-sans;
+		margin: 0;
+		font-size: 1.5rem;
+		line-height: 2rem;
+		font-weight: 700;
+		color: var(--theme-text-heading);
 	}
 
-	.header-stats {
-		/* Layout */
-		@apply flex items-center;
-
-		/* Spacing */
-		@apply gap-4;
+	/* ScoreBadge — מונים: label בצבע משני, ערך גדול בצבע לכל מונה */
+	:global(.lotto-stat) {
+		padding: 0.5rem 1rem;
+		border-radius: var(--theme-radius-lg);
 	}
 
-	.stat-badge {
-		/* Spacing */
-		@apply px-4 py-2;
-
-		/* Visual */
-		@apply rounded-lg border;
+	:global(.lotto-stat > span:first-child) {
+		font-size: 1rem;
+		color: var(--theme-text-secondary);
 	}
 
-	.stat-badge.pairs {
-		/* Visual */
-		@apply bg-indigo-50 border-indigo-100;
+	:global(.lotto-stat > span:last-child) {
+		font-size: 1.25rem;
+		line-height: 1.75rem;
 	}
 
-	.stat-badge.rounds {
-		/* Visual */
-		@apply bg-purple-50 border-purple-100;
+	:global(.lotto-stat--pairs > span:last-child) {
+		color: var(--theme-brand-primary);
 	}
 
-	.stat-label {
-		/* Spacing */
-		@apply ml-2;
-
-		/* Visual */
-		@apply text-gray-600;
+	:global(.lotto-stat--rounds) {
+		background-color: oklch(97.7% 0.014 308.299); /* purple-50 */
+		border-color: oklch(94.6% 0.033 307.174); /* purple-100 */
 	}
 
-	.stat-value {
-		/* Visual */
-		@apply font-bold text-xl;
+	:global(.lotto-stat--rounds > span:last-child) {
+		color: oklch(55.8% 0.288 302.321); /* purple-600 */
 	}
 
-	.stat-badge.pairs .stat-value {
-		/* Visual */
-		@apply text-indigo-600;
+	:global(.lotto-stat--attempts) {
+		border-color: oklch(96.2% 0.059 95.617); /* amber-100 */
 	}
 
-	.stat-badge.rounds .stat-value {
-		/* Visual */
-		@apply text-purple-600;
+	:global(.lotto-settings-button) {
+		color: var(--theme-brand-primary);
+		box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+		transition: transform 150ms, background-color 150ms;
 	}
 
-	.stat-badge.attempts {
-		/* Visual */
-		@apply bg-amber-50 border-amber-100;
+	:global(.lotto-settings-button:hover) {
+		color: var(--theme-brand-primary);
+		transform: scale(1.05);
 	}
 
-	.stat-badge.attempts .stat-value {
-		/* Visual */
-		@apply text-amber-600;
-	}
-
-	.settings-button {
-		/* Spacing */
-		@apply p-2;
-
-		/* Visual */
-		@apply bg-gray-100 text-indigo-600;
-		@apply rounded-full shadow-sm;
-
-		/* Interactive */
-		@apply hover:bg-gray-200 hover:scale-105;
-		@apply active:scale-95 transition-all;
-	}
-
-	.icon {
-		/* Layout */
-		@apply h-6 w-6;
+	:global(.lotto-settings-button:active) {
+		transform: scale(0.95);
 	}
 
 	/* Main Game Area */
 	.game-container {
 		/* CSS property for container queries */
 		container-type: size;
-		
-		/* Layout */
+
+		/* Layout — ממלא את <main> של GameShell */
 		@apply flex items-center justify-center;
-		@apply flex-1 overflow-hidden;
+		@apply h-full overflow-hidden;
 	}
 
 	/* Modal */
@@ -589,21 +557,11 @@
 		@apply hover:text-indigo-600;
 	}
 
-	/* Play Again Button */
-	.play-again-button {
-		/* Layout */
-		@apply w-full;
-
-		/* Spacing */
-		@apply px-8 py-4;
-
-		/* Visual */
-		@apply bg-green-500 text-white;
-		@apply rounded-xl text-xl font-bold;
-		@apply shadow-lg;
-
-		/* Interactive */
-		@apply hover:bg-green-600 hover:scale-105;
-		@apply transition-transform;
+	/* Play Again — Button של הקיט (secondary = ירוק ב-theme), ברוחב מלא */
+	:global(.lotto-play-again) {
+		width: 100%;
+		border-radius: 0.75rem;
+		font-size: 1.25rem;
+		box-shadow: var(--theme-shadow-elevated);
 	}
 </style>
