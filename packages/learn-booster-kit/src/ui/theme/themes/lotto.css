@@ -1,0 +1,74 @@
+/* ========================
+   Theme: Lotto
+   ========================
+   אינדיגו + סגול על רקע gradient בהיר, ירוק לפעולות "המשך".
+   מבוסס על apps/lotto-game — הערכים הם צבעי Tailwind 4 שהמשחק השתמש בהם
+   (oklch), כדי שהמעבר לקומפוננטות הקיט ישמור על המראה.
+
+   Radius: 4/8/16px — הערכים שהמשחק קיבל בפועל לפני ה-theme (נמדד: בלי
+   data-theme חל theme ברירת המחדל, ו-`--radius-lg` נפתר ל-16px). tokens.css
+   ממפה את `rounded-sm/md/lg` ל-`--theme-radius-*`, והמשחק משתמש בהם בעשרות
+   מקומות — ערכים אחרים היו משנים את כל הפינות במשחק (p5-games-shell, open issue 2).
+*/
+
+[data-theme='lotto'] {
+	/* Surfaces & Backgrounds */
+	--theme-surface-base: oklch(98.4% 0.003 247.858); /* slate-50 — מסך ההגדרות */
+	--theme-surface-elevated: #ffffff;
+	--theme-surface-sunken: oklch(96.2% 0.018 272.314); /* indigo-50 */
+	--theme-surface-overlay: rgb(0 0 0 / 0.5);
+	--theme-surface-header: #ffffff;
+	--theme-border-subtle: oklch(93% 0.034 272.788); /* indigo-100 */
+	--theme-border-strong: oklch(87% 0.065 274.039); /* indigo-200 */
+
+	/* Brand — primary: אינדיגו; secondary: ירוק ("שחק שוב", "חזרה למשחק") */
+	--theme-brand-primary: oklch(51.1% 0.262 276.966); /* indigo-600 */
+	--theme-brand-primary-hover: oklch(45.7% 0.24 277.023); /* indigo-700 */
+	--theme-brand-secondary: oklch(72.3% 0.219 149.579); /* green-500 */
+	--theme-brand-secondary-hover: oklch(62.7% 0.194 149.214); /* green-600 */
+
+	/* Text */
+	--theme-text-primary: oklch(27.8% 0.033 256.848); /* gray-800 */
+	--theme-text-secondary: oklch(44.6% 0.03 256.802); /* gray-600 */
+	--theme-text-tertiary: oklch(70.4% 0.04 256.788); /* slate-400 */
+	--theme-text-on-brand: #ffffff;
+	--theme-text-on-feedback: #ffffff;
+	--theme-text-on-header: var(--theme-text-primary);
+	--theme-accent-frame: oklch(88.2% 0.059 254.128); /* blue-200 — מסגרת כרטיס */
+
+	/* Feedback */
+	--theme-feedback-success: oklch(72.3% 0.219 149.579); /* green-500 */
+	--theme-feedback-success-bg: oklch(96.2% 0.044 156.743); /* green-100 */
+	--theme-feedback-error: oklch(63.7% 0.237 25.331); /* red-500 */
+	--theme-feedback-error-bg: oklch(93.6% 0.032 17.717); /* red-100 */
+	--theme-feedback-warning: oklch(66.6% 0.179 58.318); /* amber-600 */
+	--theme-feedback-warning-bg: oklch(98.7% 0.022 95.277); /* amber-50 */
+
+	/* Radius — כמו theme ברירת המחדל, שהמשחק קיבל עד עכשיו (ראו הערה למעלה) */
+	--theme-radius-sm: 4px;
+	--theme-radius-md: 8px;
+	--theme-radius-lg: 16px;
+	--theme-radius-pill: 9999px;
+	--theme-touch-min: 70px;
+
+	/* Shadows */
+	--theme-shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+	--theme-shadow-elevated: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+	--theme-shadow-focus: 0 0 0 3px oklch(51.1% 0.262 276.966 / 0.4);
+
+	/* Typography — הלוטו השתמש ב-font-sans של Tailwind (גופן המערכת) */
+	--theme-font-display: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+		'Segoe UI Symbol', 'Noto Color Emoji';
+	--theme-font-body: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+		'Segoe UI Symbol', 'Noto Color Emoji';
+	--theme-font-size-xs: 0.75rem;
+	--theme-font-size-sm: 0.875rem;
+	--theme-font-size-md: 1rem;
+	--theme-font-size-lg: 1.25rem;
+	--theme-font-size-xl: 1.5rem;
+	--theme-font-weight-regular: 400;
+	--theme-font-weight-bold: 700;
+
+	/* Display (אופציונלי) — כותרת: indigo-800 */
+	--theme-text-heading: oklch(39.8% 0.195 277.366);
+}

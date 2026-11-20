@@ -6,6 +6,16 @@
 
 ---
 
+## 2026-11-20 15:10
+
+### קיט: theme "lotto" — הלוטו על קומפוננטות ה-shell
+
+- `packages/learn-booster-kit/src/ui/theme/themes/lotto.css` — theme חדש שממופה מצבעי הלוטו (אינדיגו/סגול, ירוק ל"המשך", גופן המערכת). radius נשאר 4/8/16px — מה שהמשחק קיבל לפניו — כדי שאף `rounded-*` במשחק לא ישתנה.
+- `styles.css` מייבא אותו; `apps/kit-test-screen` — אפשרות "Lotto" בבורר.
+- הלוטו (`app.html`: `data-theme="lotto"`) עובר ל-`GameShell` / `HeaderBar` / `ScoreBadge` / `IconButton` / `Button` — פירוט ב-`apps/lotto-game/docs/walkthrough.md`.
+
+---
+
 ## 2026-11-20 14:35
 
 ### שלבים 3-4 בתכנית הפלטפורמה — Provider משותף "אותיות וניקוד", find-letter והלוטו עליו

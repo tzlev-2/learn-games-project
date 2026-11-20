@@ -14,7 +14,8 @@
 		| 'wordys'
 		| 'slate'
 		| 'read-faster'
-		| 'portal';
+		| 'portal'
+		| 'lotto';
 	let theme = $state<Theme>('default');
 
 	onMount(() => {
@@ -48,6 +49,7 @@
 			<option value="slate">Slate Dark</option>
 			<option value="read-faster">Read Faster</option>
 			<option value="portal">Portal</option>
+			<option value="lotto">Lotto</option>
 		</select>
 	</div>
 </nav>

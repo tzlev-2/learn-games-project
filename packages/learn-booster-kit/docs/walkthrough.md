@@ -1,5 +1,21 @@
 # Learn Booster Kit — יומן פיתוח
 
+## 2026-11-20 15:10 — Theme "lotto"
+
+#### למה
+
+הלוטו עובר לקומפוננטות ה-shell של הקיט (`GameShell`, `HeaderBar`, `ScoreBadge`, `IconButton`, `Button`). צריך theme שממפה את המראה שלו: אינדיגו/סגול, ירוק לפעולות "המשך", גופן המערכת.
+
+#### מה נוסף
+
+- **`src/ui/theme/themes/lotto.css`** (`[data-theme='lotto']`) — כל ה-tokens של theme ברירת המחדל. הערכים הם צבעי Tailwind 4 (oklch) שהלוטו השתמש בהם: primary = indigo-600, secondary = green-500, sunken = indigo-50, border-subtle = indigo-100, כותרת = indigo-800 (`--theme-text-heading`), גופן = `font-sans` של Tailwind.
+- **Radius 4/8/16px** — הערכים שהלוטו קיבל בפועל לפני ה-theme (נמדד ב-build של הבסיס: `--radius-lg` = 16px, `--radius-md` = 8px, מ-theme ברירת המחדל). כך אף `rounded-sm/md/lg` במשחק לא משתנה (ראו p5, open issue 2).
+- `styles.css` מייבא את ה-theme; `kit-test-screen` — אפשרות "Lotto" בבורר ה-theme.
+
+#### בדיקות
+
+`test/ui/theme/lotto-theme.spec.ts` (4): scope, כל ה-tokens של ברירת המחדל קיימים, radius כמו ברירת המחדל, import לפני `tokens.css`. קיט: 450 → 454.
+
 ## 2026-11-19 10:50 — Provider משותף "אותיות וניקוד" + הרחבות ל-AxisSelector (שלבים 3–4 בתכנית הפלטפורמה)
 
 #### למה
