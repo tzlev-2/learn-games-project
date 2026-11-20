@@ -60,4 +60,10 @@
 	--theme-font-size-xl: 2.5rem;
 	--theme-font-weight-regular: 400;
 	--theme-font-weight-bold: 800;
+
+	/* Display (tokens אופציונליים) — כותרת מסך הפתיחה "Wordy's":
+	   כתום (brand-primary), 900, text-6xl → md:text-8xl */
+	--theme-text-heading: #ea580c;
+	--theme-font-size-display: clamp(3.75rem, 10vw, 6rem);
+	--theme-font-weight-display: 900;
 }

@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { fade, fly } from 'svelte/transition';
+	import { fly } from 'svelte/transition';
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
-
-	let showSplash = $state(true);
+	import { StartScreen } from 'learn-booster-kit';
+	import { language } from '$lib/services/language';
 
 	function startApp() {
 		goto('/select');
@@ -17,34 +16,53 @@
 		class="max-w-2xl w-full bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 md:p-12"
 		in:fly={{ y: 50, duration: 800, delay: 200 }}
 	>
-		<h1
-			class="text-6xl md:text-8xl font-black text-orange-600 mb-4 tracking-tight drop-shadow-sm animate-bounce-slow"
+		<!-- הכותרת (כתום, 900, ~96px) מגיעה מה-tokens של theme wordys -->
+		<StartScreen
+			title={language.gameTitle}
+			subtitle={language.startSubtitle}
+			background="none"
+			layout="fill"
+			class="wd-splash"
+			primaryAction={{
+				label: language.startButton,
+				onclick: startApp,
+				class: 'wd-btn-green wd-splash-btn'
+			}}
 		>
-			Wordy's
-		</h1>
-		<h2 class="text-2xl md:text-3xl font-bold text-slate-700 mb-8">וורדי'ס - תרגול הקלדת מילים</h2>
-		<p class="text-lg md:text-xl text-slate-600 mb-10 leading-relaxed font-medium">
-			מטרת המשחק היא ללמד ילדים עם צרכים מיוחדים להקליד מילים בשיטה גלובלית, שבה התלמיד לומד את
-			תבנית המילה כדי לתקשר את צרכיו.
-		</p>
-
-		<button
-			onclick={startApp}
-			class="px-10 py-4 bg-green-500 hover:bg-green-600 text-white text-2xl font-black rounded-2xl shadow-lg hover:shadow-green-300/50 transform hover:-translate-y-1 transition-all duration-300 animate-pulse-slow"
-		>
-			התחל
-		</button>
+			<p class="m-0 text-lg md:text-xl text-slate-600 leading-relaxed font-medium">
+				{language.startDescription}
+			</p>
+		</StartScreen>
 	</div>
 </div>
 
-<style type="text/postcss">
-	.animate-bounce-slow {
-		animation: bounce 3s infinite;
+<style>
+	/* הריווח של הכרטיס המקורי: mb-4 / mb-8 / mb-10 במקום gap-8 + px-6 של StartScreen */
+	:global(.wd-splash) {
+		padding-inline: 0;
+		gap: 2.5rem;
+		/* תת-הכותרת: slate-700, text-2xl → md:text-3xl, bold */
+		--color-text-secondary: #334155;
+		--theme-font-size-lg: 1.5rem;
 	}
-	.animate-pulse-slow {
-		animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+	@media (min-width: 48rem) {
+		:global(.wd-splash) {
+			--theme-font-size-lg: 1.875rem;
+		}
 	}
-	@keyframes bounce {
+	:global(.wd-splash > div:first-child) {
+		gap: 1rem;
+	}
+	:global(.wd-splash h1) {
+		letter-spacing: -0.025em;
+		line-height: 1;
+		filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.05));
+		animation: wd-bounce-slow 3s infinite;
+	}
+	:global(.wd-splash h1 + p) {
+		font-weight: 700;
+	}
+	@keyframes -global-wd-bounce-slow {
 		0%,
 		100% {
 			transform: translateY(-5%);
@@ -55,7 +73,22 @@
 			animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
 		}
 	}
-	@keyframes pulse {
+
+	/* ה-CTA: ירוק, רוחב לפי התוכן, rounded-2xl, text-2xl font-black, פעימה איטית */
+	:global(.wd-splash-btn) {
+		width: auto;
+		padding-inline: 2.5rem;
+		border-radius: 1rem;
+		font-size: 1.5rem;
+		font-weight: 900;
+		box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+		animation: wd-pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+		transition: all 0.3s;
+	}
+	:global(.wd-splash-btn:hover) {
+		transform: translateY(-0.25rem);
+	}
+	@keyframes -global-wd-pulse-slow {
 		0%,
 		100% {
 			opacity: 1;

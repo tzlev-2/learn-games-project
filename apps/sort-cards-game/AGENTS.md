@@ -30,7 +30,8 @@ After completing the code, ask the user if they want a playground link. Only cal
 
 **סטטוס:**
 - ✅ **מודל ContentPack** — הגישה הטובה ביותר לתוכן סטטי. מהווה מקור להשראה.
-- ⚠️ `tts.ts` — עותק מקומי, לא מהקיט (ראה open tasks)
+- ✅ **קומפוננטות הקיט + theme `slate`** — header, מסך פתיחה, טבעת המתנה, סאונד ו-TTS מהקיט (`docs/walkthrough.md`, 2026-11-19)
+- ✅ `language.ts` — `src/lib/services/language.ts` (רק לקוד שעבר מיגרציה)
 
 **הפניות:**
 - כל כללי הקוד: `../../docs/coding-conventions.md`

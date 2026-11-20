@@ -14,6 +14,7 @@
 	import VirtualKeyboard from './VirtualKeyboard.svelte';
 	import { boosterService, ProgressWidget } from 'learn-booster-kit';
 	import HintButton from './HintButton.svelte';
+	import { language } from '$lib/services/language';
 
 	let { cards, onExit } = $props<{ cards: Card[]; onExit?: () => void }>();
 
@@ -159,7 +160,7 @@
 		}
 
 		// 3. Speak feedback
-		await speak('כל הכבוד!');
+		await speak(language.ttsWellDone);
 
 		// 4. Wait before next word (1s)
 		await new Promise((r) => setTimeout(r, 1000));

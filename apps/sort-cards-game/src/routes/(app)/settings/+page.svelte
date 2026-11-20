@@ -11,8 +11,15 @@
     type AppListItem,
     isFullyKiosk,
     OverlayTimerSettings,
+    Card,
+    Button,
+    SegmentedControl,
   } from "learn-booster-kit";
+  import { language } from "$lib/services/language";
+  import type { TeacherSettings } from "$lib/types";
   import { onMount, onDestroy } from "svelte";
+
+  type GameMode = TeacherSettings["gameMode"];
 
   let config = $state<Config>();
   let unsubscribeConfig: () => void;
@@ -43,6 +50,11 @@
   onDestroy(() => {
     if (unsubscribeConfig) unsubscribeConfig();
   });
+
+  const gameModeOptions: { value: GameMode; label: string }[] = [
+    { value: "manual_end", label: language.gameModeManual },
+    { value: "continuous", label: language.gameModeContinuous },
+  ];
 
   function handleBack() {
     goto("/");
@@ -87,25 +99,22 @@
 </script>
 
 <svelte:head>
-  <title>הגדרות - מיון כרטיסים</title>
+  <title>{language.settingsPageTitle}</title>
 </svelte:head>
 
-<main class="flex-1 overflow-y-auto p-4 md:p-8">
+<div class="h-full overflow-y-auto p-4 md:p-8">
   <div class="mx-auto max-w-lg">
     <!-- כותרת -->
     <div class="mb-6 flex items-center justify-between">
-      <h1 class="text-3xl font-black text-slate-800">⚙️ הגדרות</h1>
-      <button
-        onclick={handleBack}
-        class="rounded-xl bg-slate-700 px-4 py-2 text-white transition-colors hover:bg-slate-600"
-      >
-        חזרה
-      </button>
+      <h1 class="text-3xl font-black text-slate-800">{language.settingsHeading}</h1>
+      <Button size="sm" onclick={handleBack} class="sc-back-btn">
+        {language.backLabel}
+      </Button>
     </div>
 
     <div class="space-y-6">
       <!-- חבילת תוכן -->
-      <div class="rounded-2xl bg-white/80 p-5 shadow-md">
+      <Card>
         <label class="block text-lg font-bold text-slate-700 mb-3">
           חבילת תוכן
         </label>
@@ -117,10 +126,10 @@
             <option value={pack.id}>{pack.icon} {pack.name}</option>
           {/each}
         </select>
-      </div>
+      </Card>
 
       <!-- כרטיסים בסיבוב -->
-      <div class="rounded-2xl bg-white/80 p-5 shadow-md">
+      <Card>
         <label class="block text-lg font-bold text-slate-700 mb-3">
           כרטיסים בסיבוב: {settings.cardsPerRound}
         </label>
@@ -136,10 +145,10 @@
           <span>4</span>
           <span>16</span>
         </div>
-      </div>
+      </Card>
 
       <!-- זמן המתנה בטעות -->
-      <div class="rounded-2xl bg-white/80 p-5 shadow-md space-y-4">
+      <Card class="space-y-4">
         <div>
           <label class="block text-lg font-bold text-slate-700 mb-3">
             שניות המתנה בטעות: {(settings.cooldownMs / 1000).toFixed(0)}
@@ -169,10 +178,10 @@
             class="h-6 w-6 accent-amber-500"
           />
         </label>
-      </div>
+      </Card>
 
       <!-- ערבוב -->
-      <div class="rounded-2xl bg-white/80 p-5 shadow-md space-y-4">
+      <Card class="space-y-4">
         <label class="flex items-center justify-between">
           <span class="text-lg font-bold text-slate-700">ערבוב כרטיסים</span>
           <input
@@ -190,24 +199,23 @@
             class="h-6 w-6 accent-amber-500"
           />
         </label>
-      </div>
+      </Card>
 
       <!-- מצב משחק -->
-      <div class="rounded-2xl bg-white/80 p-5 shadow-md">
-        <label class="block text-lg font-bold text-slate-700 mb-3">
-          מצב משחק
-        </label>
-        <select
+      <Card>
+        <p id="game-mode-label" class="m-0 block text-lg font-bold text-slate-700 mb-3">
+          {language.gameModeLabel}
+        </p>
+        <SegmentedControl
+          options={gameModeOptions}
           bind:value={settings.gameMode}
-          class="w-full rounded-xl border-2 border-slate-300 p-3 text-lg"
-        >
-          <option value="manual_end">ידני — כפתור "הבא"</option>
-          <option value="continuous">רציף — מעבר אוטומטי</option>
-        </select>
-      </div>
+          aria-label={language.gameModeLabel}
+          class="w-full"
+        />
+      </Card>
 
       <!-- הקראה -->
-      <div class="rounded-2xl bg-white/80 p-5 shadow-md">
+      <Card>
         <label class="flex items-center justify-between">
           <div>
             <span class="text-lg font-bold text-slate-700">הקראת משוב</span>
@@ -219,10 +227,10 @@
             class="h-6 w-6 accent-amber-500"
           />
         </label>
-      </div>
+      </Card>
 
       <!-- חיזוקים (Booster) -->
-      <div class="rounded-2xl bg-white/80 p-5 shadow-md space-y-4">
+      <Card class="space-y-4">
         <label class="flex items-center justify-between">
           <div>
             <span class="text-lg font-bold text-slate-700">חיזוקים (Gingim Booster)</span>
@@ -412,7 +420,7 @@
             </div>
           {/if}
         {/if}
-      </div>
+      </Card>
 
       <!-- איפוס -->
       <button
@@ -423,4 +431,12 @@
       </button>
     </div>
   </div>
-</main>
+</div>
+
+<style>
+  /* כפתור "חזרה" — פינות rounded-xl כמו במקור (Button של הקיט הוא pill) */
+  :global(.sc-back-btn) {
+    border-radius: 0.75rem;
+    font-size: 1rem;
+  }
+</style>

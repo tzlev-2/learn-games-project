@@ -4,6 +4,8 @@
 	import GameContainer from './_components/GameContainer.svelte';
 	import { shelvesStore } from '$lib/stores/shelves.svelte';
 	import type { Card } from '$lib/types';
+	import { IconButton, XIcon } from 'learn-booster-kit';
+	import { language } from '$lib/services/language';
 
 	let { shelfId, boxId } = $derived($page.params);
 
@@ -64,12 +66,22 @@
 		<GameContainer cards={gameCards} onExit={handleExit} />
 
 		<!-- Exit button overlay (redundant if GameContainer has one, but good for safety) -->
-		<button
-			onclick={handleExit}
-			class="absolute top-4 right-4 z-50 p-2 bg-white/50 hover:bg-white rounded-full transition-colors shadow-sm"
-			title="יציאה"
-		>
-			✖️
-		</button>
+		<div class="absolute top-4 right-4 z-50">
+			<IconButton label={language.exitLabel} onclick={handleExit} class="wd-exit-btn">
+				{#snippet icon()}<XIcon size={20} />{/snippet}
+			</IconButton>
+		</div>
 	{/key}
 {/if}
+
+<style>
+	/* כפתור יציאה: עיגול לבן-שקוף עם צל קטן, כמו במקור */
+	:global(.wd-exit-btn) {
+		background-color: rgb(255 255 255 / 0.5);
+		box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+		color: #334155;
+	}
+	:global(.wd-exit-btn:hover) {
+		background-color: #ffffff;
+	}
+</style>

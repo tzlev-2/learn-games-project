@@ -14,6 +14,7 @@
     type Config,
   } from "learn-booster-kit";
   import { onDestroy, onMount } from "svelte";
+  import { language } from "$lib/services/language";
 
   let config = $state<Config>();
   let unsubscribeConfig: (() => void) | undefined;
@@ -22,11 +23,16 @@
   let isShortScreen = $state(false);
   let isRewardPending = $state(false);
 
-  onMount(async () => {
-    await boosterService.init();
-    unsubscribeConfig = boosterService.config.subscribe((value) => {
-      config = value;
-    });
+  onMount(() => {
+    // onMount לא מחכה ל-Promise; פונקציית הניקוי חייבת לחזור סינכרונית
+    boosterService
+      .init()
+      .then(() => {
+        unsubscribeConfig = boosterService.config.subscribe((value) => {
+          config = value;
+        });
+      })
+      .catch((e) => console.warn("[booster] init in /game failed:", e));
 
     const checkHeight = () => {
       isShortScreen = window.innerHeight < 720;
@@ -101,7 +107,7 @@
 </script>
 
 <svelte:head>
-  <title>רכבת החיבור - משחק</title>
+  <title>{language.gamePageTitle}</title>
 </svelte:head>
 
 <!-- Wrap game in the GameWorld -->
@@ -121,7 +127,7 @@
             value={gameState.winsSinceLastReward}
             max={config?.turnsPerReward ?? 3}
             orientation="vertical"
-            label="לפרס"
+            label={language.progressLabel}
           />
         </div>
       {/if}

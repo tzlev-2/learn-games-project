@@ -10,8 +10,10 @@
     type AppListItem,
     isFullyKiosk,
     OverlayTimerSettings,
+    Button,
   } from "learn-booster-kit";
   import { onMount, onDestroy } from "svelte";
+  import { language } from "$lib/services/language";
 
   let config = $state<Config>();
   let unsubscribeConfig: () => void;
@@ -95,21 +97,18 @@
 </script>
 
 <svelte:head>
-  <title>הגדרות - תרגול סיסמא</title>
+  <title>{language.settingsPageTitle}</title>
 </svelte:head>
 
-<main class="flex-1 overflow-y-auto p-4 md:p-8" dir="rtl">
+<div class="h-full overflow-y-auto p-4 md:p-8">
   <div class="mx-auto max-w-lg">
 
     <!-- כותרת -->
     <div class="mb-6 flex items-center justify-between">
-      <h1 class="text-3xl font-black text-white">⚙️ הגדרות</h1>
-      <button
-        onclick={handleBack}
-        class="rounded-xl bg-slate-700 px-4 py-2 text-white transition-colors hover:bg-slate-600"
-      >
-        חזרה
-      </button>
+      <h1 class="text-3xl font-black text-white">{language.settingsHeading}</h1>
+      <Button size="sm" onclick={handleBack} class="pc-back-btn">
+        {language.backLabel}
+      </Button>
     </div>
 
     <div class="space-y-6">
@@ -482,4 +481,17 @@
 
     </div>
   </div>
-</main>
+</div>
+
+<style>
+  /* כפתור "חזרה" — slate-700 ופינות rounded-xl כמו במקור, על בסיס Button של הקיט */
+  :global(.pc-back-btn) {
+    background-color: #334155;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+  }
+  :global(.pc-back-btn:hover) {
+    background-color: #475569;
+  }
+</style>

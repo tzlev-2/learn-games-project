@@ -3,6 +3,8 @@
 	import { shelvesStore } from '$lib/stores/shelves.svelte';
 	import { fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
+	import { Button } from 'learn-booster-kit';
+	import { language } from '$lib/services/language';
 	import { getBoxImage } from '$lib/utils/image-helpers';
 
 	const shelfId = $derived($page.params.shelfId);
@@ -16,12 +18,9 @@
 <div class="max-w-6xl mx-auto p-6" in:fade>
 	<div class="flex items-center justify-between mb-8">
 		<div class="flex items-center gap-4">
-			<button
-				onclick={() => goto('/select')}
-				class="p-2 bg-white rounded-full shadow-sm hover:bg-orange-100 text-orange-600 transition-colors"
-			>
-				➡️ חזרה
-			</button>
+			<Button variant="ghost" size="sm" onclick={() => goto('/select')} class="wd-back-btn">
+				{language.backLabel}
+			</Button>
 			<h1 class="text-3xl font-bold text-slate-800">
 				מדף: {shelf?.name ?? 'טוען...'}
 			</h1>

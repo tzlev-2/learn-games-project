@@ -2,6 +2,8 @@
 	import { fade, scale } from 'svelte/transition';
 	import { onMount } from 'svelte';
 	import { playSuccess } from '$lib/utils/sound';
+	import { Button } from 'learn-booster-kit';
+	import { language } from '$lib/services/language';
 
 	let { onReplay, onExit, onReward, rewardEnabled } = $props<{
 		onReplay: () => void;
@@ -39,29 +41,23 @@
 		<p class="text-2xl text-slate-600 font-medium">סיימת את כל הקלפים בקופסה זו.</p>
 
 		<div class="flex flex-col sm:flex-row gap-4 w-full mt-8">
-			<button
-				onclick={onReplay}
-				class="flex-1 py-4 px-6 bg-green-500 hover:bg-green-600 text-white text-xl font-bold rounded-2xl shadow-lg hover:shadow-green-200 transition-all transform hover:-translate-y-1"
-			>
-				🔄 שחק שוב
-			</button>
+			<Button onclick={onReplay} class="wd-btn-green wd-completion-btn flex-1">
+				{language.completionReplay}
+			</Button>
 
-			<button
-				onclick={onExit}
-				class="flex-1 py-4 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xl font-bold rounded-2xl shadow-lg transition-all transform hover:-translate-y-1"
-			>
-				➡️ חזור למדף
-			</button>
+			<Button variant="secondary" onclick={onExit} class="wd-btn-slate wd-completion-btn flex-1">
+				{language.completionExit}
+			</Button>
 		</div>
 		{#if rewardEnabled && onReward}
 			<div class="w-full mt-2">
-				<button
+				<Button
 					onclick={handleRewardClick}
 					disabled={isRewardPending}
-					class="w-full py-4 px-6 bg-purple-500 hover:bg-purple-600 text-white text-xl font-bold rounded-2xl shadow-lg hover:shadow-purple-200 transition-all transform hover:-translate-y-1 animate-pulse disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 disabled:animate-none"
+					class="wd-btn-purple wd-completion-btn w-full {isRewardPending ? '' : 'animate-pulse'}"
 				>
-					🎁 המשך להפתעה
-				</button>
+					{language.completionReward}
+				</Button>
 			</div>
 		{/if}
 	</div>

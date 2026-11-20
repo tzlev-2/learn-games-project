@@ -61,6 +61,13 @@
 	--theme-font-size-xl: 1.5rem;
 	--theme-font-weight-regular: 400;
 	--theme-font-weight-bold: 700;
+
+	/* Display (tokens אופציונליים) — כותרת מסך הפתיחה: slate-800, 900, גדולה
+	   (text-5xl → md:text-6xl במשחקים). משחק עם כותרת בהירה (train-addition)
+	   דורס את --theme-text-heading מקומית. */
+	--theme-text-heading: #1e293b;
+	--theme-font-size-display: clamp(3rem, 6vw, 3.75rem);
+	--theme-font-weight-display: 900;
 }
 
 /* Header dark — scoped token overrides */
@@ -82,4 +89,18 @@
 	/* Borders white-tinted */
 	--theme-border-subtle: rgba(255, 255, 255, 0.18);
 	--theme-border-strong: rgba(255, 255, 255, 0.35);
+
+	/* ה-utilities (bg-surface-sunken, text-text-secondary...) קוראים את --color-*,
+	   ש-Tailwind מגדיר ב-:root כ-var(--theme-*) — ולכן נפתרים פעם אחת ב-:root.
+	   דריסת --theme-* כאן לבדה לא מגיעה ל-utilities; צריך לדרוס גם את ה-aliases. */
+	--color-surface-sunken: var(--theme-surface-sunken);
+	--color-surface-elevated: var(--theme-surface-elevated);
+	--color-text-primary: var(--theme-text-primary);
+	--color-text-secondary: var(--theme-text-secondary);
+	--color-text-tertiary: var(--theme-text-tertiary);
+	--color-feedback-success-bg: var(--theme-feedback-success-bg);
+	--color-feedback-warning-bg: var(--theme-feedback-warning-bg);
+	--color-feedback-error-bg: var(--theme-feedback-error-bg);
+	--color-border-subtle: var(--theme-border-subtle);
+	--color-border-strong: var(--theme-border-strong);
 }

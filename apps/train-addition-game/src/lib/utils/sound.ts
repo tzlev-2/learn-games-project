@@ -1,55 +1,10 @@
 /**
- * מודול סאונד - השמעת צלילים
+ * צלילי משוב — דרך `createUiSounds` של הקיט.
+ * הקבצים יושבים ב-`static/sounds/ui_sounds/` של המשחק.
  */
+import { createUiSounds } from "learn-booster-kit";
 
-/**
- * השמעת צליל הצלחה
- */
-export function playSuccess(): void {
-  try {
-    const audio = new Audio("/sounds/ui_sounds/success.mp3");
-    audio.volume = 0.5;
-    audio.play().catch((e) => console.warn("Audio play failed:", e));
-  } catch (e) {
-    console.error("Error playing success sound:", e);
-  }
-}
-
-/**
- * השמעת צליל טעות
- */
-export function playError(): void {
-  try {
-    const audio = new Audio("/sounds/ui_sounds/error.wav");
-    audio.volume = 0.4;
-    audio.play().catch((e) => console.warn("Audio play failed:", e));
-  } catch (e) {
-    console.error("Error playing error sound:", e);
-  }
-}
-
-/**
- * השמעת קובץ אודיו כללי
- */
-export function playAudio(url: string): Promise<void> {
-  return new Promise((resolve) => {
-    try {
-      const audio = new Audio(url);
-      audio.volume = 1.0;
-
-      audio.onended = () => resolve();
-      audio.onerror = (e) => {
-        console.warn("Audio playback failed:", e);
-        resolve();
-      };
-
-      audio.play().catch((e) => {
-        console.warn("Audio play failed:", e);
-        resolve();
-      });
-    } catch (e) {
-      console.error("Error in playAudio:", e);
-      resolve();
-    }
-  });
-}
+export const { playSuccess, playError } = createUiSounds({
+  success: { src: "/sounds/ui_sounds/success.mp3", volume: 0.5 },
+  error: { src: "/sounds/ui_sounds/error.wav", volume: 0.4 },
+});

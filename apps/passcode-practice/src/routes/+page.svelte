@@ -11,6 +11,7 @@
     type Config,
   } from "learn-booster-kit";
   import { onDestroy, onMount } from "svelte";
+  import { language } from "$lib/services/language";
 
   let config = $state<Config>();
   let unsubscribeConfig: (() => void) | undefined;
@@ -69,10 +70,10 @@
 </script>
 
 <svelte:head>
-  <title>תרגול סיסמא</title>
+  <title>{language.pageTitle}</title>
 </svelte:head>
 
-<main class="relative flex flex-1 flex-col items-center justify-center gap-6 overflow-hidden px-4 py-6">
+<div class="relative flex flex-1 flex-col items-center justify-center gap-6 overflow-hidden px-4 py-6">
 
   <!-- Progress Widget (פינה שמאלית עליונה) -->
   {#if settings.boosterEnabled && config}
@@ -81,7 +82,7 @@
         value={progressValue}
         max={progressMax}
         orientation="vertical"
-        label="לפרס"
+        label={language.progressLabel}
       />
     </div>
   {/if}
@@ -99,7 +100,7 @@
     {#if gameState.state === "ERROR" && cooldownRemaining > 0}
       <div class="flex items-center gap-2 rounded-xl bg-red-500/20 px-4 py-2 text-red-300">
         <span class="text-2xl font-bold">{cooldownRemaining}</span>
-        <span class="text-sm">שניות להמתנה</span>
+        <span class="text-sm">{language.cooldownSecondsLabel}</span>
       </div>
     {/if}
 
@@ -107,7 +108,7 @@
     <NumericKeypad />
 
   </div>
-</main>
+</div>
 
 <!-- Overlay משוב -->
 <FeedbackOverlay />

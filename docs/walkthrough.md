@@ -6,6 +6,129 @@
 
 ---
 
+## 2026-11-19 11:04
+
+### קיט: `wordys` — tokens תצוגה לכותרת מסך הפתיחה
+
+`wordys.css` מגדיר את ה-tokens האופציונליים של `StartScreen`: ‏`--theme-text-heading` כתום
+(`#ea580c`, ה-brand-primary), ‏`--theme-font-size-display` ‏`clamp(3.75rem, 10vw, 6rem)` ומשקל 900 —
+כמו `text-6xl md:text-8xl font-black text-orange-600` במסך הפתיחה של wordys-game. היום רק
+ה-showcase של `kit-test-screen` משתמש ב-`wordys`.
+
+#### בעיה פתוחה שנמדדה — `rounded-sm/md/lg` של Tailwind ממופים ל-radius של ה-theme
+
+`tokens.css` ממפה `--radius-sm/md/lg` ל-`--theme-radius-*`, ולכן כל `rounded-lg` בקוד של
+אפליקציה משתנה עם ה-theme. ב-wordys (שייבא את הסגנונות של הקיט בלי `data-theme`)
+הערכים היו 4/8/16px של `default`; עם `data-theme="wordys"` הם 12/20/32px והמקשים במקלדת
+התעגלו. wordys נועץ את הערכים הקודמים ב-`layout.css` שלו. ב-sort-cards / train-addition /
+passcode ה-build השני של Tailwind (דרך `SiteBoosterMain` → `ui/app.css`) דורס בפועל את
+`--radius-lg` ל-`.5rem` — כך שגם `Card` של הקיט יוצא שם 8px. שתי הבעיות מפורטות בדוח P5.
+
+---
+
+## 2026-11-19 10:51
+
+### קיט: `slate` — גודל כותרת התצוגה לפי רוחב המסך
+
+`--theme-font-size-display` של `slate` שונה מ-`clamp(3rem, 7vmin, 3.75rem)` ל-`clamp(3rem, 6vw, 3.75rem)`.
+במשחקים הכותרת היא `text-5xl md:text-6xl` — תלויה ברוחב, ולכן 60px גם במסך נמוך כמו
+1097×685 (עם `vmin` יצא 48px). נמדד בצילומי sort-cards ו-train-addition.
+
+---
+
+## 2026-11-19 10:46
+
+### קיט: תיקונים — header כהה של `slate`, גדלי `CooldownRing`, טיפוס ב-`tts`
+
+- **`slate.css` — ה-header הכהה לא עבד.** הבלוק `[data-theme='slate'] header.lbk-header-bar`
+  דרס רק `--theme-*`, אבל ה-utilities (`bg-surface-sunken`, `text-text-secondary`…) קוראים
+  `--color-*`, ש-Tailwind מגדיר ב-`:root` כ-`var(--theme-*)` — והערך נפתר פעם אחת ב-`:root`.
+  נמדד ב-sort-cards: כפתור ב-header קיבל `rgb(254, 243, 199)` (ה-sunken הבהיר) במקום
+  `rgba(255,255,255,0.12)`. התיקון דורס באותו בלוק גם את ה-aliases `--color-*`.
+- **`CooldownRing` — ברירות המחדל של הגודל עברו ל-CSS של הקומפוננטה ב-`@layer components`.**
+  `SiteBoosterMain` / `SettingsMain` של הקיט מייבאים את `ui/app.css`, שמריץ build שני של
+  Tailwind (סורק רק את האפליקציה). ה-chunk הזה נטען אחרי ה-CSS של האפליקציה ומגדיר
+  שוב `.text-xl` באותו layer, כך ש-`sm:text-3xl` של הטבעת "נדרס" (נמדד: 20px במקום 30px
+  ב-1024px). ‏`ringClass` / `numberClass` / `messageClass` ריקים כברירת מחדל ו-utilities
+  של הצרכן עדיין גוברות. (ה-build הכפול עצמו נשאר — ראה בעיות פתוחות בדוח P5.)
+- **`tts.ts`** — cast מפורש של `SpeechSynthesisUtterance` ל-`UtteranceLike`; ה-tsconfig
+  הקפדני של האפליקציות דחה את ההשמה (`onend` עם פרמטר צר יותר).
+
+---
+
+## 2026-11-19 10:43
+
+### קיט: `StartScreen` — `layout="fill"`, תוכן בין הכותרת לכפתור, ו-tokens תצוגה ל-`slate`
+
+מסך הפתיחה של sort-cards יושב מתחת ל-header ויש בו בורר נושא ברוחב `max-w-lg`
+בין הכותרת לכפתור. כדי להעביר אותו ל-`StartScreen` נוספו props תוספתיים:
+
+- **`layout: 'screen' | 'fill'`** (ברירת מחדל `screen` — `min-h-screen` כמו קודם).
+  ‏`fill` ממלא את ההורה (`h-full`), גולל בתוכו ומרכז ב-`justify-center-safe`, כך שתוכן
+  גבוה מהמסך מתחיל מלמעלה ולא נחתך משני הצדדים.
+- **`children`** — snippet בין הכותרת לכפתור, מחוץ לעמודת הכפתור (`max-w-xs`).
+- **`class`** — classes נוספים לעטיפה (ריווח, אנימציית כניסה).
+- **`slate.css`** — הוגדרו ה-tokens האופציונליים של הכותרת (`--theme-text-heading`
+  slate-800, ‏`--theme-font-size-display` ‏`clamp(3rem, 7vmin, 3.75rem)`, משקל 900),
+  כמו `text-5xl md:text-6xl font-black` במשחקים. היום רק ה-showcase של
+  `kit-test-screen` משתמש ב-`slate`.
+- טסטים: 3 טסטים נוספים ב-`test/ui/shell/shell-ssr.spec.ts`.
+
+---
+
+## 2026-11-19 10:40
+
+### קיט: `CooldownRing` ו-`HomeIcon`
+
+- **`CooldownRing`** (`src/ui/primitives/`) — טבעת ספירה לאחור **inline**, בתוך זרימת הדף.
+  ב-sort-cards וב-train-addition הטבעת יושבת מתחת לכרטיס / לכפתורי התשובה והתוכן
+  נשאר גלוי, כך ש-`CooldownOverlay` (שחוסם את המסך) לא מתאים. ‏props: `untilTs`,
+  `durationMs`, `message`, `reserveSpace` (ברירת מחדל `true` — שקופה אבל תופסת מקום,
+  כמו במשחקים), `onComplete`, ו-`ringClass` / `numberClass` / `messageClass` עם ברירות
+  מחדל שמשחזרות את הגדלים של המשחקים. צבעים מה-theme: `feedback-error` לקשת ולמספר,
+  `border-subtle` למסלול.
+- **`HomeIcon`** — אייקון בית (Feather), אותו API כמו שאר האייקונים. מחליף את
+  `home.svg` המקומי בכפתורי הבית של ה-header.
+- טסטים: `test/ui/primitives/cooldown-ring-ssr.spec.ts` (7, node).
+
+---
+
+## 2026-11-19 10:33
+
+### קיט: כלי אודיו משותפים — `sound`, `tts`, הקלטות קוליות, ו-`shuffleArray` ב-index
+
+שלב 5 בתוכנית הפלטפורמה (`docs/platform-plan.md` §9.2) מחלץ את הכפילויות של
+`sound.ts` ו-`tts.ts` מהמשחקים לקיט. המודול החדש `src/lib/audio/` מיוצא מ-`index.ts`
+בבלוק אחד (יחד עם `shuffleArray`, `CooldownRing`, `HomeIcon`).
+
+#### מה בוצע?
+
+- **`sound.ts`** — `createUiSounds({ success, error, win })` מחזיר `playSuccess` /
+  `playError` / `playWin` (no-op כשלא הוגדר). כל צליל הוא `{ src, volume }`; ‏`src`
+  יכול להיות פונקציה שנפתרת בזמן ההשמעה (למשל lookup ב-manifest של wordys).
+  גם `createSoundPlayer` לשמות חופשיים ו-`playAudio(url)` שמתממש בסוף ההשמעה.
+  הנתיבים נשארים אצל כל משחק — הקיט לא קובע איפה הקבצים יושבים.
+- **`tts.ts`** — `speakText(text, options)`: ‏Fully Kiosk → Web Speech (`he-IL`, 0.9,
+  `cancel()` לפני הקראה) → שקט. ב-Fully ה-Promise מתממש אחרי 800ms (Fully לא מדווח
+  סיום). `useFully: false` למשחק שהקריא רק ב-Web Speech (wordys).
+- **`voice-assets.ts`** — `createVoiceAssetPlayer({ assets, baseUrl })`: הקלטות MP3
+  שנטענות ומפוענחות פעם אחת לזיכרון (Web Audio), עם fallback ל-TTS מהטקסט של הנכס
+  כשהקובץ עוד לא נטען. חולץ מ-train-addition.
+- **`shuffleArray`** — היה קיים בקיט אבל לא יוצא מ-`index.ts`; עכשיו מיוצא.
+- **טסטים** — `test/audio/{sound,tts,voice-assets}.spec.ts` (31 טסטים, node). הסביבה
+  (`Audio`, `speechSynthesis`, `fully`, `fetch`, `AudioContext`) מוזרקת דרך options.
+
+#### החלטות
+
+- **סוג `FullyTts` מינימלי** — העותקים המקומיים הצהירו `declare global { Window.fully }`
+  עם interface חלקי, וזה התנגש בהצהרה של הקיט (6 שגיאות `svelte-check` ב-sort-cards,
+  train-addition ו-passcode). המודול של הקיט לא מצהיר על `Window` — הוא קורא את
+  `window.fully` דרך cast מקומי.
+- **התנהגות זהה לעותקים** — `Audio` חדש בכל השמעה, כשלים ב-`console.warn` בלבד,
+  Promise שתמיד מתממש.
+
+---
+
 ## 2026-11-19 10:45
 
 ### שלב 2 בתכנית הפלטפורמה — ContentProvider רב-צירי בקיט, הלוטו עבר אליו

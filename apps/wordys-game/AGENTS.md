@@ -30,7 +30,8 @@ After completing the code, ask the user if they want a playground link. Only cal
 
 **סטטוס:**
 - ✅ מועמד לפלטפורמיזציה — התוכן (`defaultShelves`) hardcoded, מתאים ל-ContentProvider עם מילים בקטגוריות
-- ⚠️ מחרוזות עברית hardcoded בקוד (לא דרך `language.ts`) — צריך תיקון
+- ✅ **קומפוננטות הקיט + theme `wordys`** — מסך פתיחה, כפתורים, סאונד והקראה מהקיט (`docs/walkthrough.md`, 2026-11-19)
+- ⚠️ מחרוזות עברית hardcoded — חלקית: הקוד שעבר מיגרציה משתמש ב-`src/lib/services/language.ts`; מסכי ה-admin, כרטיסי המדפים ושאר המשחק עוד לא
 
 **הפניות:**
 - כל כללי הקוד: `../../docs/coding-conventions.md`
