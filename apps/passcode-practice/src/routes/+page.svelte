@@ -12,16 +12,25 @@
   } from "learn-booster-kit";
   import { onDestroy, onMount } from "svelte";
   import { language } from "$lib/services/language";
+  import { initializeBooster } from "$lib/services/booster-init";
 
   let config = $state<Config>();
   let unsubscribeConfig: (() => void) | undefined;
   let isRewardPending = $state(false);
 
-  onMount(async () => {
-    await boosterService.init();
-    unsubscribeConfig = boosterService.config.subscribe((value) => {
-      config = value;
-    });
+  onMount(() => {
+    let mounted = true;
+    void initializeBooster()
+      .then(() => {
+        if (!mounted) return;
+        unsubscribeConfig = boosterService.config.subscribe((value) => {
+          config = value;
+        });
+      })
+      .catch((error) => console.error(language.initializationError, error));
+    return () => {
+      mounted = false;
+    };
   });
 
   onDestroy(() => {
@@ -65,7 +74,7 @@
   const cooldownRemaining = $derived(
     gameState.state === "ERROR"
       ? Math.max(0, Math.ceil((gameState.cooldownUntilTs - now) / 1000))
-      : 0
+      : 0,
   );
 </script>
 
@@ -73,8 +82,9 @@
   <title>{language.pageTitle}</title>
 </svelte:head>
 
-<div class="relative flex flex-1 flex-col items-center justify-center gap-6 overflow-hidden px-4 py-6">
-
+<div
+  class="relative flex flex-1 flex-col items-center justify-center gap-6 overflow-hidden px-4 py-6"
+>
   <!-- Progress Widget (פינה שמאלית עליונה) -->
   {#if settings.boosterEnabled && config}
     <div class="absolute top-4 left-2 z-50 pointer-events-auto">
@@ -89,7 +99,6 @@
 
   <!-- אזור מרכזי -->
   <div class="flex w-full max-w-xs flex-col items-center gap-6">
-
     <!-- כרטיס רמז / כפתור רמז -->
     <PasscodeHint {now} />
 
@@ -98,7 +107,9 @@
 
     <!-- ספירה לאחור בשגיאה -->
     {#if gameState.state === "ERROR" && cooldownRemaining > 0}
-      <div class="flex items-center gap-2 rounded-xl bg-red-500/20 px-4 py-2 text-red-300">
+      <div
+        class="flex items-center gap-2 rounded-xl bg-red-500/20 px-4 py-2 text-red-300"
+      >
         <span class="text-2xl font-bold">{cooldownRemaining}</span>
         <span class="text-sm">{language.cooldownSecondsLabel}</span>
       </div>
@@ -106,7 +117,6 @@
 
     <!-- לוח הספרות -->
     <NumericKeypad />
-
   </div>
 </div>
 

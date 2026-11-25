@@ -14,6 +14,7 @@
     "deploy:lg": "bun run build:lg && CLOUDFLARE_ACCOUNT_ID=a2681969546c8fbafdc45737bd367a6f bunx wrangler pages deploy .svelte-kit/cloudflare-lg --project-name lg-passcode --branch main --commit-dirty=true"
   },
   "dependencies": {
+    "arktype": "^2.2.0",
     "learn-booster-kit": "*"
   },
   "devDependencies": {

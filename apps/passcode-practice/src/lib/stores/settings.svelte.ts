@@ -1,37 +1,16 @@
-/**
- * הגדרות מורה עם שמירה ב-localStorage
- */
+import { defineGameSettings, type GameSettingsScope } from "learn-booster-kit";
+import {
+  CURRENT_VERSION,
+  DEFAULT_SETTINGS,
+  settingsDefinition,
+} from "./settings-schema";
 
-import { browser } from "$app/environment";
+export { DEFAULT_SETTINGS } from "./settings-schema";
+export type { PasscodeSettings } from "./settings-schema";
 
-const STORAGE_KEY = "passcode-practice-settings";
-const CURRENT_VERSION = 1;
+export const settingsHandle = defineGameSettings(settingsDefinition);
 
-export interface PasscodeSettings {
-  passcode: string;
-  showHint: boolean;
-  cooldownMs: number;
-  hintVisibleMs: number;
-  hintCooldownMs: number;
-  voiceEnabled: boolean;
-  speakDigits: boolean;
-  boosterEnabled: boolean;
-}
-
-export const DEFAULT_SETTINGS: PasscodeSettings = {
-  passcode: "1234",
-  showHint: true,
-  cooldownMs: 2000,
-  hintVisibleMs: 3000,
-  hintCooldownMs: 8000,
-  voiceEnabled: true,
-  speakDigits: false,
-  boosterEnabled: true,
-};
-
-/**
- * מחלקת ניהול הגדרות
- */
+/** ערכים אפקטיביים לקריאה במשחק; כל כתיבה עוברת דרך הידית ותחום מפורש. */
 class SettingsStore {
   passcode = $state(DEFAULT_SETTINGS.passcode);
   showHint = $state(DEFAULT_SETTINGS.showHint);
@@ -43,73 +22,32 @@ class SettingsStore {
   boosterEnabled = $state(DEFAULT_SETTINGS.boosterEnabled);
 
   constructor() {
-    if (browser) {
-      this.load();
-    }
-
-    // שמירה אוטומטית בכל שינוי
-    $effect.root(() => {
-      $effect(() => {
-        this.toJSON();
-        this.save();
-      });
+    // המינוי נקרא מיד, גם לפני אתחול המחזק; הוא אינו כותב חזרה לאחסון.
+    settingsHandle.subscribe((value) => {
+      this.passcode = value.passcode;
+      this.showHint = value.showHint;
+      this.cooldownMs = value.cooldownMs;
+      this.hintVisibleMs = value.hintVisibleMs;
+      this.hintCooldownMs = value.hintCooldownMs;
+      this.voiceEnabled = value.voiceEnabled;
+      this.speakDigits = value.speakDigits;
+      this.boosterEnabled = value.boosterEnabled;
     });
   }
 
-  private load(): void {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        this.passcode = parsed.passcode ?? DEFAULT_SETTINGS.passcode;
-        this.showHint = parsed.showHint ?? DEFAULT_SETTINGS.showHint;
-        this.cooldownMs = parsed.cooldownMs ?? DEFAULT_SETTINGS.cooldownMs;
-        this.hintVisibleMs = parsed.hintVisibleMs ?? DEFAULT_SETTINGS.hintVisibleMs;
-        this.hintCooldownMs = parsed.hintCooldownMs ?? DEFAULT_SETTINGS.hintCooldownMs;
-        this.voiceEnabled = parsed.voiceEnabled ?? DEFAULT_SETTINGS.voiceEnabled;
-        this.speakDigits = parsed.speakDigits ?? DEFAULT_SETTINGS.speakDigits;
-        this.boosterEnabled = parsed.boosterEnabled ?? DEFAULT_SETTINGS.boosterEnabled;
-      } catch (e) {
-        console.error("Failed to parse passcode-practice settings", e);
-      }
-    }
+  toJSON() {
+    return { schemaVersion: CURRENT_VERSION, ...settingsHandle.get() };
   }
 
-  toJSON(): PasscodeSettings & { schemaVersion: number } {
-    return {
-      schemaVersion: CURRENT_VERSION,
-      passcode: this.passcode,
-      showHint: this.showHint,
-      cooldownMs: this.cooldownMs,
-      hintVisibleMs: this.hintVisibleMs,
-      hintCooldownMs: this.hintCooldownMs,
-      voiceEnabled: this.voiceEnabled,
-      speakDigits: this.speakDigits,
-      boosterEnabled: this.boosterEnabled,
-    };
+  /** איפוס לברירות מחדל בתחום שנבחר, בלי להעתיק דריסות אל הכללי. */
+  reset(scope: GameSettingsScope) {
+    return settingsHandle.set(DEFAULT_SETTINGS, scope);
   }
 
-  private save(): void {
-    if (!browser) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.toJSON()));
-  }
-
-  reset(): void {
-    this.passcode = DEFAULT_SETTINGS.passcode;
-    this.showHint = DEFAULT_SETTINGS.showHint;
-    this.cooldownMs = DEFAULT_SETTINGS.cooldownMs;
-    this.hintVisibleMs = DEFAULT_SETTINGS.hintVisibleMs;
-    this.hintCooldownMs = DEFAULT_SETTINGS.hintCooldownMs;
-    this.voiceEnabled = DEFAULT_SETTINGS.voiceEnabled;
-    this.speakDigits = DEFAULT_SETTINGS.speakDigits;
-    this.boosterEnabled = DEFAULT_SETTINGS.boosterEnabled;
-  }
-
-  /** ולידציה — רק ספרות, לפחות ספרה אחת */
+  /** ולידציה — רק ספרות, לפחות ספרה אחת. */
   get isPasscodeValid(): boolean {
     return /^\d+$/.test(this.passcode) && this.passcode.length >= 1;
   }
 }
 
-// ייצוא singleton
 export const settings = new SettingsStore();
