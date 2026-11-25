@@ -11,7 +11,7 @@
     "prepare": "svelte-kit sync || echo ''",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "deploy": "bun run build && bunx wrangler pages deploy .svelte-kit/cloudflare --project-name passcode-practice",
-    "deploy:pilot": "bun run build:pilot && CLOUDFLARE_ACCOUNT_ID=a2681969546c8fbafdc45737bd367a6f bunx wrangler pages deploy .svelte-kit/cloudflare-pilot --config wrangler.pilot.jsonc --project-name lg-passcode --branch main --commit-dirty=true"
+    "deploy:pilot": "bun run build:pilot && CLOUDFLARE_ACCOUNT_ID=a2681969546c8fbafdc45737bd367a6f bunx wrangler pages deploy .svelte-kit/cloudflare-pilot --project-name lg-passcode --branch main --commit-dirty=true"
   },
   "dependencies": {
     "learn-booster-kit": "*"
