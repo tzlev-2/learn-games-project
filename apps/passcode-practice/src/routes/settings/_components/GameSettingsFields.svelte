@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { OverriddenMark, type GameSettingsScope } from "learn-booster-kit";
+  import { SettingRow, type GameSettingsScope } from "learn-booster-kit";
+  import { useGameSettingsSaveStatus } from "learn-booster-kit/ui/components/GameSettingsPage.svelte";
   import { settings, settingsHandle } from "$lib/stores/settings.svelte";
   import { language } from "$lib/services/language";
   import PasscodeField from "./PasscodeField.svelte";
@@ -8,6 +9,7 @@
 
   let { scope }: { scope: GameSettingsScope } = $props();
   const text = language.gameSettings;
+  const reportSave = useGameSettingsSaveStatus();
   let effective = $state(settingsHandle.get());
   let general = $state(settingsHandle.getGeneral());
   let saveError = $state(false);
@@ -75,89 +77,81 @@
   );
 
   function update(patch: Partial<PasscodeSettings>) {
-    saveError = settingsHandle.set(patch, scope).isErr();
+    saveError = reportSave(settingsHandle.set(patch, scope)).isErr();
   }
 
   function reset() {
-    saveError = settings.reset(scope).isErr();
+    saveError = reportSave(settings.reset(scope)).isErr();
   }
 </script>
 
 <div class="fields">
-  <OverriddenMark key="passcode" settings={settingsHandle}>
-    <PasscodeField
-      value={values.passcode}
-      onChange={(passcode) => update({ passcode })}
-    />
-  </OverriddenMark>
+  <SettingRow
+    label={text.passcode}
+    description={text.passcodeDescription}
+    key="passcode"
+    settings={settingsHandle}
+    wide
+  >
+    {#snippet control()}
+      <PasscodeField
+        value={values.passcode}
+        onChange={(passcode) => update({ passcode })}
+      />
+    {/snippet}
+  </SettingRow>
   {#each toggles as field (field.key)}
-    <OverriddenMark key={field.key} settings={settingsHandle}>
-      <label class="toggle" for={`passcode-${field.key}`}>
-        <span>
-          <strong>{field.label}</strong>
-          <span class="description">{field.description}</span>
-        </span>
+    <SettingRow
+      label={field.label}
+      description={field.description}
+      key={field.key}
+      settings={settingsHandle}
+    >
+      {#snippet control()}
         <input
           id={`passcode-${field.key}`}
           type="checkbox"
+          aria-label={field.label}
           checked={values[field.key]}
           onchange={(event) =>
             update({ [field.key]: event.currentTarget.checked })}
         />
-      </label>
-    </OverriddenMark>
+      {/snippet}
+    </SettingRow>
   {/each}
   {#each durations as field (field.key)}
-    <OverriddenMark key={field.key} settings={settingsHandle}>
-      <label for={field.id}>
-        <strong>{field.label}: {text.seconds(values[field.key] / 1000)}</strong>
-        <span class="description">{field.description}</span>
-      </label>
-      <input
-        id={field.id}
-        type={field.kind}
-        min={field.min}
-        max={field.max}
-        step={field.step}
-        value={values[field.key] / 1000}
-        onchange={(event) => {
-          const seconds = event.currentTarget.valueAsNumber;
-          if (Number.isFinite(seconds) && seconds >= field.min) {
-            update({ [field.key]: seconds * 1000 });
-          }
-        }}
-      />
-    </OverriddenMark>
+    <SettingRow
+      label={`${field.label}: ${text.seconds(values[field.key] / 1000)}`}
+      description={field.description}
+      key={field.key}
+      settings={settingsHandle}
+      wide
+    >
+      {#snippet control()}
+        <input
+          id={field.id}
+          aria-label={field.label}
+          type={field.kind}
+          min={field.min}
+          max={field.max}
+          step={field.step}
+          value={values[field.key] / 1000}
+          onchange={(event) => {
+            const seconds = event.currentTarget.valueAsNumber;
+            if (Number.isFinite(seconds) && seconds >= field.min)
+              update({ [field.key]: seconds * 1000 });
+          }}
+        />
+      {/snippet}
+    </SettingRow>
   {/each}
 </div>
 {#if saveError}<p role="alert">{text.saveError}</p>{/if}
 <button type="button" class="reset" onclick={reset}>{text.reset}</button>
 
 <style>
-  .fields {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-    gap: 0.75rem;
-  }
-  label {
-    display: block;
-  }
-  .toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    min-height: 48px;
-    cursor: pointer;
-  }
-  .description {
-    display: block;
-    margin-block: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--theme-text-secondary, #475569);
-  }
   input {
-    accent-color: var(--theme-brand-primary, #2563eb);
+    accent-color: var(--theme-brand-primary, #4f46e5);
   }
   input[type="checkbox"] {
     flex-shrink: 0;
@@ -171,21 +165,21 @@
   }
   input[type="number"] {
     padding: 0.5rem;
-    border: 1px solid var(--theme-border-subtle, #cbd5e1);
+    border: 1px solid #e2e8f0;
     border-radius: 0.5rem;
-    background: var(--theme-surface-elevated, white);
+    background: #ffffff;
     color: inherit;
   }
   .reset {
     min-height: 48px;
     padding: 0.75rem 1rem;
     margin-block-start: 1rem;
-    border: 1px solid var(--theme-feedback-error, #b91c1c);
+    border: 1px solid #b91c1c;
     border-radius: 0.5rem;
     cursor: pointer;
-    color: var(--theme-feedback-error, #b91c1c);
+    color: #b91c1c;
   }
   [role="alert"] {
-    color: var(--theme-feedback-error, #b91c1c);
+    color: #b91c1c;
   }
 </style>

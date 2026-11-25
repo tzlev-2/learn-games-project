@@ -16,7 +16,9 @@
         clearDirtyBoosterConfig,
         getProfilesState,
         markDirtyBoosterConfig,
+        persistProfilesState,
     } from "../../lib/config/profile-manager";
+    import { language } from "../language";
     import ProfileBar from "./ProfileBar.svelte";
     import OverlayTimerSettings from "./OverlayTimerSettings.svelte";
 
@@ -27,6 +29,7 @@
         onClose?: () => void;
         embedded?: boolean;
         showProfiles?: boolean;
+        onSaved?: () => void;
     }
 
     let {
@@ -36,6 +39,7 @@
         onClose,
         embedded = false,
         showProfiles = true,
+        onSaved,
     }: Props = $props();
 
     const msToSec = (n: number) => Math.floor(n / 1000);
@@ -75,16 +79,40 @@
         };
     }
 
-    async function persistConfig(closeSettings = true) {
+    let pendingSave: Promise<boolean> | undefined;
+    let failedSave = $state<Config | null>(null);
+
+    async function persistConfig(closeSettings = true): Promise<boolean> {
+        if (pendingSave) {
+            if (!(await pendingSave)) return false;
+        }
+        const saving = saveConfig(closeSettings);
+        pendingSave = saving;
+        try {
+            return await saving;
+        } finally {
+            if (pendingSave === saving) pendingSave = undefined;
+        }
+    }
+
+    async function saveConfig(closeSettings: boolean): Promise<boolean> {
         try {
             newConfig.rewardDisplayDurationMs = videoDisplayTimeInSec;
-            config = await configManager.updateConfig(
-                $state.snapshot(newConfig),
-            );
-            config = normalizeBoosterConfig(config);
+            const saved = await configManager.updateConfig(getProfileConfig());
+            // השכבה הישנה מדווחת הצלחה גם בכשל אחסון; החלפה מחייבת כתיבה מאומתת.
+            if (embedded && persistProfilesState().isErr()) {
+                failedSave = getProfileConfig();
+                markDirtyBoosterConfig(getProfileConfig());
+                saveStatus = "error";
+                return false;
+            }
+            config = normalizeBoosterConfig(saved);
+            failedSave = null;
             saveStatus = "success";
+            if (embedded) onSaved?.();
         } catch (error) {
             console.error("שמירת הגדרות נכשלה:", error);
+            if (embedded) failedSave = getProfileConfig();
             saveStatus = "error";
         }
 
@@ -99,6 +127,7 @@
             },
             closeSettings ? 1500 : 2000,
         );
+        return saveStatus === "success";
     }
 
     const showVideo = () => {
@@ -147,6 +176,12 @@
         if (!activeProfile) return;
 
         const configSnapshot = getProfileConfig();
+        if (embedded && configsEqual(configSnapshot, failedSave)) {
+            if (!configsEqual(profilesState.dirtyBoosterConfig, configSnapshot)) {
+                markDirtyBoosterConfig(configSnapshot);
+            }
+            return;
+        }
         const isSame = configsEqual(configSnapshot, activeProfile.boosterConfig);
 
         if (isSame) {
@@ -167,7 +202,7 @@
         if (!embedded) return;
         const snapshot = getProfileConfig();
         const activeProfileId = profilesState.activeProfileId;
-        if (configsEqual(snapshot, config)) return;
+        if (configsEqual(snapshot, config) || configsEqual(snapshot, failedSave)) return;
         const timeout = setTimeout(() => {
             if (getProfilesState().activeProfileId === activeProfileId) {
                 void persistConfig(false);
@@ -190,8 +225,16 @@
         return appItem as unknown as AppListItem | undefined;
     });
 
-    export async function saveProfile(): Promise<void> {
-        await persistConfig(false);
+    export async function saveProfile(): Promise<boolean> {
+        if (!embedded) return persistConfig(false);
+        // עריכה נוספת בזמן שמירה מושהית חייבת להיכלל לפני החלפת הפרופיל.
+        while (true) {
+            if (pendingSave && !(await pendingSave)) return false;
+            if (!failedSave && configsEqual(getProfileConfig(), config)) {
+                return persistProfilesState().isOk();
+            }
+            if (!(await persistConfig(false))) return false;
+        }
     }
 
     export function getProfileConfig(): Config {
@@ -206,6 +249,7 @@
         newConfig = normalizeBoosterConfig(structuredClone(config));
         videoDisplayTime = msToSec(config.rewardDisplayDurationMs);
         saveStatus = null;
+        failedSave = null;
     }
 
     function configsEqual(a?: Config | null, b?: Config | null): boolean {
@@ -551,7 +595,9 @@
         <p class="">2025</p>
     </div>
 
-    {#if saveStatus}
+    {#if embedded && saveStatus === "error"}
+        <p role="alert">{language.settings.saveError}</p>
+    {:else if (!embedded || !onSaved) && saveStatus}
         <div
             class="text-right text-sm"
             class:text-green-600={saveStatus === "success"}

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onMount, type Snippet } from "svelte";
     import type { Config, Profile } from "../../types";
     import * as configManager from "../../lib/config/config-manager";
     import {
@@ -15,10 +15,18 @@
     interface Props {
         getConfig: () => Config;
         onApply: (config: Config) => void;
-        onSave: () => Promise<void>;
+        onSave: () => Promise<boolean | void>;
+        immediate?: boolean;
+        scopeControl?: Snippet;
     }
 
-    let { getConfig, onApply, onSave }: Props = $props();
+    let {
+        getConfig,
+        onApply,
+        onSave,
+        immediate = false,
+        scopeControl,
+    }: Props = $props();
     const text = language.profiles;
     const id = $props.id();
     let profilesState = $state(getProfilesState());
@@ -35,7 +43,7 @@
         Boolean(
             selectedProfile &&
             orderedProfiles.length > 1 &&
-            selectedProfile.id !== profilesState.activeProfileId,
+            (immediate || selectedProfile.id !== profilesState.activeProfileId),
         ),
     );
 
@@ -53,7 +61,7 @@
         });
     });
 
-    async function run(action: () => void | Promise<void>) {
+    async function run(action: () => void | boolean | Promise<void | boolean>) {
         busy = true;
         error = false;
         try {
@@ -62,6 +70,8 @@
             console.error(text.error, cause);
             error = true;
         } finally {
+            if (immediate)
+                selectedProfileId = profilesState.activeProfileId ?? "";
             busy = false;
         }
     }
@@ -69,6 +79,7 @@
     async function apply(profileId: string, skipConfirm = false) {
         if (!profileId) return;
         if (
+            !immediate &&
             !skipConfirm &&
             profilesState.dirtyBoosterConfig &&
             !window.confirm(text.confirmSwitch)
@@ -76,32 +87,67 @@
             selectedProfileId = profilesState.activeProfileId ?? "";
             return;
         }
+        if (immediate && (await onSave()) === false) {
+            selectedProfileId = profilesState.activeProfileId ?? "";
+            error = true;
+            return;
+        }
         const profile = setActiveProfile(profileId);
-        onApply(await configManager.updateConfig(structuredClone(profile.boosterConfig)));
+        onApply(
+            await configManager.updateConfig(
+                structuredClone(profile.boosterConfig),
+            ),
+        );
     }
 
     async function create() {
         const name = window
-            .prompt(text.promptName, text.suggestedName(orderedProfiles.length + 1))
+            .prompt(
+                text.promptName,
+                text.suggestedName(orderedProfiles.length + 1),
+            )
             ?.trim();
         if (!name) return;
+        if (immediate && (await onSave()) === false) {
+            error = true;
+            return;
+        }
         const profile = createProfile({ name, boosterConfig: getConfig() });
         selectedProfileId = profile.id;
-        await apply(profile.id, true);
+        const active = setActiveProfile(profile.id);
+        onApply(
+            await configManager.updateConfig(
+                structuredClone(active.boosterConfig),
+            ),
+        );
     }
 
-    function remove() {
+    async function remove() {
         if (!canDelete || !selectedProfile) return;
-        if (window.confirm(text.confirmDelete(selectedProfile.name)))
-            deleteProfile(selectedProfile.id);
+        const removing = selectedProfile;
+        if (!window.confirm(text.confirmDelete(removing.name))) return;
+        if (immediate) {
+            const replacement = orderedProfiles.find(
+                (profile) => profile.id !== removing.id,
+            );
+            if (!replacement) return;
+            await apply(replacement.id);
+            if (getProfilesState().activeProfileId !== replacement.id) return;
+        }
+        deleteProfile(removing.id);
     }
 </script>
 
-<section class="profile-bar" dir="rtl" aria-labelledby={`${id}-title`} aria-busy={busy}>
+<section
+    class="profile-bar"
+    dir="rtl"
+    aria-labelledby={`${id}-title`}
+    aria-busy={busy}
+>
     <div class="heading">
         <div>
             <h2 id={`${id}-title`}>{text.title}</h2>
-            <p>{text.description}</p>
+            <p>{immediate ? text.immediateDescription : text.description}</p>
         </div>
         <label class="toggle">
             <span>{text.show}</span>
@@ -110,13 +156,25 @@
                 checked={profilesState.uiEnabled}
                 disabled={busy}
                 onchange={(event) =>
-                    void run(() => setProfilesUiEnabled(event.currentTarget.checked))}
+                    void run(() =>
+                        setProfilesUiEnabled(event.currentTarget.checked),
+                    )}
             />
         </label>
     </div>
     {#if profilesState.uiEnabled}
         <label for={`${id}-select`}>{text.select}</label>
-        <select id={`${id}-select`} bind:value={selectedProfileId} disabled={busy}>
+        <select
+            id={`${id}-select`}
+            bind:value={selectedProfileId}
+            disabled={busy}
+            onchange={(event) => {
+                if (immediate) {
+                    const profileId = event.currentTarget.value;
+                    void run(() => apply(profileId));
+                }
+            }}
+        >
             {#each orderedProfiles as profile (profile.id)}
                 <option value={profile.id}
                     >{profile.name}{profile.id === profilesState.activeProfileId
@@ -127,23 +185,28 @@
                 <option value="">{text.empty}</option>
             {/each}
         </select>
-        {#if profilesState.dirtyBoosterConfig}
+        {#if !immediate && profilesState.dirtyBoosterConfig}
             <p class="notice" role="status">{text.unsaved}</p>
         {/if}
         <div class="actions">
+            {#if !immediate}
+                <button
+                    type="button"
+                    onclick={() => void run(() => apply(selectedProfileId))}
+                    disabled={busy || !selectedProfileId}>{text.apply}</button
+                >
+                <button
+                    type="button"
+                    class="primary"
+                    onclick={() => void run(onSave)}
+                    disabled={busy || !profilesState.activeProfileId}
+                    >{text.save}</button
+                >
+            {/if}
             <button
                 type="button"
-                onclick={() => void run(() => apply(selectedProfileId))}
-                disabled={busy || !selectedProfileId}>{text.apply}</button
-            >
-            <button
-                type="button"
-                class="primary"
-                onclick={() => void run(onSave)}
-                disabled={busy || !profilesState.activeProfileId}>{text.save}</button
-            >
-            <button type="button" onclick={() => void run(create)} disabled={busy}
-                >{text.create}</button
+                onclick={() => void run(create)}
+                disabled={busy}>{text.create}</button
             >
             <button
                 type="button"
@@ -152,6 +215,9 @@
                 disabled={busy || !canDelete}>{text.delete}</button
             >
         </div>
+        {#if scopeControl}
+            <div class="scope-control">{@render scopeControl()}</div>
+        {/if}
     {/if}
     {#if error}<p class="error" role="alert">{text.error}</p>{/if}
 </section>
@@ -159,10 +225,15 @@
 <style>
     .profile-bar {
         padding: 1rem;
-        border: 1px solid var(--theme-border-subtle, #e2e8f0);
+        border: 1px solid #e2e8f0;
         border-radius: 1rem;
-        background: var(--theme-surface-elevated, white);
-        color: var(--theme-text-primary, #172554);
+        background: #ffffff;
+        color: #0f172a;
+    }
+    .scope-control {
+        margin-block-start: 1rem;
+        border-block-start: 1px solid #e2e8f0;
+        padding-block-start: 1rem;
     }
     .heading {
         display: flex;
@@ -180,6 +251,7 @@
     p {
         margin-block: 0.4rem;
         font-size: 0.85rem;
+        color: #475569;
     }
     .toggle {
         display: flex;
@@ -192,6 +264,7 @@
         position: static !important;
         width: 1.25rem;
         height: 1.25rem;
+        accent-color: var(--theme-brand-primary, #4f46e5);
     }
     select {
         display: block;
@@ -199,9 +272,9 @@
         min-height: 48px;
         padding: 0.6rem;
         margin-block: 0.4rem 0.8rem;
-        border: 1px solid var(--theme-border-subtle, #cbd5e1);
+        border: 1px solid #e2e8f0;
         border-radius: 0.5rem;
-        background: var(--theme-surface-elevated, white);
+        background: #ffffff;
         color: inherit;
     }
     .actions {
@@ -213,7 +286,7 @@
         flex: 1 1 10rem;
         min-height: 48px;
         padding: 0.5rem 1rem;
-        border: 1px solid var(--theme-border-subtle, #cbd5e1);
+        border: 1px solid #e2e8f0;
         border-radius: 0.5rem;
         cursor: pointer;
     }
@@ -222,12 +295,12 @@
         cursor: default;
     }
     .primary {
-        background: var(--theme-brand-primary, #2563eb);
-        color: var(--theme-text-on-brand, white);
+        background: var(--theme-brand-primary, #4f46e5);
+        color: #ffffff;
     }
     .danger,
     .error {
-        color: var(--theme-feedback-error, #b91c1c);
+        color: #b91c1c;
     }
     .notice {
         padding: 0.75rem;
