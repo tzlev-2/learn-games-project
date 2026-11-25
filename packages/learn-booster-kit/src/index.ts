@@ -7,7 +7,7 @@ export { default as Settings } from "./ui/components/Settings.svelte";
 export { default as SettingsForm } from "./ui/components/SettingsForm.svelte";
 export { default as GameSettingsPage } from "./ui/components/GameSettingsPage.svelte";
 export { default as ProfileBar } from "./ui/components/ProfileBar.svelte";
-export { default as OverriddenMark } from "./ui/components/OverriddenMark.svelte";
+export { default as SettingRow } from "./ui/components/SettingRow.svelte";
 export { default as BoosterContainer } from "./ui/BoosterContainer.svelte";
 export { boosterService } from "./lib/booster-service";
 export type { BoosterServiceInitialized } from "./lib/booster-service";

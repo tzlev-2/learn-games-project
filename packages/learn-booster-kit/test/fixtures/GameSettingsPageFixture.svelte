@@ -1,8 +1,11 @@
 <script lang="ts">
     import type { Config } from "../../src/types";
-    import type { GameSettingsHandle, GameSettingsScope } from "../../src/lib/config/game-settings";
+    import type {
+        GameSettingsHandle,
+        GameSettingsScope,
+    } from "../../src/lib/config/game-settings";
     import GameSettingsPage from "../../src/ui/components/GameSettingsPage.svelte";
-    import OverriddenMark from "../../src/ui/components/OverriddenMark.svelte";
+    import GameSettingsControlsFixture from "./GameSettingsControlsFixture.svelte";
     import GameShell from "../../src/ui/shell/GameShell.svelte";
 
     let {
@@ -25,14 +28,7 @@
                 handleShowVideo={() => {}}
             >
                 {#snippet gameSection(scope: GameSettingsScope)}
-                    <output data-scope>{scope}</output>
-                    <OverriddenMark key="cooldownMs" {settings}>
-                        <button
-                            type="button"
-                            data-edit
-                            onclick={() => settings.set({ cooldownMs: 7000 }, scope)}>Edit</button
-                        >
-                    </OverriddenMark>
+                    <GameSettingsControlsFixture {scope} {settings} />
                 {/snippet}
             </GameSettingsPage>
         </div>

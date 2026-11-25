@@ -13,11 +13,10 @@
 </script>
 
 <div class="passcode-field">
-  <label for="passcode-input">{text.passcode}</label>
-  <p>{text.passcodeDescription}</p>
   <div class="editor">
     <input
       id="passcode-input"
+      aria-label={text.passcode}
       type={showPasscode ? "text" : "password"}
       {value}
       oninput={(event) => {
@@ -47,9 +46,6 @@
 </div>
 
 <style>
-  label {
-    font-weight: 700;
-  }
   p {
     margin-block: 0.5rem;
     font-size: 0.875rem;
@@ -64,9 +60,9 @@
     min-width: 0;
     min-height: 48px;
     padding: 0.5rem;
-    border: 1px solid var(--theme-border-subtle, #cbd5e1);
+    border: 1px solid #e2e8f0;
     border-radius: 0.5rem;
-    background: var(--theme-surface-elevated, white);
+    background: #ffffff;
     color: inherit;
     font-size: 1.5rem;
     text-align: center;
@@ -75,11 +71,11 @@
   button {
     min-width: 48px;
     min-height: 48px;
-    border: 1px solid var(--theme-border-subtle, #cbd5e1);
+    border: 1px solid #e2e8f0;
     border-radius: 0.5rem;
     cursor: pointer;
   }
   [role="alert"] {
-    color: var(--theme-feedback-error, #b91c1c);
+    color: #b91c1c;
   }
 </style>
