@@ -4,6 +4,7 @@
 -->
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import { isFullyKiosk } from '../lib/fully-kiosk/fully-kiosk';
   import { createOverlayTimerState } from '../lib/overlay/overlay-timer-state.svelte';
   import {
     loadOverlaySettings,
@@ -11,7 +12,14 @@
     type OverlayTimerSettings,
   } from '../lib/overlay/overlay-settings';
 
+  interface Props {
+    onUnavailable?: () => void;
+  }
+
+  let { onUnavailable = () => window.location.replace('/') }: Props = $props();
+
   const timer = createOverlayTimerState();
+  const fullyKiosk = isFullyKiosk();
 
   let overlaySettings = $state<OverlayTimerSettings>(loadOverlaySettings());
   let cleanupSettingsListener: (() => void) | undefined;
@@ -32,6 +40,10 @@
   const fontSize = $derived(Math.max(1.2, sizePx / 56));
 
   onMount(() => {
+    if (!fullyKiosk) {
+      onUnavailable();
+      return;
+    }
     timer.start();
     cleanupSettingsListener = onOverlaySettingsChange((newSettings) => {
       overlaySettings = newSettings;
@@ -55,7 +67,8 @@
   </style>
 </svelte:head>
 
-<div class="overlay-root" class:visible={isVisible}>
+{#if fullyKiosk}
+<div class={["overlay-root", { visible: isVisible }]}>
   <div
     class="timer-container"
     style:left="{overlaySettings.xPercent}%"
@@ -95,6 +108,7 @@
     </span>
   </div>
 </div>
+{/if}
 
 <style>
   .overlay-root {

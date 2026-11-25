@@ -809,6 +809,7 @@
         {/if}
 
         <!-- טיימר אוברליי -->
+        {#if !isNotFullyKiosk}
         <section class="settings-card space-y-3 text-right">
             <div class="space-y-1">
                 <p class="font-medium text-base">טיימר אוברליי</p>
@@ -818,6 +819,7 @@
             </div>
             <OverlayTimerSettings />
         </section>
+        {/if}
 
         <div
             id="show-example"

@@ -1,5 +1,10 @@
 const GAME_UPSTREAMS: Readonly<Record<string, string>> = Object.freeze({
-	passcode: 'https://lg-passcode.pages.dev'
+	passcode: 'https://lg-passcode.pages.dev',
+	'find-letter': 'https://lg-find-letter.pages.dev',
+	lotto: 'https://lg-lotto.pages.dev',
+	'sort-cards': 'https://lg-sort-cards.pages.dev',
+	'train-addition': 'https://lg-train-addition.pages.dev',
+	wordys: 'https://lg-wordys.pages.dev'
 });
 
 type UpstreamFetch = (request: Request) => Promise<Response>;
