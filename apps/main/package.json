@@ -17,7 +17,7 @@
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test",
 		"deploy": "bun run build && bunx wrangler pages deploy .svelte-kit/cloudflare --project-name learn-games --branch main --commit-dirty=true",
-		"deploy:pilot": "bun run build && CLOUDFLARE_ACCOUNT_ID=a2681969546c8fbafdc45737bd367a6f bunx wrangler pages deploy .svelte-kit/cloudflare --project-name learn-games --branch games-pilot --commit-dirty=true"
+		"deploy:integration": "bun run build && CLOUDFLARE_ACCOUNT_ID=a2681969546c8fbafdc45737bd367a6f bunx wrangler pages deploy .svelte-kit/cloudflare --project-name learn-games --branch integration --commit-dirty=true"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.4.0",
@@ -50,5 +50,8 @@
 		"vite-plugin-devtools-json": "^1.0.0",
 		"vitest": "^4.0.15",
 		"vitest-browser-svelte": "^2.0.1"
+	},
+	"dependencies": {
+		"learn-booster-kit": "workspace:*"
 	}
 }

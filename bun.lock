@@ -248,6 +248,9 @@
     "apps/main": {
       "name": "main",
       "version": "0.0.1",
+      "dependencies": {
+        "learn-booster-kit": "workspace:*",
+      },
       "devDependencies": {
         "@eslint/compat": "^1.4.0",
         "@eslint/js": "^9.39.1",

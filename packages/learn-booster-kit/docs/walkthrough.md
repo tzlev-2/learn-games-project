@@ -1,5 +1,15 @@
 # Learn Booster Kit — יומן פיתוח
 
+## 2026-11-25 16:59
+
+### טיימר האוברליי זמין רק בתוך Fully
+
+`OverlayTimerPage` בודק `isFullyKiosk()` לפני רינדור ולפני פתיחת מאזיני הטיימר. מחוץ ל־Fully הוא מפעיל callback אופציונלי `onUnavailable`, עם ברירת מחדל של החלפת כתובת לשורש; היישומים מספקים `goto('/', { replaceState: true })`. כך הבדיקה חלה גם על המיון, והקיט נשאר ללא תלות ב־SvelteKit. סעיף הגדרות טיימר האוברליי ב־`SettingsForm` עטוף בבדיקת Fully הקיימת.
+
+`bun run check` עבר; Svelte MCP בדק את רכיב הטיימר ללא ממצאים. אבחוני `SettingsForm` זהים לבסיס. בדיקה בתוך Web Overlay דורשת טאבלט ואינה זמינה במכונה.
+
+---
+
 ## 2026-11-25 11:56 — `IconButton variant="floating"`
 
 #### למה

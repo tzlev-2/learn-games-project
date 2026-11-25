@@ -2,10 +2,17 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { getGameUpstream, proxyGameRequest } from '../src/lib/server/game-proxy';
 
-const publicOrigin = 'https://games-pilot.learn-games.pages.dev';
+const publicOrigin = 'https://integration.learn-games.pages.dev';
 const upstreamOrigin = 'https://lg-passcode.pages.dev';
 
 describe('בחירת יעד המשחק', () => {
+	it('מנתב כל אחד מששת המשחקים ליעד הייעודי', () => {
+		for (const slug of ['passcode', 'find-letter', 'lotto', 'sort-cards', 'train-addition', 'wordys']) {
+			const path = `/games/${slug}/settings/__data.json?x=1`;
+			assert.equal(getGameUpstream(new URL(path, publicOrigin))?.href, `https://lg-${slug}.pages.dev${path}`);
+		}
+	});
+
 	it('מעביר רק את passcode ושומר נתיב, קידוד, שאילתה ולוכסן', () => {
 		for (const path of [
 			'/games/passcode',
@@ -20,14 +27,14 @@ describe('בחירת יעד המשחק', () => {
 		}
 	});
 
-	it('משאיר את השורש, משחקים אחרים ושמות דומים מחוץ לרשימה המותרת', () => {
+	it('משאיר את השורש, משחקים לא מורשים ושמות דומים מחוץ לרשימה המותרת', () => {
 		for (const path of [
 			'/',
 			'/settings',
 			'/profiles',
 			'/_app/immutable/entry/start.js',
 			'/games',
-			'/games/lotto/',
+			'/games/unknown/',
 			'/games/passcode-other/',
 			'/games/passcode.pages.dev/',
 			'/games/%70asscode/',
@@ -42,7 +49,7 @@ describe('בחירת יעד המשחק', () => {
 
 describe('תיווך בקשות ותשובות', () => {
 	it('לא מבצע fetch עבור כתובת שאינה מורשית', async () => {
-		const result = await proxyGameRequest(new Request(publicOrigin + '/games/lotto/'), async () => {
+		const result = await proxyGameRequest(new Request(publicOrigin + '/games/unknown/'), async () => {
 			assert.fail('unexpected upstream request');
 		});
 		assert.equal(result, null);
