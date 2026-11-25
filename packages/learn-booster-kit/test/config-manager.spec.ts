@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { configManager } from './src';
+import { configManager, profileManager } from './src';
 
 const { deepMerge } = configManager;
 
@@ -42,14 +42,15 @@ describe('deepMerge', () => {
 describe('saveConfigToStorage / loadConfigFromStorage', () => {
   beforeEach(() => {
     localStorage.clear();
-    vi.resetModules();
+    profileManager._resetProfilesStateForTesting();
   });
 
   it('saveConfigToStorage שומר ב-localStorage', () => {
     const { saveConfigToStorage } = configManager;
     const result = saveConfigToStorage();
     expect(result).toBe(true);
-    expect(localStorage.getItem('learn-booster-config')).not.toBeNull();
+    expect(localStorage.getItem('learn-booster-profiles:v1')).not.toBeNull();
+    expect(localStorage.getItem('learn-booster-config')).toBeNull();
   });
 
   it('loadConfigFromStorage טוען ממה שנשמר', () => {

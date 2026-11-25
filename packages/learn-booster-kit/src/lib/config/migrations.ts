@@ -1,6 +1,9 @@
+import { migrateStateV2toV3 } from './game-settings-core';
+export { migrateStateV2toV3 } from './game-settings-core';
+
 /**
  * Migration engines — 3 שכבות:
- * 1. State (wrapper) — ProfilesState v1 → v2
+ * 1. State (wrapper) — ProfilesState v1 → v2 → v3
  * 2. BoosterConfig — loop לפי schemaVersion
  * 3. Per-game settings — registry per gameId
  *
@@ -24,7 +27,7 @@ function getSafeVersion(value: unknown, fallback = 1): number {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyState = any;
 
-export const STATE_LATEST = 2;
+export const STATE_LATEST = 3;
 
 /**
  * v1 → v2:
@@ -91,16 +94,17 @@ function migrateStateToV2(state: AnyState): AnyState {
 
 const STATE_MIGRATIONS: Record<number, (s: AnyState) => AnyState> = {
   2: migrateStateToV2,
+  3: migrateStateV2toV3,
 };
 
 export function runStateMigrations(input: AnyState): AnyState {
-  const state = cloneForMigration(input);
+  let state = cloneForMigration(input);
   state.schemaVersion = getSafeVersion(state.schemaVersion);
   while (state.schemaVersion < STATE_LATEST) {
     const target = state.schemaVersion + 1;
     const fn = STATE_MIGRATIONS[target];
     if (!fn) throw new Error(`Missing state migration to v${target}`);
-    fn(state);
+    state = fn(state);
   }
   return state;
 }

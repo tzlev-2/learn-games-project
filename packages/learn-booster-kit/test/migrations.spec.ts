@@ -76,9 +76,9 @@ const v1State = {
 // ─── runStateMigrations ───────────────────────────────────────────────────────
 
 describe('runStateMigrations', () => {
-  it('v1 state → schemaVersion becomes 2', () => {
+  it('v1 state → schemaVersion becomes 3', () => {
     const result = runStateMigrations(v1State);
-    expect(result.schemaVersion).toBe(2);
+    expect(result.schemaVersion).toBe(3);
   });
 
   it('v1 state → profile.config renamed to profile.boosterConfig', () => {
@@ -91,14 +91,14 @@ describe('runStateMigrations', () => {
   it('v1 state → gameSettings extracted from boosterConfig to profile root', () => {
     const result = runStateMigrations(v1State);
     const profile = result.profiles['profile-1'];
-    expect(profile.gameSettings).toBeDefined();
+    expect(result.generalGameSettings['find-letter-game']).toBeDefined();
     expect(profile.boosterConfig.gameSettings).toBeUndefined();
   });
 
   it('v1 state → gameSettings wrapped in { schemaVersion, data }', () => {
     const result = runStateMigrations(v1State);
     const profile = result.profiles['profile-1'];
-    const entry = profile.gameSettings['find-letter-game'];
+    const entry = result.generalGameSettings['find-letter-game'];
     expect(entry).toEqual({
       schemaVersion: 1,
       data: { gridSize: '4x4', cooldownMs: 2000 },
@@ -174,7 +174,7 @@ describe('runStateMigrations', () => {
       dirtyBoosterConfig: null,
     };
     const result = runStateMigrations(alreadyV2);
-    expect(result.schemaVersion).toBe(2);
+    expect(result.schemaVersion).toBe(3);
     expect(result.profiles['p1'].boosterConfig).toBeDefined();
   });
 
@@ -204,8 +204,8 @@ describe('runStateMigrations', () => {
     expect(result.profiles['p2'].gameSettings['game-b']).toEqual({ schemaVersion: 1, data: { score: 2 } });
   });
 
-  it('STATE_LATEST is 2', () => {
-    expect(STATE_LATEST).toBe(2);
+  it('STATE_LATEST is 3', () => {
+    expect(STATE_LATEST).toBe(3);
   });
 
   it('throws on missing migration step', () => {

@@ -158,8 +158,8 @@ describe('BOOSTER_CONFIG_SCHEMA_REGISTRY', () => {
 // ─── STATE_SCHEMA_VERSION ─────────────────────────────────────────────────────
 
 describe('STATE_SCHEMA_VERSION', () => {
-  it('גרסת ה-state wrapper היא 2', () => {
-    expect(STATE_SCHEMA_VERSION).toBe(2);
+  it('גרסת ה-state wrapper היא 3', () => {
+    expect(STATE_SCHEMA_VERSION).toBe(3);
   });
 });
 
@@ -201,7 +201,8 @@ describe('ProfileSchema', () => {
 describe('ProfilesStateSchema', () => {
   it('מאמת state תקני עם dirtyBoosterConfig=null', () => {
     const validState = {
-      schemaVersion: 2,
+      schemaVersion: 3,
+      generalGameSettings: {},
       profiles: { 'profile-1': validProfile },
       order: ['profile-1'],
       activeProfileId: 'profile-1',
@@ -213,7 +214,8 @@ describe('ProfilesStateSchema', () => {
 
   it('מאמת state עם activeProfileId=null', () => {
     const emptyState = {
-      schemaVersion: 2,
+      schemaVersion: 3,
+      generalGameSettings: {},
       profiles: {},
       order: [],
       activeProfileId: null,
@@ -225,7 +227,8 @@ describe('ProfilesStateSchema', () => {
 
   it('דוחה state עם dirtyConfig (שם ישן) ולא dirtyBoosterConfig', () => {
     const oldState = {
-      schemaVersion: 2,
+      schemaVersion: 3,
+      generalGameSettings: {},
       profiles: {},
       order: [],
       activeProfileId: null,
@@ -241,7 +244,8 @@ describe('ProfilesStateSchema', () => {
 describe('ProfilesExportPayloadSchema', () => {
   it('מאמת payload תקני', () => {
     const payload = {
-      schemaVersion: 2,
+      schemaVersion: 3,
+      generalGameSettings: {},
       profiles: [validProfile],
       activeProfileId: 'profile-1',
       uiEnabled: false,
@@ -251,7 +255,8 @@ describe('ProfilesExportPayloadSchema', () => {
 
   it('דוחה payload חסר schemaVersion', () => {
     const { schemaVersion: _, ...rest } = {
-      schemaVersion: 2,
+      schemaVersion: 3,
+      generalGameSettings: {},
       profiles: [validProfile],
       activeProfileId: null,
       uiEnabled: false,

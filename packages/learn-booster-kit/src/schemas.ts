@@ -105,11 +105,12 @@ export type Profile = typeof ProfileSchema.infer;
 
 // ─── ProfilesState ────────────────────────────────────────────────────────────
 
-export const STATE_SCHEMA_VERSION = 2 as const;
+export const STATE_SCHEMA_VERSION = 3 as const;
 
 export const ProfilesStateSchema = type({
   schemaVersion: "number",
   profiles: type({ "[string]": ProfileSchema }),
+  generalGameSettings: type({ "[string]": GameSettingsEntrySchema }),
   order: "string[]",
   activeProfileId: "string | null",
   uiEnabled: "boolean",
@@ -122,6 +123,7 @@ export type ProfilesState = typeof ProfilesStateSchema.infer;
 export const ProfilesExportPayloadSchema = type({
   schemaVersion: "number",
   profiles: ProfileSchema.array(),
+  generalGameSettings: type({ "[string]": GameSettingsEntrySchema }),
   activeProfileId: "string | null",
   uiEnabled: "boolean",
 });
