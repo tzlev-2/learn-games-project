@@ -149,7 +149,8 @@ export function defineGameSettings<T extends object>(definition: GameSettingsDef
       const state = getProfilesState();
       const actualScope = state.uiEnabled ? scope : 'general';
       const general = getGeneral();
-      const checked = validate(resolveGameSettings(actualScope === 'general' ? general : get(), patch));
+      // האימות כולל את השכפול בתוך try, כדי שקלט שלא ניתן לשכפול יחזיר err.
+      const checked = validate({ ...(actualScope === 'general' ? general : get()), ...patch });
       if (checked.isErr()) return checked;
       if (actualScope === 'profile') return saveOverride(diffSettings(general, checked.value));
       return replaceGameSettings(gameId, wrapped(checked.value)).map(() => get());

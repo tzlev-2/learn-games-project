@@ -118,6 +118,17 @@ describe('general settings and partial overrides', () => {
     expect(handle.get().cooldownMs).toBe(9999);
     expect(localStorage.getItem(KEY)).toBe(previous);
   });
+
+  it.each(['general', 'profile'] as const)('returns err without changing memory or storage for non-cloneable input in %s scope', scope => {
+    const handle = define();
+    pm.setProfilesUiEnabled(true);
+    const previous = localStorage.getItem(KEY);
+    const result = handle.set({ contentSelections: new Proxy(defaults.contentSelections, {}) }, scope);
+    expect(result.isErr()).toBe(true);
+    expect(handle.get()).toEqual(defaults);
+    expect(handle.getOverride()).toEqual({});
+    expect(localStorage.getItem(KEY)).toBe(previous);
+  });
 });
 
 describe('state migration and import/export', () => {
