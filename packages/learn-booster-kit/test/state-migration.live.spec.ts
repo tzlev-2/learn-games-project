@@ -13,7 +13,7 @@ describe("Live snapshot migration (local only)", () => {
   run("baseline → migrates to latest shape", () => {
     const input = JSON.parse(fs.readFileSync(LIVE, "utf8"));
     const out = runStateMigrations(input);
-    expect(out.schemaVersion).toBe(2);
+    expect(out.schemaVersion).toBe(3);
     expect(typeof out.profiles).toBe("object");
     // לכל פרופיל: יש boosterConfig עם schemaVersion, אין config
     for (const p of Object.values(out.profiles) as any[]) {

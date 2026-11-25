@@ -10,6 +10,8 @@ export { boosterService } from "./lib/booster-service";
 export type { BoosterServiceInitialized } from "./lib/booster-service";
 export * from "./types";
 export * from "./lib/config";
+export { defineGameSettings, resolveGameSettings, diffSettings, migrateStateV2toV3 } from "./lib/config/game-settings";
+export type { GameSettingsHandle, GameSettingsScope, GameSettingsDefinition } from "./lib/config/game-settings";
 export * as configManager from "./lib/config/config-manager";
 export { registerGameSchema, runGameSettingsMigrations } from "./lib/config/migrations";
 export type { GameSchemaEntry } from "./lib/config/migrations";

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "profiles": {
     "00000000-0000-0000-0000-000000000001": {
       "id": "00000000-0000-0000-0000-000000000001",
@@ -60,26 +60,6 @@
           "disableGameCodeInjection": false
         }
       },
-      "gameSettings": {
-        "find-letter-game": {
-          "schemaVersion": 1,
-          "data": {
-            "gridSize": "4x4",
-            "autoSpeakOnNewRound": true,
-            "voiceEnabled": true,
-            "boosterEnabled": true,
-            "selectedLetterIds": [
-              "a", "ba", "va_rafe", "ga", "da", "ha", "va", "za", "cha", "ta",
-              "ya", "ka", "cha_rafe", "la", "ma", "na", "sa", "aa", "pa",
-              "fa_rafe", "tza", "qa", "ra", "sha", "sa_sin", "tav"
-            ],
-            "avoidSimilar": true,
-            "cooldownMs": 2000,
-            "questionsPerBoard": 0,
-            "boardsPerSet": 1
-          }
-        }
-      },
       "meta": {
         "createdAt": 1779019113848,
         "updatedAt": 1779022230167
@@ -91,5 +71,48 @@
   ],
   "activeProfileId": "00000000-0000-0000-0000-000000000001",
   "uiEnabled": false,
-  "dirtyBoosterConfig": null
+  "dirtyBoosterConfig": null,
+  "generalGameSettings": {
+    "find-letter-game": {
+      "schemaVersion": 1,
+      "data": {
+        "gridSize": "4x4",
+        "autoSpeakOnNewRound": true,
+        "voiceEnabled": true,
+        "boosterEnabled": true,
+        "selectedLetterIds": [
+          "a",
+          "ba",
+          "va_rafe",
+          "ga",
+          "da",
+          "ha",
+          "va",
+          "za",
+          "cha",
+          "ta",
+          "ya",
+          "ka",
+          "cha_rafe",
+          "la",
+          "ma",
+          "na",
+          "sa",
+          "aa",
+          "pa",
+          "fa_rafe",
+          "tza",
+          "qa",
+          "ra",
+          "sha",
+          "sa_sin",
+          "tav"
+        ],
+        "avoidSimilar": true,
+        "cooldownMs": 2000,
+        "questionsPerBoard": 0,
+        "boardsPerSet": 1
+      }
+    }
+  }
 }

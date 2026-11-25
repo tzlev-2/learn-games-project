@@ -184,7 +184,7 @@ describe('Game Settings API', () => {
 
     function storedWrapper(gameId: string) {
       const raw = JSON.parse(localStorage.getItem('learn-booster-profiles:v1') ?? '{}');
-      return raw.profiles?.[raw.activeProfileId]?.gameSettings?.[gameId];
+      return raw.generalGameSettings?.[gameId];
     }
 
     it('משחק לא רשום — נשמר עם schemaVersion 1', async () => {

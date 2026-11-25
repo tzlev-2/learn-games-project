@@ -9,15 +9,16 @@
  * הבדיקות העתידיות (it.todo) מתארות את ההתנהגות הצפויה אחריו.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { configManager } from './src';
+import { configManager, profileManager } from './src';
 
 const { saveConfigToStorage, loadConfigFromStorage } = configManager;
 
 const OLD_KEY = 'gingim-booster-config';
-const NEW_KEY = 'learn-booster-config';
+const NEW_KEY = 'learn-booster-profiles:v1';
 
 beforeEach(() => {
   localStorage.clear();
+  profileManager._resetProfilesStateForTesting();
 });
 
 describe('config-manager — מפתח localStorage נוכחי (אחרי רפקטורינג)', () => {

@@ -4,16 +4,16 @@ import {
   getActiveProfile,
   initializeProfiles,
   saveActiveProfileBoosterConfig,
-  getActiveProfileGameSettings,
-  setActiveProfileGameSettings,
+  hydrateProfiles,
+  getProfilesState,
+  replaceGameSettings,
+  persistProfilesState,
   addProfilesListener,
 } from "./profile-manager";
 import { getDefaultBoosterConfig } from "./default-config";
 import { getRegisteredGameSchemaVersion } from "./migrations";
 import { loadVideoUrls } from "../video/video-loader";
 import {
-  BOOSTER_CONFIG_SCHEMA_REGISTRY,
-  BOOSTER_CONFIG_SCHEMA_VERSION,
   BoosterConfigSchema,
   OldConfigSchema,
 } from "../../schemas";
@@ -22,9 +22,6 @@ import { env } from "./env";
 import { ok, err, type Result, type ValidationError } from "../result";
 
 import type { BoosterConfig, OldConfig } from "../../types";
-
-const OLD_LOCAL_STORAGE_KEY = "gingim-booster-config";
-const LOCAL_STORAGE_KEY = "learn-booster-config";
 
 const GOOGLE_DRIVE_DEFAULT_FOLDER = env.VITE_GOOGLE_DRIVE_DEFAULT_FOLDER ?? "";
 
@@ -79,7 +76,6 @@ export async function updateConfig(updates: Partial<BoosterConfig>): Promise<Boo
     await setVideosUrls(appConfig);
   }
 
-  saveConfigToStorage();
   syncActiveProfileSnapshot();
   notifyConfigListeners();
 
@@ -113,65 +109,21 @@ async function setVideosUrls(systemConfig: BoosterConfig) {
   appConfig.video.videos = videos;
 }
 
-function migrateConfigStorage(): void {
-  try {
-    const old = localStorage.getItem(OLD_LOCAL_STORAGE_KEY);
-    if (old) {
-      if (!localStorage.getItem(LOCAL_STORAGE_KEY)) {
-        localStorage.setItem(LOCAL_STORAGE_KEY, old);
-      }
-      localStorage.removeItem(OLD_LOCAL_STORAGE_KEY);
-    }
-  } catch {
-    // ignore storage errors
-  }
-}
-
+/** @deprecated ההגדרות נטענות מ-state הפרופילים; מפתח המראה הוסר. */
 export function loadConfigFromStorage(): boolean {
-  migrateConfigStorage();
-  try {
-    const storedConfig = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (!storedConfig) return false;
-
-    const parsed = JSON.parse(storedConfig) as Record<string, unknown>;
-    if (typeof parsed !== "object" || parsed === null) return false;
-
-    // קריאת גרסת schema — ב-BoosterConfig הוא שדה `schemaVersion` (ולא `_configSchemaVersion`)
-    const version = typeof parsed.schemaVersion === "number"
-      ? parsed.schemaVersion
-      : BOOSTER_CONFIG_SCHEMA_VERSION;
-
-    const schema = BOOSTER_CONFIG_SCHEMA_REGISTRY[version as keyof typeof BOOSTER_CONFIG_SCHEMA_REGISTRY];
-    if (!schema) {
-      console.warn(`Config: גרסת schema לא מוכרת: ${version}, מתעלם מהנתונים השמורים`);
-      return false;
-    }
-
-    // partial() כי storage שומר רק overrides, לא config מלא
-    const result = schema.partial()(parsed);
-    if (result instanceof type.errors) {
-      console.warn("Config from storage failed validation:", result.summary);
-      return false;
-    }
-
-    appConfig = deepMerge({ ...defaultConfig }, result);
-    notifyConfigListeners();
-    return true;
-  } catch (error) {
-    console.error("שגיאה בטעינת הגדרות מ-localStorage:", error);
-    return false;
-  }
+  let stored = false;
+  try { stored = localStorage.getItem('learn-booster-profiles:v1') !== null; } catch { return false; }
+  hydrateProfiles();
+  const active = getActiveProfile();
+  if (active) { appConfig = cloneBoosterConfig(active.boosterConfig); notifyConfigListeners(); }
+  return stored;
 }
 
+/** @deprecated שומר רק את state הפרופילים, ללא כתיבה למפתח המראה. */
 export function saveConfigToStorage(): boolean {
-  try {
-    // appConfig כבר מכיל schemaVersion — פשוט שמור אותו
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appConfig));
-    return true;
-  } catch (error) {
-    console.error("שגיאה בשמירת הגדרות ל-localStorage:", error);
-    return false;
-  }
+  hydrateProfiles(appConfig);
+  syncActiveProfileSnapshot();
+  return persistProfilesState().isOk();
 }
 
 export function resetConfig(): void {
@@ -181,7 +133,6 @@ export function resetConfig(): void {
 
 export async function initializeConfig(): Promise<BoosterConfig> {
   resetConfig();
-  loadConfigFromStorage();
 
   // migration מ-OldConfig אם window.config מכיל פורמט ישן
   if (window.config) {
@@ -236,82 +187,36 @@ export function getAllConfig(): Readonly<BoosterConfig> {
   return Object.freeze(structuredClone(appConfig));
 }
 
-// === Game Settings API ===
-//
-// helpers נוחים לקריאה ושמירה של הגדרות-משחק תחת `profile.gameSettings`.
-// כל משחק מקבל namespace משלו לפי `gameId`, והקיט שומר את התוכן כ-`unknown`.
-// המשחק עצמו אחראי על schema/validation של ההגדרות שלו.
-//
-// הסיבה שב-`updateGameSettings` אין שימוש ב-`updateConfig`/`deepMerge`:
-// ה-`deepMerge` ימזג רקורסיבית. במקום זה אנו עושים **החלפה מלאה** של גוש
-// ההגדרות-משחק תוך שמירה על ה-schemaVersion הנוכחי מהרישום.
-
-/**
- * מחזיר את ההגדרות של משחק מסוים מתוך הפרופיל הפעיל,
- * או `undefined` אם אין הגדרות שמורות עבור `gameId` זה (פרופיל חדש או משחק חדש).
- */
+/** @deprecated השתמשו ב-defineGameSettings; עטיפת קריאה להגדרות הכלליות. */
 export function getGameSettings<T = unknown>(gameId: string): T | undefined {
-  const wrapped = getActiveProfileGameSettings(gameId);
-  return wrapped?.data as T | undefined;
+  hydrateProfiles();
+  return getProfilesState().generalGameSettings[gameId]?.data as T | undefined;
 }
 
-/**
- * שומר הגדרות-משחק תחת `gameId`. החלפה מלאה (לא merge עומק) — כך
- * שמפתחות ישנים שלא נמצאים ב-`settings` החדשות נמחקים. שאר ההגדרות של
- * שאר המשחקים נשמרות כמובן.
- *
- * מחזיר `Result<BoosterConfig, ValidationError>` — לא זורק.
- *
- * @example
- * ```ts
- * const result = await updateGameSettings('find-letter-game', { cooldownMs: 3000 });
- * if (!result.success) {
- *   console.error(result.error.summary);
- *   return;
- * }
- * // result.value הוא BoosterConfig מעודכן
- * ```
- */
+/** @deprecated החלפה מלאה ב-scope הכללי; לשימוש חדש defineGameSettings. */
 export async function updateGameSettings<T = unknown>(
-  gameId: string,
-  settings: T,
+  gameId: string, settings: T,
 ): Promise<Result<BoosterConfig, ValidationError>> {
-  // קובע את ה-schemaVersion: המשחק כותב נתונים בצורה הנוכחית, לכן משחק רשום
-  // מקבל את ה-currentVersion שלו. אחרת — הגרסה הקיימת, או 1 כברירת מחדל.
-  // (בעבר נכתבה תמיד הגרסה הקיימת/1, ואז נתונים עדכניים סומנו כ-v1 והמיגרציה
-  // הייתה רצה עליהם שוב בטעינה הבאה.)
-  const existing = getActiveProfileGameSettings(gameId);
+  hydrateProfiles();
+  const existing = getProfilesState().generalGameSettings[gameId];
   const schemaVersion = getRegisteredGameSchemaVersion(gameId) ?? existing?.schemaVersion ?? 1;
-
-  const wrapped = { schemaVersion, data: settings };
-
-  setActiveProfileGameSettings(gameId, wrapped);
+  const saved = replaceGameSettings(gameId, { schemaVersion, data: settings });
+  if (saved.isErr()) return err(saved.error);
   notifyConfigListeners();
-
   return ok(appConfig);
 }
 
-/**
- * נרשם לשינויים בהגדרות-משחק ספציפי. מחזיר callback unsubscribe.
- * ה-callback נקרא מיד עם הערך הנוכחי, ובכל פעם שהוא משתנה (כולל החלפת פרופיל).
- */
+/** @deprecated הרשמה לשכבה הכללית; לשימוש חדש settings.subscribe. */
 export function subscribeGameSettings<T = unknown>(
-  gameId: string,
-  callback: (settings: T | undefined) => void,
+  gameId: string, callback: (settings: T | undefined) => void,
 ): () => void {
-  let last: T | undefined = getGameSettings<T>(gameId);
-  callback(last);
-
-  // Listen to profile-manager changes (profile switch, game settings update)
-  const unsub = addProfilesListener(() => {
+  let last = JSON.stringify(getGameSettings<T>(gameId));
+  callback(getGameSettings<T>(gameId));
+  return addProfilesListener(() => {
     const current = getGameSettings<T>(gameId);
-    if (current !== last) {
-      last = current;
-      callback(current);
-    }
+    const serialized = JSON.stringify(current);
+    if (serialized !== last) { last = serialized; callback(current); }
   });
-
-  return unsub;
 }
 
 export function deepMerge<T extends Record<string, unknown>>(
