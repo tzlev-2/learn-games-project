@@ -139,6 +139,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@sveltejs/adapter-cloudflare": "^7.2.8",
+        "arktype": "^2.2.0",
         "learn-booster-kit": "*",
       },
       "devDependencies": {

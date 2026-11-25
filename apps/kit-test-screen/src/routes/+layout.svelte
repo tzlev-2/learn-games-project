@@ -1,8 +1,10 @@
 <script lang="ts">
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
-	import { BoosterContainer, boosterService } from 'learn-booster-kit';
+	import { BoosterContainer } from 'learn-booster-kit';
 	import { onMount } from 'svelte';
+	import { language } from '$lib/language';
+	import { initializeBooster } from '$lib/booster-init';
 
 	let { children } = $props();
 
@@ -17,11 +19,20 @@
 		| 'portal'
 		| 'lotto';
 	let theme = $state<Theme>('default');
+	let boosterReady = $state(false);
 
 	onMount(() => {
-		boosterService.init().catch((err: unknown) => {
-			console.error('Failed to init booster service:', err);
-		});
+		let mounted = true;
+		initializeBooster()
+			.then(() => {
+				if (mounted) boosterReady = true;
+			})
+			.catch((err: unknown) => {
+				console.error('Failed to init booster service:', err);
+			});
+		return () => {
+			mounted = false;
+		};
 	});
 
 	$effect(() => {
@@ -37,6 +48,7 @@
 		<a href="/showcase">Showcase</a>
 		<a href="/showcase/welcome">Welcome</a>
 		<a href="/showcase/game">Game</a>
+		<a href="/showcase/settings">{language.settingsDemo.link}</a>
 	</div>
 	<div class="theme-switch">
 		<span>Theme:</span>
@@ -55,7 +67,7 @@
 </nav>
 
 {@render children()}
-<BoosterContainer />
+{#if boosterReady}<BoosterContainer />{/if}
 
 <style>
 	.topnav {

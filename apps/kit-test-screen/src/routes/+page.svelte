@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import { SettingsForm, boosterService, type Config } from "learn-booster-kit";
+  import { initializeBooster } from "$lib/booster-init";
 
   let config = $state<Config>();
   let isRewardActive = $state(false);
@@ -10,7 +11,7 @@
   let unsubscribeActive: (() => void) | undefined;
 
   onMount(async () => {
-    await boosterService.init();
+    await initializeBooster();
     boosterReady = true;
     unsubscribeConfig = boosterService.config.subscribe((value) => {
       config = value;

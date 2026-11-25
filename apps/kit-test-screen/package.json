@@ -18,7 +18,8 @@
 	},
 	"dependencies": {
 		"@sveltejs/adapter-cloudflare": "^7.2.8",
-		"learn-booster-kit": "*"
+		"learn-booster-kit": "*",
+		"arktype": "^2.2.0"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.2",
