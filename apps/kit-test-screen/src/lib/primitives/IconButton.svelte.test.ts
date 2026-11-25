@@ -37,6 +37,15 @@ describe('IconButton', () => {
 		await expect.element(page.getByRole('button')).toHaveTextContent('השמע שוב');
 	});
 
+	it('variant="floating" — מראה קבוע שלא תלוי ב-theme', async () => {
+		render(IconButton, { icon: makeSnippet('⚙'), label: 'הגדרות', variant: 'floating' });
+		const btn = page.getByRole('button');
+		await expect.element(btn).toHaveAttribute('data-variant', 'floating');
+		await expect.element(btn).toHaveClass(/bg-white\/80/);
+		await expect.element(btn).toHaveClass(/text-slate-600/);
+		await expect.element(btn).not.toHaveClass(/bg-surface-sunken/);
+	});
+
 	it('קורא ל-onclick בלחיצה', async () => {
 		const onclick = vi.fn();
 		render(IconButton, { icon: makeSnippet('🔊'), label: 'X', onclick });

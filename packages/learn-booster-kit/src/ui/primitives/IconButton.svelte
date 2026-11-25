@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	type Variant = 'solid' | 'subtle' | 'ghost';
+	type Variant = 'solid' | 'subtle' | 'ghost' | 'floating';
 	type Size = 'sm' | 'md' | 'lg';
 	type Color = 'primary' | 'secondary';
 
@@ -41,6 +41,12 @@
 			return color === 'secondary'
 				? 'bg-transparent text-brand-secondary hover:bg-surface-sunken'
 				: 'bg-transparent text-text-secondary hover:bg-surface-sunken';
+		}
+		if (variant === 'floating') {
+			// כפתור "כרום" צף (הגדרות, בית): מראה קבוע שלא תלוי ב-theme,
+			// כדי שייראה זהה בכל המשחקים — על רקע בהיר ועל HeaderBar כהה.
+			// color prop ignored
+			return 'bg-white/80 backdrop-blur-sm text-slate-600 shadow-lg hover:bg-white hover:text-slate-900';
 		}
 		// subtle — color prop ignored
 		return 'bg-surface-sunken text-text-secondary hover:text-text-primary';

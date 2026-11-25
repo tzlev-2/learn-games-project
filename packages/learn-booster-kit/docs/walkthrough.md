@@ -1,5 +1,19 @@
 # Learn Booster Kit — יומן פיתוח
 
+## 2026-11-25 11:56 — `IconButton variant="floating"`
+
+#### למה
+
+כפתור ההגדרות נראה אחרת בכל משחק, כי צבעי `subtle` באים מה-theme, ולוטו ו-Wordy's הוסיפו עיצוב פרטי. כפתורי "כרום" (הגדרות, בית) צריכים להיראות זהים בכל המשחקים, גם על רקע בהיר וגם על `HeaderBar` כהה.
+
+#### מה נוסף
+
+- **`src/ui/primitives/IconButton.svelte`** — variant רביעי `floating`: `bg-white/80 backdrop-blur-sm text-slate-600 shadow-lg`, hover ל-`bg-white text-slate-900`. לא משתמש ב-tokens של ה-theme בכוונה; `color` לא משפיע עליו. שאר ה-variants לא השתנו.
+
+#### בדיקות
+
+מקרה חדש ב-`apps/kit-test-screen/src/lib/primitives/IconButton.svelte.test.ts` (data-variant, הקלאסים, בלי `bg-surface-sunken`). לא רץ במכונה — הדפדפן של Playwright לא מותקן. `bun run check` בקיט: 0 שגיאות.
+
 ## 2026-11-20 15:10 — Theme "lotto"
 
 #### למה

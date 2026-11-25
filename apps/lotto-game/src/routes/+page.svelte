@@ -279,8 +279,8 @@
 					{/if}
 
 					<AdminGate onUnlock={() => goto('/settings')}>
-						<IconButton label={language.game.settingsLabel} class="lotto-settings-button">
-							{#snippet icon()}<SettingsIcon size={24} />{/snippet}
+						<IconButton label={language.game.settingsLabel} variant="floating">
+							{#snippet icon()}<SettingsIcon size={22} />{/snippet}
 						</IconButton>
 					</AdminGate>
 				{/snippet}
@@ -409,20 +409,6 @@
 		border-color: oklch(96.2% 0.059 95.617); /* amber-100 */
 	}
 
-	:global(.lotto-settings-button) {
-		color: var(--theme-brand-primary);
-		box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-		transition: transform 150ms, background-color 150ms;
-	}
-
-	:global(.lotto-settings-button:hover) {
-		color: var(--theme-brand-primary);
-		transform: scale(1.05);
-	}
-
-	:global(.lotto-settings-button:active) {
-		transform: scale(0.95);
-	}
 
 	/* Main Game Area */
 	.game-container {

@@ -37,8 +37,8 @@
       <!-- relative z-10: מעל רקע ה-GameWorld (fixed inset-0) -->
       <HeaderBar balanced class="relative z-10">
         {#snippet leftActions()}
-          <IconButton label={language.homeLabel} onclick={() => goto("/")}>
-            {#snippet icon()}<HomeIcon size={24} />{/snippet}
+          <IconButton label={language.homeLabel} variant="floating" onclick={() => goto("/")}>
+            {#snippet icon()}<HomeIcon size={22} />{/snippet}
           </IconButton>
         {/snippet}
 
@@ -60,8 +60,8 @@
         {#snippet rightActions()}
           <!-- כפתור הגדרות מוגן (AdminGate חוסם תלמידים) -->
           <AdminGate onUnlock={() => goto("/settings")}>
-            <IconButton label={language.settingsLabel}>
-              {#snippet icon()}<SettingsIcon size={24} />{/snippet}
+            <IconButton label={language.settingsLabel} variant="floating">
+              {#snippet icon()}<SettingsIcon size={22} />{/snippet}
             </IconButton>
           </AdminGate>
         {/snippet}

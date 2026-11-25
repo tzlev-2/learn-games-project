@@ -28,7 +28,7 @@
 	<!-- אייקון הגדרות (AdminGate) — מורה יכול לעבור להגדרות בלי להיכנס למשחק -->
 	<div class="settings-corner">
 		<AdminGate onUnlock={() => goto('/settings')}>
-			<IconButton label={language.settingsLabel}>
+			<IconButton label={language.settingsLabel} variant="floating">
 				{#snippet icon()}<SettingsIcon size={22} />{/snippet}
 			</IconButton>
 		</AdminGate>
