@@ -157,6 +157,11 @@
   input {
     accent-color: var(--theme-brand-primary, #4f46e5);
   }
+  input:focus-visible,
+  button:focus-visible {
+    outline: 2px solid var(--theme-brand-primary);
+    outline-offset: 2px;
+  }
   input[type="checkbox"] {
     flex-shrink: 0;
     width: 1.5rem;

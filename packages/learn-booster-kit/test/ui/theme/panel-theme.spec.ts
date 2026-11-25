@@ -48,14 +48,40 @@ describe('settings panel themes (BRIEF.md S3.2)', () => {
 		});
 	}
 
-	it('preserves every slate token and header override in passcode except the panel tone', () => {
+	it('preserves slate tokens and header overrides except the panel tone and accessible blue accent', () => {
 		const withoutPanel = (css: string) =>
 			css
 				.replace(/\/\*[\s\S]*?\*\//g, '')
 				.replace(/--theme-panel-[\w-]+\s*:[^;]+;/g, '')
+				.replace(/--theme-brand-primary(?:-hover)?\s*:[^;]+;/g, '')
+				.replace(/--theme-text-on-brand\s*:[^;]+;/g, '')
 				.replaceAll("data-theme='passcode'", "data-theme='slate'")
 				.replace(/\s+/g, ' ')
 				.trim();
 		expect(withoutPanel(read('passcode.css'))).toBe(withoutPanel(read('slate.css')));
+	});
+
+	it('keeps the passcode accent visible on dark cards and its button text readable (S3.3)', () => {
+		const css = read('passcode.css');
+		const rgb = (hex: string) => [1, 3, 5].map((start) => parseInt(hex.slice(start, start + 2), 16));
+		const luminance = (color: number[]) => color.reduce((sum, channel, index) => {
+			const value = channel / 255;
+			const linear = value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+			return sum + linear * [0.2126, 0.7152, 0.0722][index];
+		}, 0);
+		const contrast = (a: number[], b: number[]) => {
+			const [dark, light] = [luminance(a), luminance(b)].sort((x, y) => x - y);
+			return (light + 0.05) / (dark + 0.05);
+		};
+		const accent = rgb(value(css, '--theme-brand-primary')!);
+		const text = rgb(value(css, '--theme-text-on-brand')!);
+		// שלושת עוגני הגרדיאנט של passcode, תחת כרטיס לבן בשקיפות 10%.
+		// זהו חוזה צבע מחושב; מדידת הפיקסלים בפועל נשארת באימות הדפדפן.
+		for (const backdrop of ['#1e293b', '#334155', '#0f172a']) {
+			const card = rgb(backdrop).map((channel) => 255 * 0.1 + channel * 0.9);
+			expect(contrast(accent, card)).toBeGreaterThanOrEqual(3);
+		}
+		expect(contrast(text, accent)).toBeGreaterThanOrEqual(4.5);
+		expect(contrast(text, rgb(value(css, '--theme-brand-primary-hover')!))).toBeGreaterThanOrEqual(4.5);
 	});
 });

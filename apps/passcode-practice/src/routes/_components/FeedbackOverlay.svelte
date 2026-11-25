@@ -3,8 +3,11 @@
   pointer-events-none — לא חוסם את הלוח
 -->
 <script lang="ts">
+  import { CheckIcon, XIcon } from "learn-booster-kit";
   import { gameState } from "$lib/stores/game-state.svelte";
+  import { language } from "$lib/services/language";
 
+  const text = language.feedback;
   const isSuccess = $derived(gameState.state === "SUCCESS");
   const isError = $derived(gameState.state === "ERROR");
   const isVisible = $derived(isSuccess || isError);
@@ -17,24 +20,18 @@
         class="animate-success-pop relative rounded-3xl bg-gradient-to-br from-green-400 to-green-600
                px-12 py-8 text-center text-white shadow-2xl"
       >
-        <!-- כוכבים מרחפים -->
-        <span class="star" style="--delay: 0s; --tx: -50px; --ty: -30px;">⭐</span>
-        <span class="star" style="--delay: 0.1s; --tx: 50px; --ty: -40px;">✨</span>
-        <span class="star" style="--delay: 0.2s; --tx: -30px; --ty: 20px;">🌟</span>
-        <span class="star" style="--delay: 0.3s; --tx: 40px; --ty: 10px;">⭐</span>
-
-        <div class="animate-bounce text-8xl mb-2">✓</div>
-        <div class="text-4xl font-bold">נכון!</div>
-        <div class="mt-2 text-xl">כל הכבוד! 🎉</div>
+        <div class="animate-bounce mb-2 flex justify-center"><CheckIcon size={96} /></div>
+        <div class="text-4xl font-bold">{text.correct}</div>
+        <div class="mt-2 text-xl">{text.praise}</div>
       </div>
     {:else if isError}
       <div
         class="animate-error-shake rounded-3xl bg-gradient-to-br from-orange-400 to-red-500
                px-10 py-7 text-center text-white shadow-2xl"
       >
-        <div class="text-7xl mb-2">✗</div>
-        <div class="text-3xl font-bold">לא נכון</div>
-        <div class="mt-2 text-lg">נסה שוב! 💪</div>
+        <div class="mb-2 flex justify-center"><XIcon size={72} /></div>
+        <div class="text-3xl font-bold">{text.wrong}</div>
+        <div class="mt-2 text-lg">{text.retry}</div>
       </div>
     {/if}
   </div>
@@ -62,14 +59,4 @@
     animation: error-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
   }
 
-  @keyframes star-float {
-    0% { opacity: 1; transform: translate(0, 0) scale(1); }
-    100% { opacity: 0; transform: translate(var(--tx, 0), calc(var(--ty, 0) - 60px)) scale(0.5); }
-  }
-
-  .star {
-    position: absolute;
-    font-size: 1.8rem;
-    animation: star-float 0.9s ease-out var(--delay, 0s) forwards;
-  }
 </style>

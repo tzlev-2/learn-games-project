@@ -5,8 +5,12 @@
     שלב 2 — המתנה (לבן)
 -->
 <script lang="ts">
+  import { LightbulbIcon } from "learn-booster-kit";
   import { settings } from "$lib/stores/settings.svelte";
   import { gameState } from "$lib/stores/game-state.svelte";
+  import { language } from "$lib/services/language";
+
+  const text = language.hint;
 
   interface Props {
     now: number;
@@ -48,13 +52,13 @@
     <div
       class="rounded-2xl bg-white/15 px-8 py-4 shadow-lg backdrop-blur-sm
              ring-1 ring-white/30 text-center"
-      aria-label="הסיסמא לתרגול"
+      aria-label={text.passcode}
     >
       <p class="mb-2 text-xs font-medium uppercase tracking-wider text-white/60">
-        הסיסמא לתרגול
+        {text.passcode}
       </p>
       <div class="flex justify-center gap-3" dir="ltr">
-        {#each settings.passcode.split("") as digit}
+        {#each settings.passcode.split("") as digit, index (index)}
           <span class="text-5xl font-bold text-white drop-shadow-sm">
             {digit}
           </span>
@@ -71,13 +75,13 @@
         <div
           class="rounded-2xl bg-amber-400/20 px-8 py-4 shadow-lg backdrop-blur-sm
                  ring-1 ring-amber-300/40 text-center"
-          aria-label="רמז: הסיסמא לתרגול"
+          aria-label={text.passcodeLabel}
         >
-          <p class="mb-2 text-xs font-medium uppercase tracking-wider text-amber-300/80">
-            💡 רמז
+          <p class="mb-2 flex items-center justify-center gap-1 text-xs font-medium uppercase tracking-wider text-amber-300/80">
+            <LightbulbIcon size={14} /> {text.label}
           </p>
           <div class="flex justify-center gap-3" dir="ltr">
-            {#each settings.passcode.split("") as digit}
+            {#each settings.passcode.split("") as digit, index (index)}
               <span class="text-5xl font-bold text-white drop-shadow-sm">
                 {digit}
               </span>
@@ -121,10 +125,10 @@
           class="flex items-center gap-2 rounded-2xl bg-white/15 px-6 py-3 text-white
                  shadow-lg backdrop-blur-sm ring-1 ring-white/30
                  transition-all duration-150 active:scale-95 hover:bg-white/25"
-          aria-label="הצג רמז"
+          aria-label={text.show}
         >
-          <span class="text-2xl">💡</span>
-          <span class="text-lg font-bold">רמז</span>
+          <LightbulbIcon />
+          <span class="text-lg font-bold">{text.label}</span>
         </button>
       {/if}
 

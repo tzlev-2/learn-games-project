@@ -14,6 +14,18 @@ export const language = {
   // === משחק ===
   progressLabel: "לפרס",
   cooldownSecondsLabel: "שניות להמתנה",
+  feedback: {
+    correct: "נכון!",
+    praise: "כל הכבוד!",
+    wrong: "לא נכון",
+    retry: "נסה שוב!",
+  },
+  hint: {
+    passcode: "הסיסמא לתרגול",
+    passcodeLabel: "רמז: הסיסמא לתרגול",
+    label: "רמז",
+    show: "הצג רמז",
+  },
 
   // === הקראה (TTS) ===
   ttsSuccess: "כל הכבוד! הסיסמא נכונה!",
@@ -21,7 +33,7 @@ export const language = {
 
   // === מסך הגדרות ===
   settingsPageTitle: "הגדרות - תרגול סיסמא",
-  settingsHeading: "⚙️ הגדרות",
+  settingsHeading: "הגדרות",
   backLabel: "חזרה",
   settingsLoading: "טוען הגדרות...",
   initializationError: "טעינת ההגדרות נכשלה. יש לרענן את הדף ולנסות שוב.",

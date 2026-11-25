@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { EyeIcon, EyeOffIcon } from "learn-booster-kit";
   import { language } from "$lib/services/language";
 
   interface Props {
@@ -38,7 +39,11 @@
       aria-label={showPasscode ? text.hidePasscode : text.showPasscode}
       aria-pressed={showPasscode}
     >
-      {showPasscode ? "🙈" : "👁️"}
+      {#if showPasscode}
+        <EyeOffIcon />
+      {:else}
+        <EyeIcon />
+      {/if}
     </button>
   </div>
   {#if !valid}<p role="alert">{text.invalidPasscode}</p>{/if}
@@ -74,6 +79,8 @@
     opacity: 1;
   }
   button {
+    display: grid;
+    place-items: center;
     min-width: 48px;
     min-height: 48px;
     border: 1px solid var(--theme-panel-card-border);

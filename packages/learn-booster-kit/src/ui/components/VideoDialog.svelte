@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import PlayLogo from "../assets/play.svg?raw";
   import LoadingSpinner from "./LoadingSpinner.svelte";
+  import XIcon from "../primitives/icons/XIcon.svelte";
 
   import type { Writable } from "svelte/store";
   import type { Config, VideoController, TimerController } from "../../types";
@@ -174,7 +175,7 @@
 
       {#if error}
         <div class="flex flex-col items-center justify-center gap-3 py-10 text-center">
-          <div class="text-5xl">⚠️</div>
+          <div class="text-5xl"><XIcon size={48} /></div>
           <div class="text-red-600 text-lg font-bold">{error}</div>
           <div class="text-gray-500 text-sm">הסרטון ייסגר אוטומטית בעוד {time}</div>
         </div>
