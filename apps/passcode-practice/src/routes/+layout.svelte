@@ -2,11 +2,9 @@
   import "./app.css";
   import { goto } from "$app/navigation";
   import { base } from "$app/paths";
-  import { settings } from "$lib/stores/settings.svelte";
   import { gameState } from "$lib/stores/game-state.svelte";
   import { language } from "$lib/services/language";
   import {
-    boosterService,
     BoosterContainer,
     AdminGate,
     GameShell,
@@ -17,13 +15,22 @@
     SettingsIcon,
   } from "learn-booster-kit";
   import { onMount } from "svelte";
+  import { initializeBooster } from "$lib/services/booster-init";
 
   let { children } = $props();
 
+  let ready = $state(false);
+
   onMount(() => {
-    if (settings.boosterEnabled) {
-      boosterService.init();
-    }
+    let mounted = true;
+    void initializeBooster()
+      .then(() => {
+        if (mounted) ready = true;
+      })
+      .catch((error) => console.error(language.initializationError, error));
+    return () => {
+      mounted = false;
+    };
   });
 
   function handleHome() {
@@ -44,7 +51,11 @@
     {#snippet header()}
       <HeaderBar balanced class="pc-header relative z-10">
         {#snippet leftActions()}
-          <IconButton label={language.homeLabel} variant="floating" onclick={handleHome}>
+          <IconButton
+            label={language.homeLabel}
+            variant="floating"
+            onclick={handleHome}
+          >
             {#snippet icon()}<HomeIcon size={22} />{/snippet}
           </IconButton>
         {/snippet}
@@ -76,7 +87,7 @@
 </div>
 
 <div class="relative z-[9999] pointer-events-none">
-  <BoosterContainer />
+  {#if ready}<BoosterContainer />{/if}
 </div>
 
 <style>
