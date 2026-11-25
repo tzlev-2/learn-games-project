@@ -12,6 +12,14 @@
 */
 
 [data-theme='lotto'] {
+	/* גוון פאנל ההגדרות */
+	--theme-panel-card-bg: var(--panel-light-card-bg);
+	--theme-panel-card-border: var(--panel-light-card-border);
+	--theme-panel-text: var(--panel-light-text);
+	--theme-panel-text-muted: var(--panel-light-text-muted);
+	--theme-panel-field-bg: var(--panel-light-field-bg);
+	--theme-panel-field-text: var(--panel-light-field-text);
+
 	/* Surfaces & Backgrounds */
 	--theme-surface-base: oklch(98.4% 0.003 247.858); /* slate-50 — מסך ההגדרות */
 	--theme-surface-elevated: #ffffff;

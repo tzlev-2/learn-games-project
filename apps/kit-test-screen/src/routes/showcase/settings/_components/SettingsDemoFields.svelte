@@ -1,9 +1,5 @@
 <script lang="ts">
-	import {
-		SettingRow,
-		type GameSettingsHandle,
-		type GameSettingsScope
-	} from 'learn-booster-kit';
+	import { SettingRow, type GameSettingsHandle, type GameSettingsScope } from 'learn-booster-kit';
 	import { useGameSettingsSaveStatus } from 'learn-booster-kit/ui/components/GameSettingsPage.svelte';
 	import { language } from '../../../../lib/language';
 
@@ -40,11 +36,8 @@
 				type="number"
 				min="0"
 				step="500"
-				value={scope === 'general'
-					? general.cooldownMs
-					: effective.cooldownMs}
-				onchange={(event) =>
-					update('cooldownMs', event.currentTarget.valueAsNumber)}
+				value={scope === 'general' ? general.cooldownMs : effective.cooldownMs}
+				onchange={(event) => update('cooldownMs', event.currentTarget.valueAsNumber)}
 			/>
 		{/snippet}
 	</SettingRow>
@@ -56,11 +49,8 @@
 				type="number"
 				min="1"
 				max="12"
-				value={scope === 'general'
-					? general.choices
-					: effective.choices}
-				onchange={(event) =>
-					update('choices', event.currentTarget.valueAsNumber)}
+				value={scope === 'general' ? general.choices : effective.choices}
+				onchange={(event) => update('choices', event.currentTarget.valueAsNumber)}
 			/>
 		{/snippet}
 	</SettingRow>
@@ -68,14 +58,21 @@
 {#if saveError}<p role="alert">{text.error}</p>{/if}
 
 <style>
+	.fields {
+		display: grid;
+		gap: 0.75rem;
+	}
 	input {
 		width: 100%;
 		min-height: 48px;
 		padding: 0.5rem;
-		border: 1px solid #e2e8f0;
+		border: 1px solid var(--theme-panel-card-border);
+		background: var(--theme-panel-field-bg);
+		color: var(--theme-panel-field-text);
+		font-size: 1rem;
 		border-radius: 0.5rem;
 	}
 	[role='alert'] {
-		color: #b91c1c;
+		color: var(--theme-panel-text);
 	}
 </style>

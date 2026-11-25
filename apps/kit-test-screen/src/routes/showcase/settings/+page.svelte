@@ -4,7 +4,7 @@
 	import SettingsDemo from './_components/SettingsDemo.svelte';
 </script>
 
-<div class="sort-cards-background" data-theme="slate">
+<div class="sort-cards-background">
 	<SettingsDemo onBack={() => void goto(`${base}/showcase`)} />
 </div>
 
@@ -13,5 +13,8 @@
 		height: calc(100dvh - 4rem);
 		min-height: 0;
 		background: linear-gradient(to bottom, #fef3c7, #fff7ed, #fef9c3);
+	}
+	:global(html[data-theme='passcode']) .sort-cards-background {
+		background: linear-gradient(to bottom, #1e293b, #334155, #0f172a);
 	}
 </style>

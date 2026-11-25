@@ -15,6 +15,7 @@
 		| 'find-letter'
 		| 'wordys'
 		| 'slate'
+		| 'passcode'
 		| 'read-faster'
 		| 'portal'
 		| 'lotto';
@@ -58,7 +59,8 @@
 			<option value="minimal">Minimal</option>
 			<option value="find-letter">Find Letter</option>
 			<option value="wordys">Wordy's</option>
-			<option value="slate">Slate Dark</option>
+			<option value="slate">{language.themes.slate}</option>
+			<option value="passcode">{language.themes.passcode}</option>
 			<option value="read-faster">Read Faster</option>
 			<option value="portal">Portal</option>
 			<option value="lotto">Lotto</option>

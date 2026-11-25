@@ -18,6 +18,8 @@
         onSave: () => Promise<boolean | void>;
         immediate?: boolean;
         scopeControl?: Snippet;
+        panel?: boolean;
+        layout?: Snippet<[Snippet, Snippet]>;
     }
 
     let {
@@ -26,6 +28,8 @@
         onSave,
         immediate = false,
         scopeControl,
+        panel = false,
+        layout,
     }: Props = $props();
     const text = language.profiles;
     const id = $props.id();
@@ -138,17 +142,47 @@
     }
 </script>
 
-<section
-    class="profile-bar"
-    dir="rtl"
-    aria-labelledby={`${id}-title`}
-    aria-busy={busy}
->
-    <div class="heading">
-        <div>
-            <h2 id={`${id}-title`}>{text.title}</h2>
-            <p>{immediate ? text.immediateDescription : text.description}</p>
-        </div>
+{#snippet profileSelection()}
+    {#if profilesState.uiEnabled}
+        <section
+            class="profile-bar panel selection-panel"
+            dir="rtl"
+            aria-label={text.current}
+            aria-busy={busy}
+        >
+            <div class="active-profile">
+                <label for={`${id}-active-select`}>{text.current}</label>
+                <select
+                    id={`${id}-active-select`}
+                    bind:value={selectedProfileId}
+                    disabled={busy}
+                    onchange={(event) => {
+                        const profileId = event.currentTarget.value;
+                        void run(() => apply(profileId));
+                    }}
+                >
+                    {#each orderedProfiles as profile (profile.id)}
+                        <option value={profile.id}>{profile.name}</option>
+                    {:else}
+                        <option value="">{text.empty}</option>
+                    {/each}
+                </select>
+            </div>
+            {#if scopeControl}
+                <div class="scope-control">{@render scopeControl()}</div>
+            {/if}
+        </section>
+    {/if}
+{/snippet}
+
+{#snippet profileManagement()}
+    <section
+        class="profile-bar panel management-panel"
+        dir="rtl"
+        aria-labelledby={`${id}-management`}
+        aria-busy={busy}
+    >
+        <h2 id={`${id}-management`}>{text.title}</h2>
         <label class="toggle">
             <span>{text.show}</span>
             <input
@@ -161,66 +195,116 @@
                     )}
             />
         </label>
-    </div>
-    {#if profilesState.uiEnabled}
-        <label for={`${id}-select`}>{text.select}</label>
-        <select
-            id={`${id}-select`}
-            bind:value={selectedProfileId}
-            disabled={busy}
-            onchange={(event) => {
-                if (immediate) {
-                    const profileId = event.currentTarget.value;
-                    void run(() => apply(profileId));
-                }
-            }}
-        >
-            {#each orderedProfiles as profile (profile.id)}
-                <option value={profile.id}
-                    >{profile.name}{profile.id === profilesState.activeProfileId
-                        ? text.active
-                        : ""}</option
+        {#if profilesState.uiEnabled}
+            <div class="actions">
+                <button
+                    type="button"
+                    onclick={() => void run(create)}
+                    disabled={busy}>{text.create}</button
                 >
-            {:else}
-                <option value="">{text.empty}</option>
-            {/each}
-        </select>
-        {#if !immediate && profilesState.dirtyBoosterConfig}
-            <p class="notice" role="status">{text.unsaved}</p>
+                <button
+                    type="button"
+                    class="danger"
+                    onclick={() => void run(remove)}
+                    disabled={busy || !canDelete}>{text.delete}</button
+                >
+            </div>
         {/if}
-        <div class="actions">
-            {#if !immediate}
-                <button
-                    type="button"
-                    onclick={() => void run(() => apply(selectedProfileId))}
-                    disabled={busy || !selectedProfileId}>{text.apply}</button
-                >
-                <button
-                    type="button"
-                    class="primary"
-                    onclick={() => void run(onSave)}
-                    disabled={busy || !profilesState.activeProfileId}
-                    >{text.save}</button
-                >
-            {/if}
-            <button
-                type="button"
-                onclick={() => void run(create)}
-                disabled={busy}>{text.create}</button
-            >
-            <button
-                type="button"
-                class="danger"
-                onclick={() => void run(remove)}
-                disabled={busy || !canDelete}>{text.delete}</button
-            >
+        {#if error}<p class="error" role="alert">{text.error}</p>{/if}
+    </section>
+{/snippet}
+
+{#if layout}
+    {@render layout(profileSelection, profileManagement)}
+{:else}
+    <section
+        class={["profile-bar", { panel }]}
+        dir="rtl"
+        aria-labelledby={`${id}-title`}
+        aria-busy={busy}
+    >
+        <div class="heading">
+            <div>
+                <h2 id={`${id}-title`}>{text.title}</h2>
+                <p>
+                    {immediate ? text.immediateDescription : text.description}
+                </p>
+            </div>
+            <label class="toggle">
+                <span>{text.show}</span>
+                <input
+                    type="checkbox"
+                    checked={profilesState.uiEnabled}
+                    disabled={busy}
+                    onchange={(event) =>
+                        void run(() =>
+                            setProfilesUiEnabled(event.currentTarget.checked),
+                        )}
+                />
+            </label>
         </div>
-        {#if scopeControl}
-            <div class="scope-control">{@render scopeControl()}</div>
+        {#if profilesState.uiEnabled}
+            <label for={`${id}-select`}>{text.select}</label>
+            <select
+                id={`${id}-select`}
+                bind:value={selectedProfileId}
+                disabled={busy}
+                onchange={(event) => {
+                    if (immediate) {
+                        const profileId = event.currentTarget.value;
+                        void run(() => apply(profileId));
+                    }
+                }}
+            >
+                {#each orderedProfiles as profile (profile.id)}
+                    <option value={profile.id}
+                        >{profile.name}{profile.id ===
+                        profilesState.activeProfileId
+                            ? text.active
+                            : ""}</option
+                    >
+                {:else}
+                    <option value="">{text.empty}</option>
+                {/each}
+            </select>
+            {#if !immediate && profilesState.dirtyBoosterConfig}
+                <p class="notice" role="status">{text.unsaved}</p>
+            {/if}
+            <div class="actions">
+                {#if !immediate}
+                    <button
+                        type="button"
+                        onclick={() => void run(() => apply(selectedProfileId))}
+                        disabled={busy || !selectedProfileId}
+                        >{text.apply}</button
+                    >
+                    <button
+                        type="button"
+                        class="primary"
+                        onclick={() => void run(onSave)}
+                        disabled={busy || !profilesState.activeProfileId}
+                        >{text.save}</button
+                    >
+                {/if}
+                <button
+                    type="button"
+                    onclick={() => void run(create)}
+                    disabled={busy}>{text.create}</button
+                >
+                <button
+                    type="button"
+                    class="danger"
+                    onclick={() => void run(remove)}
+                    disabled={busy || !canDelete}>{text.delete}</button
+                >
+            </div>
+            {#if scopeControl}
+                <div class="scope-control">{@render scopeControl()}</div>
+            {/if}
         {/if}
-    {/if}
-    {#if error}<p class="error" role="alert">{text.error}</p>{/if}
-</section>
+        {#if error}<p class="error" role="alert">{text.error}</p>{/if}
+    </section>
+{/if}
 
 <style>
     .profile-bar {
@@ -308,5 +392,64 @@
         border-radius: 0.5rem;
         background: #fffbeb;
         color: #78350f;
+    }
+    .panel {
+        padding: 1.25rem;
+        border-color: var(--theme-panel-card-border);
+        background: var(--theme-panel-card-bg);
+        color: var(--theme-panel-text);
+        font-size: 1rem;
+    }
+    .panel h2 {
+        font-size: 1.125rem;
+    }
+    .panel p {
+        font-size: 0.875rem;
+        color: var(--theme-panel-text-muted);
+    }
+    .panel select,
+    .panel button {
+        border-color: var(--theme-panel-card-border);
+        background: var(--theme-panel-field-bg);
+        color: var(--theme-panel-field-text);
+        font-size: 1rem;
+    }
+    .panel option {
+        background: var(--theme-panel-field-bg);
+        color: var(--theme-panel-field-text);
+    }
+    .panel .primary {
+        background: var(--theme-brand-primary);
+        color: var(--theme-text-on-brand);
+    }
+    .panel .notice {
+        border-color: var(--theme-panel-card-border);
+        background: var(--theme-panel-field-bg);
+        color: var(--theme-panel-field-text);
+    }
+    .panel .scope-control {
+        margin-block-start: 0.5rem;
+        padding-block-start: 0;
+        border: 0;
+    }
+    .selection-panel {
+        padding: 0.75rem 1.25rem;
+    }
+    .active-profile {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .active-profile label {
+        flex-shrink: 0;
+    }
+    .active-profile select {
+        flex: 1;
+        min-width: 0;
+        margin: 0;
+    }
+    .management-panel .toggle {
+        justify-content: space-between;
+        margin-block: 0.5rem;
     }
 </style>

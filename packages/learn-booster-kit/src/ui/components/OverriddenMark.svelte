@@ -25,7 +25,7 @@
     }
 </script>
 
-<div class="field" class:overridden dir="rtl">
+<div class={["field", { overridden }]} dir="rtl">
     {@render children()}
     {#if overridden}
         <div class="mark">
@@ -41,12 +41,13 @@
 
 <style>
     .field {
-        padding-inline-start: 0.75rem;
+        padding-inline-start: 0;
         border-inline-start: 3px solid transparent;
         border-radius: 0.5rem;
     }
     .field.overridden {
-        border-inline-start-color: var(--theme-brand-primary, #4f46e5);
+        padding-inline-start: 0.75rem;
+        border-inline-start-color: var(--theme-panel-text-muted);
     }
     .mark {
         display: flex;
@@ -54,23 +55,25 @@
         flex-wrap: wrap;
         gap: 0.5rem;
         margin-block-start: 0.5rem;
-        color: var(--theme-brand-primary, #4f46e5);
+        color: var(--theme-panel-text-muted);
         font-size: 0.875rem;
     }
     .dot {
         width: 0.5rem;
         height: 0.5rem;
         border-radius: 50%;
-        background: currentColor;
+        background: var(--theme-brand-primary);
     }
     button {
         min-height: 44px;
         padding: 0.4rem 0.75rem;
         border: 1px solid currentColor;
         border-radius: 0.5rem;
+        background: var(--theme-panel-field-bg);
+        color: var(--theme-panel-field-text);
         cursor: pointer;
     }
     [role="alert"] {
-        color: #b91c1c;
+        color: var(--theme-panel-text);
     }
 </style>

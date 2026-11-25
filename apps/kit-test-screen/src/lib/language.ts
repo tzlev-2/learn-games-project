@@ -1,4 +1,8 @@
 export const language = {
+	themes: {
+		slate: 'Slate (Light)',
+		passcode: 'Passcode (Dark)'
+	},
 	settingsDemo: {
 		link: 'דוגמת מסך הגדרות',
 		title: 'הגדרות המשחק לדוגמה',

@@ -1,9 +1,5 @@
 <script lang="ts">
-    import type {
-        AppListItem,
-        Config,
-        SettingsController,
-    } from "../../types";
+    import type { AppListItem, Config, SettingsController } from "../../types";
 
     import { onMount } from "svelte";
     import * as configManager from "../../lib/config/config-manager";
@@ -151,7 +147,9 @@
     onMount(() => {
         const removeListener = addProfilesListener((next) => {
             if (next.activeProfileId !== profilesState.activeProfileId) {
-                const active = next.activeProfileId ? next.profiles[next.activeProfileId] : undefined;
+                const active = next.activeProfileId
+                    ? next.profiles[next.activeProfileId]
+                    : undefined;
                 if (active) applyProfileConfig(active.boosterConfig);
             }
             profilesState = next;
@@ -177,12 +175,17 @@
 
         const configSnapshot = getProfileConfig();
         if (embedded && configsEqual(configSnapshot, failedSave)) {
-            if (!configsEqual(profilesState.dirtyBoosterConfig, configSnapshot)) {
+            if (
+                !configsEqual(profilesState.dirtyBoosterConfig, configSnapshot)
+            ) {
                 markDirtyBoosterConfig(configSnapshot);
             }
             return;
         }
-        const isSame = configsEqual(configSnapshot, activeProfile.boosterConfig);
+        const isSame = configsEqual(
+            configSnapshot,
+            activeProfile.boosterConfig,
+        );
 
         if (isSame) {
             if (profilesState.dirtyBoosterConfig) {
@@ -202,7 +205,11 @@
         if (!embedded) return;
         const snapshot = getProfileConfig();
         const activeProfileId = profilesState.activeProfileId;
-        if (configsEqual(snapshot, config) || configsEqual(snapshot, failedSave)) return;
+        if (
+            configsEqual(snapshot, config) ||
+            configsEqual(snapshot, failedSave)
+        )
+            return;
         const timeout = setTimeout(() => {
             if (getProfilesState().activeProfileId === activeProfileId) {
                 void persistConfig(false);
@@ -260,10 +267,9 @@
             return false;
         }
     }
-
 </script>
 
-<div class="space-y-4 md:space-y-6">
+<div class={["settings-form space-y-4 md:space-y-6", { embedded }]}>
     {#if !embedded}
         <h2 class="text-xl md:text-2xl font-bold text-right">הגדרות</h2>
     {/if}
@@ -274,6 +280,7 @@
                 getConfig={getProfileConfig}
                 onApply={applyProfileConfig}
                 onSave={saveProfile}
+                panel={embedded}
             />
         {/if}
 
@@ -417,12 +424,12 @@
 
                 {#await appItemPromise then item}
                     <div
-                        class="flex flex-row-reverse items-center justify-between gap-3 rounded-lg border border-dashed border-gray-200 bg-gray-50/70 p-3"
+                        class="app-preview flex flex-row-reverse items-center justify-between gap-3 rounded-lg border border-dashed border-gray-200 bg-gray-50/70 p-3"
                     >
                         {#if item}
                             <div class="flex-1 text-right">
                                 <p
-                                    class="text-sm font-medium text-gray-800"
+                                    class="app-name text-sm font-medium text-gray-800"
                                     dir="auto"
                                 >
                                     {item.label}
@@ -435,13 +442,13 @@
                             <img
                                 src={"data:image/png;base64," + item?.icon}
                                 alt={item?.label + " icon"}
-                                class="shrink-0 rounded-2xl border border-gray-200 bg-white
+                                class="app-icon shrink-0 rounded-2xl border border-gray-200 bg-white
                 object-contain p-1 w-20 h-20 md:w-24 md:h-24"
                             />
                         {:else}
                             <div class="flex-1 text-right">
                                 <p
-                                    class="text-sm font-medium text-gray-800"
+                                    class="app-name text-sm font-medium text-gray-800"
                                     dir="auto"
                                 >
                                     אפליקציה לא ידועה
@@ -452,13 +459,13 @@
                                 </p>
                             </div>
                             <div
-                                class="shrink-0 rounded-2xl border border-gray-200 bg-white p-1 w-20 h-20 md:w-24 md:h-24"
+                                class="app-icon shrink-0 rounded-2xl border border-gray-200 bg-white p-1 w-20 h-20 md:w-24 md:h-24"
                                 role="img"
                                 aria-label="אפליקציה לא ידועה"
                             >
                                 <svg
                                     viewBox="0 0 48 48"
-                                    class="h-full w-full text-slate-400"
+                                    class="unknown-icon h-full w-full text-slate-400"
                                     fill="none"
                                     xmlns="http://www.w3.org/2000/svg"
                                 >
@@ -533,7 +540,7 @@
                 {/if}
 
                 <div
-                    class="flex flex-col gap-2 rounded-lg bg-gray-50/80 p-3 text-right"
+                    class="progress-option flex flex-col gap-2 rounded-lg bg-gray-50/80 p-3 text-right"
                 >
                     <div
                         class="flex items-center justify-end gap-2 flex-row-reverse"
@@ -557,15 +564,16 @@
 
         <!-- טיימר אוברליי -->
         {#if !isNotFullyKiosk}
-        <section class="settings-card space-y-3 text-right">
-            <div class="space-y-1">
-                <p class="font-medium text-base">טיימר אוברליי</p>
-                <p class="settings-help-text">
-                    הצגת טיימר ספירה לאחור מעל האפליקציה החיצונית ובחירת מיקומו על המסך.
-                </p>
-            </div>
-            <OverlayTimerSettings />
-        </section>
+            <section class="settings-card space-y-3 text-right">
+                <div class="space-y-1">
+                    <p class="font-medium text-base">טיימר אוברליי</p>
+                    <p class="settings-help-text">
+                        הצגת טיימר ספירה לאחור מעל האפליקציה החיצונית ובחירת
+                        מיקומו על המסך.
+                    </p>
+                </div>
+                <div class="overlay-settings"><OverlayTimerSettings /></div>
+            </section>
         {/if}
 
         <div
@@ -574,7 +582,7 @@
         >
             <button
                 onclick={showVideo}
-                class="w-full px-6 py-3 rounded-lg bg-gray-100 text-gray-800 text-base hover:bg-gray-200 transition-colors touch-manipulation"
+                class="preview-button w-full px-6 py-3 rounded-lg bg-gray-100 text-gray-800 text-base hover:bg-gray-200 transition-colors touch-manipulation"
             >
                 הצגת דוגמה
             </button>
@@ -585,7 +593,7 @@
     </div>
     <div
         dir="ltr"
-        class="text-center settings-card text-slate-500
+        class="version text-center settings-card text-slate-500
              flex flex-row justify-center items-center italic"
     >
         <p>Version: {config.appVersion}</p>
@@ -596,12 +604,16 @@
     </div>
 
     {#if embedded && saveStatus === "error"}
-        <p role="alert">{language.settings.saveError}</p>
+        <p class="save-message" role="alert">{language.settings.saveError}</p>
     {:else if (!embedded || !onSaved) && saveStatus}
         <div
-            class="text-right text-sm"
-            class:text-green-600={saveStatus === "success"}
-            class:text-red-600={saveStatus === "error"}
+            class={[
+                "save-message text-right text-sm",
+                {
+                    "text-green-600": saveStatus === "success",
+                    "text-red-600": saveStatus === "error",
+                },
+            ]}
         >
             {saveStatus === "success"
                 ? "הגדרות נשמרו בהצלחה"
@@ -644,5 +656,105 @@
     }
     .input {
         @apply w-full rounded-lg border-gray-300 p-3 text-right shadow-sm focus:border-blue-500 focus:ring-blue-500;
+    }
+
+    /* רק הטופס המשובץ מקבל את פלטת הפאנל; מסך ההגדרות הוותיק נשאר כפי שהיה. */
+    .embedded {
+        display: grid;
+        gap: 0.75rem;
+        color: var(--theme-panel-text);
+        font-size: 1rem;
+    }
+    .embedded > div {
+        margin-block: 0;
+    }
+    .embedded > div:first-of-type {
+        display: grid;
+        gap: 0.75rem;
+    }
+    .embedded .settings-card {
+        margin-block: 0;
+        padding: 1.25rem;
+        border: 1px solid var(--theme-panel-card-border);
+        border-radius: 1rem;
+        background: var(--theme-panel-card-bg);
+        color: var(--theme-panel-text);
+        box-shadow: none;
+    }
+    .embedded label,
+    .embedded .settings-card > div > p.font-medium {
+        font-size: 1.125rem;
+        font-weight: 700;
+    }
+    .embedded .settings-help-text {
+        color: var(--theme-panel-text-muted);
+        font-size: 0.875rem;
+    }
+    .embedded input:not([type="checkbox"]),
+    .embedded select {
+        border: 1px solid var(--theme-panel-card-border);
+        background: var(--theme-panel-field-bg);
+        color: var(--theme-panel-field-text);
+        font-size: 1rem;
+    }
+    .embedded input::placeholder {
+        color: var(--theme-panel-text-muted);
+        opacity: 1;
+    }
+    .embedded input {
+        accent-color: var(--theme-brand-primary);
+        border-color: var(--theme-panel-card-border);
+    }
+    .embedded input[type="checkbox"] {
+        color: var(--theme-brand-primary);
+    }
+    .embedded input:focus-visible,
+    .embedded select:focus-visible,
+    .embedded button:focus-visible {
+        outline: 2px solid var(--theme-brand-primary);
+        outline-offset: 2px;
+        border-color: var(--theme-brand-primary);
+        box-shadow: none;
+    }
+    .embedded .app-preview,
+    .embedded .progress-option,
+    .embedded .app-icon,
+    .embedded .preview-button {
+        border-color: var(--theme-panel-card-border);
+        background: var(--theme-panel-field-bg);
+        color: var(--theme-panel-field-text);
+    }
+    .embedded .app-name {
+        color: var(--theme-panel-text);
+    }
+    .embedded .unknown-icon {
+        color: var(--theme-panel-text-muted);
+    }
+    .embedded .unknown-icon rect {
+        fill: var(--theme-panel-field-bg);
+    }
+    .embedded .version,
+    .embedded .save-message {
+        color: var(--theme-panel-text-muted);
+        font-size: 0.875rem;
+    }
+    .embedded .save-message[role="alert"] {
+        color: var(--theme-panel-text);
+    }
+    .embedded .overlay-settings :global(.text-slate-700) {
+        color: var(--theme-panel-text);
+    }
+    .embedded .overlay-settings :global(.text-slate-500),
+    .embedded .overlay-settings :global(.text-slate-400) {
+        color: var(--theme-panel-text-muted);
+    }
+    .embedded
+        .overlay-settings
+        :global(button:not(.size-btn):not(.action-btn)) {
+        background: var(--theme-panel-field-bg);
+        color: var(--theme-panel-field-text);
+    }
+    .embedded .overlay-settings :global(input) {
+        accent-color: var(--theme-brand-primary);
     }
 </style>

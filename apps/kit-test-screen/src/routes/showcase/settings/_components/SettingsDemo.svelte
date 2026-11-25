@@ -65,18 +65,15 @@
 		{onBack}
 		{settings}
 		config={$configStore}
-		handleShowVideo={(config) =>
-			void boosterService.triggerReward(undefined, config)}
+		handleShowVideo={(config) => void boosterService.triggerReward(undefined, config)}
 	>
 		{#snippet gameSection(scope: GameSettingsScope)}
-			<p>{text.description}</p>
+			<p class="demo-description">{text.description}</p>
 			<SettingsDemoFields {settings} {scope} {general} {effective} />
 			<aside aria-live="polite">
 				<h3>{text.effective}</h3>
 				<p>
-					{text.cooldownValue(effective.cooldownMs)} · {text.choicesValue(
-						effective.choices
-					)}
+					{text.cooldownValue(effective.cooldownMs)} · {text.choicesValue(effective.choices)}
 				</p>
 			</aside>
 		{/snippet}
@@ -89,9 +86,17 @@
 		text-align: center;
 		direction: rtl;
 	}
+	.demo-description {
+		margin-block-end: 0.75rem;
+		font-size: 0.875rem;
+		color: var(--theme-panel-text-muted);
+	}
 	aside {
 		padding: 0.75rem;
-		background: #f1f5f9;
+		background: var(--theme-panel-card-bg);
+		border: 1px solid var(--theme-panel-card-border);
+		color: var(--theme-panel-text);
+		margin-block-start: 0.75rem;
 		border-radius: 0.5rem;
 	}
 	h3 {
@@ -99,6 +104,6 @@
 		margin-block-end: 0.25rem;
 	}
 	[role='alert'] {
-		color: #b91c1c;
+		color: var(--theme-panel-text);
 	}
 </style>

@@ -150,6 +150,10 @@
 <button type="button" class="reset" onclick={reset}>{text.reset}</button>
 
 <style>
+  .fields {
+    display: grid;
+    gap: 0.75rem;
+  }
   input {
     accent-color: var(--theme-brand-primary, #4f46e5);
   }
@@ -165,21 +169,23 @@
   }
   input[type="number"] {
     padding: 0.5rem;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--theme-panel-card-border);
     border-radius: 0.5rem;
-    background: #ffffff;
-    color: inherit;
+    background: var(--theme-panel-field-bg);
+    color: var(--theme-panel-field-text);
+    font-size: 1rem;
   }
   .reset {
     min-height: 48px;
     padding: 0.75rem 1rem;
     margin-block-start: 1rem;
-    border: 1px solid #b91c1c;
+    border: 1px solid var(--theme-panel-card-border);
+    background: var(--theme-panel-card-bg);
     border-radius: 0.5rem;
     cursor: pointer;
-    color: #b91c1c;
+    color: var(--theme-panel-text);
   }
   [role="alert"] {
-    color: #b91c1c;
+    color: var(--theme-panel-text);
   }
 </style>

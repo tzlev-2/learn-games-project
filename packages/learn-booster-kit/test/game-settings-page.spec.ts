@@ -156,6 +156,38 @@ describe("GameSettingsPage", () => {
         expect(document.querySelector(".profile-bar input")).not.toBeNull();
     });
 
+    // BRIEF.md §S3.2.3: בחירת פרופיל ו-scope בראש; ניהול רק בסוף כדי שההגדרות יתחילו מיד.
+    it("keeps management last and only shows the slim profile selector when enabled", async () => {
+        renderPage();
+        const panel = document.querySelector(".settings-panel")!;
+        const management = document.querySelector(".management-panel")!;
+        expect(panel.lastElementChild).toBe(management);
+        expect(document.querySelector(".selection-panel")).toBeNull();
+        expect(
+            management.querySelector('input[type="checkbox"]'),
+        ).not.toBeNull();
+        expect(management.querySelector("button")).toBeNull();
+        expect(document.querySelector("header h1")?.textContent).toContain(
+            settingsText.title,
+        );
+        expect(
+            document.querySelector("header")?.classList.contains("card"),
+        ).toBe(false);
+        toggleProfiles(true);
+        await settle();
+        const selection = document.querySelector(".selection-panel")!;
+        expect(panel.children[1]).toBe(selection);
+        expect(selection.querySelector("select")).not.toBeNull();
+        expect(selection.querySelector('[role="radiogroup"]')).not.toBeNull();
+        expect(selection.querySelector('input[type="checkbox"]')).toBeNull();
+        expect(selection.textContent).not.toContain(text.create);
+        expect(selection.textContent).not.toContain(text.delete);
+        expect(management.contains(button(text.create))).toBe(true);
+        expect(management.contains(button(text.delete))).toBe(true);
+        expect(panel.lastElementChild).toBe(management);
+        expect(document.querySelector(".game-section .card")).toBeNull();
+    });
+
     it("resets one field and all overrides without changing general settings", async () => {
         const settings = renderPage();
         toggleProfiles(true);
@@ -552,6 +584,8 @@ describe("legacy Settings and SettingsForm profile controls", () => {
         });
         flushSync();
         expect(document.querySelectorAll(".profile-bar")).toHaveLength(1);
+        expect(document.querySelector(".settings-form.embedded")).toBeNull();
+        expect(document.querySelector(".profile-bar.panel")).toBeNull();
         changeInput("#displayTime", "37");
         expect(
             profiles.getProfilesState().dirtyBoosterConfig
@@ -647,6 +681,10 @@ describe("legacy Settings and SettingsForm profile controls", () => {
         expect(profiles.getProfilesState().activeProfileId).toBe(firstId);
         expect(button(text.apply)).toBeDefined();
         expect(button(text.save)).toBeDefined();
+        expect(
+            document.querySelector(".settings-form.embedded"),
+        ).not.toBeNull();
+        expect(document.querySelector(".profile-bar.panel")).not.toBeNull();
     });
 
     it("supports showProfiles=false without changing the booster fields", () => {
