@@ -25,8 +25,8 @@
 	--theme-border-strong: #94a3b8;
 
 	/* Brand */
-	--theme-brand-primary: #1e293b;
-	--theme-brand-primary-hover: #0f172a;
+	--theme-brand-primary: #60a5fa;
+	--theme-brand-primary-hover: #3b82f6;
 	--theme-brand-secondary: #4ade80;
 	--theme-brand-secondary-hover: #22c55e;
 
@@ -34,7 +34,7 @@
 	--theme-text-primary: #0f172a;
 	--theme-text-secondary: #475569;
 	--theme-text-tertiary: #94a3b8;
-	--theme-text-on-brand: #ffffff;
+	--theme-text-on-brand: #0f172a;
 	--theme-text-on-feedback: #ffffff;
 	--theme-text-on-header: #ffffff;
 	--theme-accent-frame: transparent;

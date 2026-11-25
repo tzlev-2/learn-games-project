@@ -113,7 +113,7 @@
 <div class="game-settings-page" dir="rtl">
     <div class="settings-panel">
         <header>
-            <h1><span aria-hidden="true">⚙️</span> {text.title}</h1>
+            <h1>{text.title}</h1>
             <p class="saved" role="status">{saved ? text.saved : ""}</p>
             <button type="button" class="back" onclick={onBack}
                 >{text.back}</button

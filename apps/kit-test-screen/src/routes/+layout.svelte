@@ -86,7 +86,7 @@
 		gap: 1rem;
 	}
 	.links a {
-		color: var(--theme-brand-primary, #1e40af);
+		color: var(--theme-text-primary, #0f172a);
 		text-decoration: none;
 		font-weight: 600;
 	}
