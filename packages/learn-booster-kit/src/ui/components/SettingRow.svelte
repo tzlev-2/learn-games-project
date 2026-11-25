@@ -22,7 +22,7 @@
 </script>
 
 {#snippet content()}
-    <div class="row-content" class:wide>
+    <div class={["row-content", { wide }]}>
         <div class="copy">
             <strong id={`${id}-label`}>{label}</strong>
             {#if description}<p id={`${id}-description`}>{description}</p>{/if}
@@ -46,9 +46,13 @@
 
 <style>
     .setting-row {
-        padding-block: 1rem;
-        border-block-end: 1px solid #e2e8f0;
-        color: #0f172a;
+        box-sizing: border-box;
+        padding: 1.25rem;
+        border: 1px solid var(--theme-panel-card-border);
+        border-radius: 1rem;
+        background: var(--theme-panel-card-bg);
+        color: var(--theme-panel-text);
+        font-size: 1rem;
         direction: rtl;
     }
     .row-content {
@@ -61,12 +65,13 @@
         min-width: 0;
     }
     strong {
-        font-weight: 600;
+        font-size: 1.125rem;
+        font-weight: 700;
     }
     p {
         margin-block: 0.35rem 0;
         font-size: 0.875rem;
-        color: #475569;
+        color: var(--theme-panel-text-muted);
     }
     .control {
         flex: 0 0 auto;

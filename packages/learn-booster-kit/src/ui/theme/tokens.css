@@ -62,3 +62,19 @@
 	--font-display: var(--theme-font-display);
 	--font-body: var(--theme-font-body);
 }
+
+/* שני גווני פאנל קבועים; כל ערכה בוחרת גוון לכל ששת התפקידים יחד. */
+:root {
+	--panel-dark-card-bg: rgba(255, 255, 255, 0.10);
+	--panel-dark-card-border: rgba(255, 255, 255, 0.10);
+	--panel-dark-text: #ffffff;
+	--panel-dark-text-muted: #cbd5e1;
+	--panel-dark-field-bg: rgba(0, 0, 0, 0.20);
+	--panel-dark-field-text: #ffffff;
+	--panel-light-card-bg: rgba(255, 255, 255, 0.70);
+	--panel-light-card-border: rgba(15, 23, 42, 0.10);
+	--panel-light-text: #0f172a;
+	--panel-light-text-muted: #475569;
+	--panel-light-field-bg: #ffffff;
+	--panel-light-field-text: #334155;
+}

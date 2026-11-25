@@ -49,6 +49,7 @@
   p {
     margin-block: 0.5rem;
     font-size: 0.875rem;
+    color: var(--theme-panel-text-muted);
   }
   .editor {
     display: flex;
@@ -60,22 +61,28 @@
     min-width: 0;
     min-height: 48px;
     padding: 0.5rem;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--theme-panel-card-border);
     border-radius: 0.5rem;
-    background: #ffffff;
-    color: inherit;
-    font-size: 1.5rem;
+    background: var(--theme-panel-field-bg);
+    color: var(--theme-panel-field-text);
+    font-size: 1rem;
     text-align: center;
     letter-spacing: 0.2em;
+  }
+  input::placeholder {
+    color: var(--theme-panel-text-muted);
+    opacity: 1;
   }
   button {
     min-width: 48px;
     min-height: 48px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--theme-panel-card-border);
     border-radius: 0.5rem;
+    background: var(--theme-panel-field-bg);
+    color: var(--theme-panel-field-text);
     cursor: pointer;
   }
   [role="alert"] {
-    color: #b91c1c;
+    color: var(--theme-panel-text);
   }
 </style>

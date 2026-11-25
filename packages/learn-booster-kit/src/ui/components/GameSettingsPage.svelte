@@ -112,10 +112,10 @@
 
 <div class="game-settings-page" dir="rtl">
     <div class="settings-panel">
-        <header class="card">
-            <h1>{title}</h1>
+        <header>
+            <h1><span aria-hidden="true">⚙️</span> {text.title}</h1>
             <p class="saved" role="status">{saved ? text.saved : ""}</p>
-            <button type="button" class="primary" onclick={onBack}
+            <button type="button" class="back" onclick={onBack}
                 >{text.back}</button
             >
         </header>
@@ -140,34 +140,40 @@
                     />
                 </div>
             {/snippet}
+            {#snippet layout(selection: Snippet, management: Snippet)}
+                {@render selection()}
+                <section class="game-section" aria-label={title}>
+                    {#if overrides.current.length > 0}
+                        <button
+                            type="button"
+                            class="clear-all"
+                            onclick={clearAll}>{text.clearAll}</button
+                        >
+                    {/if}
+                    {#if resetError}<p role="alert">{text.resetError}</p>{/if}
+                    {@render gameSection(scope)}
+                </section>
+                <section
+                    class="booster-section"
+                    aria-labelledby={`${id}-booster`}
+                >
+                    <h2 id={`${id}-booster`}>
+                        {profilesState.uiEnabled
+                            ? text.boosterProfile(activeName)
+                            : text.booster}
+                    </h2>
+                    <SettingsForm
+                        bind:this={form}
+                        config={boosterConfig}
+                        {handleShowVideo}
+                        embedded={true}
+                        showProfiles={false}
+                        onSaved={showSaved}
+                    />
+                </section>
+                {@render management()}
+            {/snippet}
         </ProfileBar>
-        <section class="card" aria-labelledby={`${id}-game`}>
-            <div class="section-heading">
-                <h2 id={`${id}-game`}>{text.game}</h2>
-                {#if overrides.current.length > 0}
-                    <button type="button" onclick={clearAll}
-                        >{text.clearAll}</button
-                    >
-                {/if}
-            </div>
-            {#if resetError}<p role="alert">{text.resetError}</p>{/if}
-            {@render gameSection(scope)}
-        </section>
-        <section class="booster-section" aria-labelledby={`${id}-booster`}>
-            <h2 id={`${id}-booster`} class="card">
-                {profilesState.uiEnabled
-                    ? text.boosterProfile(activeName)
-                    : text.booster}
-            </h2>
-            <SettingsForm
-                bind:this={form}
-                config={boosterConfig}
-                {handleShowVideo}
-                embedded={true}
-                showProfiles={false}
-                onSaved={showSaved}
-            />
-        </section>
     </div>
 </div>
 
@@ -179,97 +185,91 @@
         min-height: 0;
         overflow-y: auto;
         overscroll-behavior: contain;
-        padding: 1.5rem;
-        color: #0f172a;
+        padding: 2rem;
+        color: var(--theme-panel-text);
         font-family: var(--theme-font-body, sans-serif);
+        font-size: 1rem;
     }
     .settings-panel {
         width: 100%;
-        max-width: 42rem;
+        max-width: 36rem;
         margin-inline: auto;
         display: grid;
         align-content: start;
-        gap: 1rem;
+        gap: 0.75rem;
     }
-    .card,
-    .settings-panel :global(.profile-bar),
-    .booster-section :global(.settings-card) {
-        box-sizing: border-box;
-        padding: 1rem;
-        border: 1px solid #e2e8f0;
-        border-radius: 1rem;
-        background: #ffffff;
-        box-shadow: 0 2px 8px #0f172a0d;
-        color: #0f172a;
-    }
-    header,
-    .section-heading {
+    header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        flex-wrap: wrap;
         gap: 0.75rem;
+        margin-block-end: 0.75rem;
     }
     h1 {
         margin: 0;
-        font-size: 1.5rem;
+        font-size: 28px;
         font-weight: 700;
+        color: var(--theme-panel-text);
     }
     h2 {
-        margin: 0;
+        margin-block: 0.5rem 0.75rem;
         font-size: 1.125rem;
         font-weight: 700;
     }
     .scope-control p {
-        margin-block: 0 0.75rem;
-        color: #475569;
+        margin-block: 0 0.5rem;
+        font-size: 0.875rem;
+        color: var(--theme-panel-text-muted);
     }
     .scope-control :global([role="radiogroup"]) {
         display: flex;
-        background: #f1f5f9;
+        background: var(--theme-panel-field-bg);
         border-radius: 0.5rem;
         padding: 0.25rem;
     }
     .scope-control :global([role="radio"]) {
         flex: 1;
-        min-height: 48px;
+        min-height: 44px;
         padding: 0.5rem;
         border: 0;
         border-radius: 0.4rem;
         background: transparent;
-        color: #475569;
+        color: var(--theme-panel-field-text);
+        font-size: 1rem;
         cursor: pointer;
     }
     .scope-control :global([aria-checked="true"]) {
-        background: var(--theme-brand-primary, #4f46e5);
-        color: #ffffff;
+        background: var(--theme-brand-primary);
+        color: var(--theme-text-on-brand);
     }
     .saved {
+        flex: 1;
         margin: 0;
         font-size: 0.875rem;
-        color: #475569;
+        color: var(--theme-panel-text-muted);
     }
     button {
-        min-height: 48px;
+        min-height: 44px;
         padding: 0.5rem 1rem;
-        border: 1px solid #e2e8f0;
-        border-radius: 0.5rem;
-        background: #ffffff;
+        border: 1px solid var(--theme-panel-card-border);
+        border-radius: 0.75rem;
+        background: var(--theme-panel-card-bg);
+        color: var(--theme-panel-text);
+        font-size: 1rem;
         cursor: pointer;
     }
-    .primary {
-        background: var(--theme-brand-primary, #4f46e5);
-        color: #ffffff;
+    .clear-all {
+        margin-block-end: 0.75rem;
     }
     .booster-section :global(input) {
-        accent-color: var(--theme-brand-primary, #4f46e5);
+        accent-color: var(--theme-brand-primary);
     }
     [role="alert"] {
-        color: #b91c1c;
+        color: var(--theme-panel-text);
     }
     @media (max-width: 600px) {
         .game-settings-page {
-            padding: 0.75rem;
+            padding: 1rem;
         }
     }
 </style>
