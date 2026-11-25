@@ -6,6 +6,59 @@
 
 ---
 
+## 2026-11-25 14:49
+
+### פיילוט תרגול סיסמה תחת `/games/passcode/` בפורטל
+
+נוסף מסלול בנייה נפרד לתרגול סיסמה תחת הדומיין המשותף. בדיקות הקוד והבניות
+עברו; התוצר מוכן לפריסה ל-lg-passcode ולתצוגה המקדימה של הפורטל.
+
+#### מה בוצע?
+
+- **הפורטל (`apps/main`)** — קישור תרגול סיסמה ב-`AVAILABLE_GAMES` הוא
+  `/games/passcode/`. ‏`hooks.server.ts` מתווך בקשות דרך `lib/server/game-proxy.ts`,
+  עם טבלת יעדים שבה רשום רק `passcode → https://lg-passcode.pages.dev`.
+  נתיבים אחרים ממשיכים ל-`resolve` הרגיל. עמוד השורש מצהיר `prerender = false`;
+  לא נוסף עמוד catch-all שמציג את הפורטל בנתיבי המשחקים.
+- **התיווך** — נשמרים הנתיב, השאילתה המקורית, השיטה, הגוף, הסטטוס, כותרות התשובה
+  וה-stream שלה. קריאת `request.url` שומרת גם `__data.json` ופרמטרים ש-SvelteKit
+  עשוי להסיר מ-`event.url`. הפניות נשלפות עם `redirect: 'manual'` ו-`Location`
+  של שרת המשחק מתורגם למקור הציבורי. ‏`Origin` של בקשה מאותו מקור מתורגם לשרת
+  המשחק לצורך בדיקת CSRF שלו; מקור חיצוני נשמר.
+- **המשחק (`apps/passcode-practice`)** — `PASSCODE_PILOT=1` קובע
+  `kit.paths.base = '/games/passcode'`; ‏`paths.relative = false` נותן כתובות נכסים
+  מפורשות תחת ה-base. בית, AdminGate להגדרות וחזרה מההגדרות משתמשים ב-`$app/paths`.
+  כתובת הבית מסתיימת בלוכסן. נוסף `static/favicon.svg` במקום הפניה ל-PNG שאינו קיים.
+- **בנייה ופריסה** — `bun run build` ו-`deploy` הישנים נשארו לבנייה לשורש ולפרויקט
+  `passcode-practice`. ‏`build:pilot` בונה בעזרת `wrangler.pilot.jsonc` לתיקייה
+  `.svelte-kit/cloudflare-pilot`; ‏`deploy:pilot` מכוון במפורש ל-`lg-passcode`, ענף
+  `main`, בחשבון Avibr. בפורטל נוסף `deploy:pilot` ל-preview בשם `games-pilot`
+  באותו חשבון. פריסת הפורטל לייצור וכל מיזוג נשארו בשער אישור נפרד.
+
+#### ממצא שמירה — ממתין להחלטת אבי
+
+`apps/passcode-practice/src/lib/stores/settings.svelte.ts` ממשיך לשמור את הגדרות
+המשחק במפתח הפרטי `passcode-practice-settings`. אין בו שימוש ב-`gameSettings`
+של הפרופיל. הקיט מאתחל את `learn-booster-profiles:v1` דרך `boosterService.init`,
+אך זה אינו הופך את הגדרות המשחק להגדרות פרופיל. מנגנון השמירה לא השתנה;
+העברתו לפרופיל דורשת משימה נפרדת.
+
+#### בדיקות ומגבלות
+
+- `cd apps/main` ואז `bun run test:proxy` — בדיקות ללא תלות בהתקנה, עם `node:test`:
+  רשימה מותרת, `__data.json`, ‏`_app`, גוף בינארי, כותרות, הפניות, ‏`HEAD`, ‏`304`, ‏`404`.
+- `bun run check` עבר בשני היישומים וגם עם `PASSCODE_PILOT=1`; אין שגיאות.
+  עשר אזהרות בקיט קיימות גם בבדיקת הבסיס ונשארו כפי שהיו.
+- build עבר ל-main ול-passcode בשורש ובפיילוט. אומת מבנה הנכסים תחת
+  `games/passcode/`; קובץ `_routes.json` של הפורטל אינו מחריג את נתיבי המשחקים.
+- סקירת קוד עצמאית ב-Cursor אישרה את השינוי והריצה את בדיקות התיווך בהצלחה.
+  בדיקה חיה תתבצע על preview; כלי Svelte MCP לא היו זמינים בסשן.
+- בקיט נותרו כתובות שורש ייעודיות ל-Fully Kiosk (`/overlay-timer`) ולרשימת יישומי
+  הדגמה (`/example-app-list.json`). בתרגול סיסמה אין route או נכס כזה גם בבנייה הישנה;
+  התאמתם למשחקים נוספים תדרוש API בקיט שמקבל base או כתובת מהמשחק.
+
+---
+
 ## 2026-11-25 11:56
 
 ### כפתור ההגדרות אחיד בכל המשחקים — `IconButton variant="floating"`

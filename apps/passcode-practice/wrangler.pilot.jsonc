@@ -1,0 +1,8 @@
+{
+  "$schema": "https://unpkg.com/wrangler@latest/config-schema.json",
+  "name": "lg-passcode",
+  "account_id": "a2681969546c8fbafdc45737bd367a6f",
+  "pages_build_output_dir": ".svelte-kit/cloudflare-pilot",
+  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_date": "2025-09-01"
+}

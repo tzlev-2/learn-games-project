@@ -13,9 +13,11 @@
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
 		"test:unit": "vitest",
+		"test:proxy": "bun test tests/game-proxy.test.ts",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test",
-		"deploy": "bun run build && bunx wrangler pages deploy .svelte-kit/cloudflare --project-name learn-games --branch main --commit-dirty=true"
+		"deploy": "bun run build && bunx wrangler pages deploy .svelte-kit/cloudflare --project-name learn-games --branch main --commit-dirty=true",
+		"deploy:pilot": "bun run build && CLOUDFLARE_ACCOUNT_ID=a2681969546c8fbafdc45737bd367a6f bunx wrangler pages deploy .svelte-kit/cloudflare --project-name learn-games --branch games-pilot --commit-dirty=true"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.4.0",

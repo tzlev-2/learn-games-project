@@ -1,6 +1,7 @@
 <script lang="ts">
   import "./app.css";
   import { goto } from "$app/navigation";
+  import { base } from "$app/paths";
   import { settings } from "$lib/stores/settings.svelte";
   import { gameState } from "$lib/stores/game-state.svelte";
   import { language } from "$lib/services/language";
@@ -27,7 +28,7 @@
 
   function handleHome() {
     gameState.reset();
-    goto("/");
+    goto(`${base}/`);
   }
 </script>
 
@@ -59,7 +60,7 @@
 
         {#snippet rightActions()}
           <!-- כפתור הגדרות מוגן (AdminGate חוסם תלמידים) -->
-          <AdminGate onUnlock={() => goto("/settings")}>
+          <AdminGate onUnlock={() => goto(`${base}/settings`)}>
             <IconButton label={language.settingsLabel} variant="floating">
               {#snippet icon()}<SettingsIcon size={22} />{/snippet}
             </IconButton>

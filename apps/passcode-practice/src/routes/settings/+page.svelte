@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
+  import { base } from "$app/paths";
   import { slide } from "svelte/transition";
   import { settings } from "$lib/stores/settings.svelte";
   import {
@@ -47,7 +48,7 @@
   });
 
   function handleBack() {
-    goto("/");
+    goto(`${base}/`);
   }
 
   async function updateConfig(newConfig: Config) {

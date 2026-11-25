@@ -54,7 +54,7 @@ export const AVAILABLE_GAMES: AvailableGame[] = [
 		id: 'passcodePractice',
 		category: 'lifeSkills',
 		status: 'available',
-		href: 'https://passcode-practice.pages.dev',
+		href: '/games/passcode/',
 		devHref: 'https://dev.passcode-practice.pages.dev',
 		appPath: 'apps/passcode-practice',
 		icon: '123',
